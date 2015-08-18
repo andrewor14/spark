@@ -26,11 +26,11 @@ object SortUtils {
     val IO_BUF_LEN = 8 * 1024 * 1024
 
     /** size of the buffer, starting at [[address]] */
-    val len: Long = capacity * 100
+    val len: Long = capacity * DaytonaSort.RECORD_SIZE
 
     /** address pointing to a block of memory off heap */
     var address: Long = {
-      val blockSize = capacity * 100
+      val blockSize = capacity * DaytonaSort.RECORD_SIZE
       val blockAddress = UNSAFE.allocateMemory(blockSize)
       blockAddress
     }
@@ -43,15 +43,19 @@ object SortUtils {
       }
     }
 
-    /**
-     * Each chunk should be 512MB
-     */
+
+    // Each chunk should be 512MB
     val CHUNK_SIZE = 512L * 1000 * 1000
+    // Each item in this array represents the starting address of a chunk
     val chunkBegin = new Array[Long](32)
+    // Each item in this array represents the ending address of the corresponding chunk
     val chunkEnds = new Array[Long](32)
     var currentNumChunks = 0
 
-    def currentChunkBaseAddress: Long = chunkBegin(currentNumChunks - 1)
+    def currentChunkBaseAddress: Long = {
+      assert(currentNumChunks > 0, "no chunk allocated yet")
+      chunkBegin(currentNumChunks - 1)
+    }
 
     def allocateNewChunk() {
       chunkBegin(currentNumChunks) = UNSAFE.allocateMemory(CHUNK_SIZE)
@@ -60,7 +64,7 @@ object SortUtils {
     }
 
     def markLastChunkUsage(len: Long) {
-      assert(currentNumChunks > 0)
+      assert(currentNumChunks > 0, "no chunk allocated yet")
       chunkEnds(currentNumChunks - 1) = chunkBegin(currentNumChunks - 1) + len
     }
 

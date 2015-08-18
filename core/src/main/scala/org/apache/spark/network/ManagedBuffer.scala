@@ -43,7 +43,6 @@ import org.apache.spark.util.ByteBufferInputStream
  * In that case, if the buffer is going to be passed around to a different thread, retain/release
  * should be called.
  */
-private[spark]
 abstract class ManagedBuffer {
   // Note that all the methods are defined with parenthesis because their implementations can
   // have side effects (io operations).

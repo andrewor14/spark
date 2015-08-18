@@ -19,6 +19,7 @@ import org.apache.spark.rdd.{ShuffledRDD, RDD}
 * A version of the sort code that uses Unsafe to allocate off-heap blocks.
 */
 object DaytonaSort extends Logging {
+  val RECORD_SIZE = 100
 
   /**
    * A semaphore to control concurrency when reading from disks. Right now we allow only eight
@@ -38,14 +39,13 @@ object DaytonaSort extends Logging {
     val numParts = args(1).toInt
     val replica = args(2).toInt
     val dir = args(3)
+
     val outputDir = dir + "-out"
-
     val sizeInBytes = sizeInGB.toLong * 1000 * 1000 * 1000
-    val numRecords = sizeInBytes / 100
-
     val sc = new SparkContext(new SparkConf().setAppName(
       s"DaytonaSort - $sizeInGB GB - $numParts parts $replica replica - $dir"))
 
+    // Create output dir
     val conf = new org.apache.hadoop.conf.Configuration
     val fs = org.apache.hadoop.fs.FileSystem.get(conf)
     val root = new Path(outputDir)
@@ -53,8 +53,10 @@ object DaytonaSort extends Logging {
       fs.mkdirs(root)
     }
 
-    val shuffled = createMapPartitions(sc, sizeInGB, numParts, dir, replica, pipeline = false)
+    // Read from input data, sort it locally, then shuffle it
+    val shuffled = readSortAndShuffle(sc, sizeInGB, numParts, dir, replica)
 
+    // Merge sorted partitions post-shuffle
     val recordsAfterSort: Long = shuffled.mapPartitionsWithContext { (context, iter) =>
       val part = context.partitionId
       val outputFile = s"$outputDir/part$part.dat"
@@ -173,7 +175,7 @@ object DaytonaSort extends Logging {
       logInfo(s"XXX Reduce: $timeTaken ms to fetch $numShuffleBlocks shuffle blocks ($totalBytesRead bytes) $outputFile")
       println(s"XXX Reduce: $timeTaken ms to fetch $numShuffleBlocks shuffle blocks ($totalBytesRead bytes) $outputFile")
 
-      val numRecords = (totalBytesRead / 100).toInt
+      val numRecords = (totalBytesRead / RECORD_SIZE).toInt
 
       // Sort!!!
       {
@@ -186,7 +188,11 @@ object DaytonaSort extends Logging {
 
       val keys = sortBuffer.keys
 
-      val count: Long = {
+      ///////////////////////////////////////////
+      // Write the sort result to output files //
+      ///////////////////////////////////////////
+
+      val recordsOutput: Long = {
         val startTime = System.currentTimeMillis
 
         logInfo(s"XXX Reduce: writing $numRecords records started $outputFile")
@@ -224,13 +230,18 @@ object DaytonaSort extends Logging {
         println(s"XXX Reduce: writing $numRecords records took $timeTaken ms $outputFile")
         i.toLong
       }
-      Iterator(count)
+
+      assert(recordsOutput == numRecords,
+        "num input records not the same as num output records?")
+
+      Iterator(recordsOutput)
+
     }.reduce(_ + _)
 
     println("total number of records: " + recordsAfterSort)
   }
 
-  def readFileIntoBuffer(inputFile: String, fileSize: Long, sortBuffer: SortBuffer) {
+  private def readFileIntoBuffer(inputFile: String, fileSize: Long, sortBuffer: SortBuffer) {
     logInfo(s"XXX start reading file $inputFile")
     println(s"XXX start reading file $inputFile with size $fileSize")
     val startTime = System.currentTimeMillis()
@@ -264,19 +275,24 @@ object DaytonaSort extends Logging {
     assert(read == fileSize)
   }
 
-  def createMapPartitions(
+  /**
+   * Create a shuffled RDD where each input partition is sorted locally.
+   */
+  private def readSortAndShuffle(
       sc: SparkContext,
       sizeInGB: Int,
       numParts: Int,
       dir: String,
-      replica: Int,
-      pipeline: Boolean)
-  : RDD[(Long, Array[Long])] = {
+      replica: Int): RDD[(Long, Array[Long])] = {
 
     val conf = new Configuration()
     val fs = org.apache.hadoop.fs.FileSystem.get(conf)
     val path = new Path(dir)
     val statuses: RemoteIterator[LocatedFileStatus] = fs.listLocatedStatus(path)
+
+    ////////////////////////////////////////////////////
+    // Find replicated hosts for each input partition //
+    ////////////////////////////////////////////////////
 
     val replicatedHosts = new Array[Seq[String]](numParts)
     val startTime = System.currentTimeMillis()
@@ -300,56 +316,60 @@ object DaytonaSort extends Logging {
     logInfo(s"XXX took $timeTaken ms to get file metadata")
     println(s"XXX took $timeTaken ms to get file metadata")
 
+    ///////////////////////////////////////////////////////
+    // Sample: populate range bounds for our partitioner //
+    ///////////////////////////////////////////////////////
+
     val sizeInBytes = sizeInGB.toLong * 1000 * 1000 * 1000
-    val totalRecords = sizeInBytes / 100
+    val totalRecords = sizeInBytes / RECORD_SIZE
     val recordsPerPartition = math.ceil(totalRecords.toDouble / numParts).toLong
 
-    /////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////
-    // Sample
+    // This is used to determine whether a particular key fits in a partition.
+    // We don't need a range bound for the last partition because we know how many there are.
     val rangeBounds = new Array[Long]((numParts - 1) * 2)
 
     {
       val startTime = System.currentTimeMillis()
       val samplePerPartition = new SparkConf().getInt("spark.samplePerPartition", 79)
-      val numSampleKeys = numParts * samplePerPartition
-      val sampleKeys = new NodeLocalReplicaRDD[Array[Byte]](sc, numParts, replicatedHosts) {
-        override def compute(split: Partition, context: TaskContext) = {
-          val part = split.index
-          val inputFile = s"$dir/part$part.dat"
+      val sampleKeys: Array[Array[Byte]] = {
+        new NodeLocalReplicaRDD[Array[Byte]](sc, numParts, replicatedHosts) {
+          override def compute(split: Partition, context: TaskContext) = {
+            val part = split.index
+            val inputFile = s"$dir/part$part.dat"
 
-          val conf = new Configuration()
-          val fs = org.apache.hadoop.fs.FileSystem.get(conf)
-          val path = new Path(inputFile)
-          val is = fs.open(path, 10)
+            val conf = new Configuration()
+            val fs = org.apache.hadoop.fs.FileSystem.get(conf)
+            val path = new Path(inputFile)
+            val is = fs.open(path, 10)
 
-          val skip = recordsPerPartition / samplePerPartition * 100
+            // Come up with record indices to sample
+            val rand = new java.util.Random(part)
+            val sampleLocs = Array.fill[Long](samplePerPartition)(
+              math.abs(rand.nextLong()) % recordsPerPartition)
+            java.util.Arrays.sort(sampleLocs)
 
-          val rand = new java.util.Random(part)
-          val sampleLocs = Array.fill[Long](samplePerPartition)(
-            math.abs(rand.nextLong()) % recordsPerPartition)
-          java.util.Arrays.sort(sampleLocs)
-
-          val samples = new Array[Array[Byte]](samplePerPartition)
-          var sampleCount = 0
-          while (sampleCount < samplePerPartition) {
-            //is.seek(sampleCount * skip)
-            is.seek(sampleLocs(sampleCount) * 100)
-            // Read the first 10 byte, and save that.
-            val buf = new Array[Byte](10)
-            var read0 = is.read(buf)
-            if (read0 < 10) {
-              read0 += is.read(buf, read0, 10 - read0)
+            // Collect the samples at the record indices we prepared
+            val samples = new Array[Array[Byte]](samplePerPartition)
+            var sampleCount = 0
+            while (sampleCount < samplePerPartition) {
+              is.seek(sampleLocs(sampleCount) * RECORD_SIZE)
+              // Read the first 10 byte, and save that.
+              val buf = new Array[Byte](10)
+              var read0 = is.read(buf)
+              if (read0 < 10) {
+                read0 += is.read(buf, read0, 10 - read0)
+              }
+              assert(read0 == 10, s"read $read0 bytes instead of 10 bytes, sampleCount $sampleCount")
+              samples(sampleCount) = buf
+              sampleCount += 1
             }
-            assert(read0 == 10, s"read $read0 bytes instead of 10 bytes, " +
-              s"sampleCount $sampleCount, skip $skip")
-            samples(sampleCount) = buf
-            sampleCount += 1
-          }
+            assert(sampleCount == samplePerPartition,
+              s"expected number of samples to be $samplePerPartition; actual was $sampleCount")
 
-          samples.iterator
-        }
-      }.collect()
+            samples.iterator
+          }
+        }.collect()
+      }
 
       val timeTaken = System.currentTimeMillis() - startTime
       logInfo(s"XXXX sampling ${sampleKeys.size} keys took $timeTaken ms")
@@ -363,10 +383,12 @@ object DaytonaSort extends Logging {
       var i = 0
       while (i < numParts - 1) {
         val k = sampleKeys((i + 1) * samplePerPartition)
+        // Throw away first byte because Java doesn't support unsigned longs
         rangeBounds(i * 2) = Longs.fromBytes(0, k(0), k(1), k(2), k(3), k(4), k(5), k(6))
+        // Throw away bytes 4-8 because those refer to the chunk indices, which are not compared
         rangeBounds(i * 2 + 1) = Longs.fromBytes(0, k(7), k(8), k(9), 0, 0, 0, 0)
 
-        //println(s"range bound $i : ${k.toSeq.map(x => if (x<0) 256 + x else x)}")
+//        println(s"range bound $i : ${k.toSeq.map(x => if (x<0) 256 + x else x)}")
 //        if ( i > 0) {
 //          println(s"range $i: ${rangeBounds(i * 2) - rangeBounds(i * 2 - 2)}")
 //        } else {
@@ -376,12 +398,13 @@ object DaytonaSort extends Logging {
       }
     }
 
-    /////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
+    // Read from input files and sort locally before shuffle //
+    ///////////////////////////////////////////////////////////
+
     val inputRdd = new NodeLocalReplicaRDD[(Long, Array[Long])](sc, numParts, replicatedHosts) {
       override def compute(split: Partition, context: TaskContext) = {
         val part = split.index
-
         val inputFile = s"$dir/part$part.dat"
         val fileSize = recordsPerPartition * 100
 
@@ -389,7 +412,6 @@ object DaytonaSort extends Logging {
           val capacity = recordsPerPartition
           sortBuffers.set(new SortBuffer(capacity))
         }
-
         val sortBuffer = sortBuffers.get()
 
         {

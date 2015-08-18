@@ -24,8 +24,11 @@ final class DaytonaPartitioner(rangeBounds: Array[Long]) extends Partitioner {
   def getPartitionSpecialized(key1: Long, key2: Long): Int = {
     while (currentPart <= lastPart) {
       if (currentPart == lastPart) {
+        // If this is the last partition, return just the last index
         return lastPart
       } else {
+        // Otherwise, we first match against the higher bits.
+        // If the higher bits are the same, then we match against the lower bits.
         val c1 = java.lang.Long.compare(key1, currentHiKey)
         if (c1 < 0) {
           return currentPart
@@ -36,6 +39,8 @@ final class DaytonaPartitioner(rangeBounds: Array[Long]) extends Partitioner {
           }
         }
       }
+      // If we didn't return by now, then it means the new key belongs
+      // to the next partition, so update our bounds and try again
       currentPart += 1
       if (currentPart < lastPart) {
         currentHiKey = rangeBounds(currentPart * 2)

@@ -14,7 +14,7 @@ import org.apache.spark.{Partition, SparkConf, SparkContext, TaskContext}
 object Valsort {
 
   def main(args: Array[String]): Unit = {
-    val dir = args(0)  // /mnt/sort-10g-100
+    val dir = args(0)  // /mnt/sort-10g-100-out
     val sc = new SparkContext(new SparkConf().setAppName(s"valgen - $dir"))
     validate(sc, dir)
   }
