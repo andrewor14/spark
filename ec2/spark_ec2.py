@@ -1001,7 +1001,6 @@ def real_main():
         if (opts.vpc_id is None):
             conn = ec2.connect_to_region(opts.region)
         else:
-            print ("Debug: Making VPC conncetion")
             conn = vpc.connect_to_region(opts.region)
 
     except Exception as e:
@@ -1074,7 +1073,7 @@ def real_main():
                     time.sleep(30)  # Yes, it does have to be this long :-(
                     for group in groups:
                         try:
-                            conn.delete_security_group(group.name)
+                            conn.delete_security_group(group_id=group.id)
                             print "Deleted security group " + group.name
                         except boto.exception.EC2ResponseError:
                             success = False
