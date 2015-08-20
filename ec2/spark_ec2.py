@@ -361,6 +361,10 @@ def launch_cluster(conn, opts, cluster_name):
                 ip_protocol="tcp", from_port=1, to_port=65535, src_group=master_group)
             master_group.authorize(
                 ip_protocol="tcp", from_port=1, to_port=65535, src_group=slave_group)
+            master_group.authorize(
+                ip_protocol="udp", from_port=1, to_port=65535, src_group=master_group)
+            master_group.authorize(
+                ip_protocol="udp", from_port=1, to_port=65535, src_group=slave_group)
             master_group.authorize('tcp', 22, 22, '0.0.0.0/0')
             master_group.authorize('tcp', 8080, 8081, '0.0.0.0/0')
             master_group.authorize('tcp', 19999, 19999, '0.0.0.0/0')
@@ -375,6 +379,10 @@ def launch_cluster(conn, opts, cluster_name):
                 ip_protocol="tcp", from_port=1, to_port=65535, src_group=master_group)
             slave_group.authorize(
                 ip_protocol="tcp", from_port=1, to_port=65535, src_group=slave_group)
+            slave_group.authorize(
+                ip_protocol="udp", from_port=1, to_port=65535, src_group=master_group)
+            slave_group.authorize(
+                ip_protocol="udp", from_port=1, to_port=65535, src_group=slave_group)
             slave_group.authorize('tcp', 22, 22, '0.0.0.0/0')
             slave_group.authorize('tcp', 8080, 8081, '0.0.0.0/0')
             slave_group.authorize('tcp', 50060, 50060, '0.0.0.0/0')
