@@ -41,7 +41,6 @@ object DaytonaSort extends Logging {
     val dir = args(3)
 
     val outputDir = dir + "-out"
-    val sizeInBytes = sizeInGB.toLong * 1000 * 1000 * 1000
     val sc = new SparkContext(new SparkConf().setAppName(
       s"DaytonaSort - $sizeInGB GB - $numParts parts $replica replica - $dir"))
 

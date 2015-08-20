@@ -55,7 +55,8 @@ object Gensort {
       println(s"$part\t$host\t$outputFile\t$stdout\t$stderr")
     }
 
-    val checksumFile = s"/root/sort-${sizeInGB}g-$numParts-gensort.log"
+    val maybeSkew = if (skew) "-skew" else ""
+    val checksumFile = s"/root/sort-${sizeInGB}g-$numParts-gensort$maybeSkew.log"
     println(s"checksum output: $checksumFile")
     val writer = new java.io.PrintWriter(new File(checksumFile))
     output.foreach {  case (host, part, outputFile, stdout, stderr: String) =>
