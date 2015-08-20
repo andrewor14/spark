@@ -155,19 +155,26 @@ object SortUtils {
     val pointers = sortBuf.pointers
     val baseAddress = sortBuf.address
     var recordAddress = baseAddress
-    import java.lang.Long.reverseBytes
 
     // Fill in the keys array
     var i = 0
     while (i < numRecords) {
-      //assert(index >= 0L && index <= 0xFFFFFFFFL)
-      val headBytes = // First 7 bytes
-        reverseBytes(UNSAFE.getLong(recordAddress)) >>> 8
-      val tailBytes = // Last 3 bytes
-        reverseBytes(UNSAFE.getLong(recordAddress + 7)) >>> (8 * 5)
-      keys(2 * i) = headBytes
-      keys(2 * i + 1) = (tailBytes << 32) | i.toLong
-      recordAddress += 100
+
+      // We store each 10-byte key in two Longs. The first Long stores the first 7 bytes,
+      // and the second Long stores the remaining 3 bytes. We store only 7 bytes in the first
+      // Long because Java does not support unsigned primitives, and so we must leave the first
+      // byte of each Long empty to avoid comparing negative keys.
+
+      // Note: UNSAFE.getLong returns the 8 bytes in reverse order
+      // e.g. 11L -> 00001011 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+
+      val firstLong = java.lang.Long.reverseBytes(UNSAFE.getLong(recordAddress)) >>> 8
+      val secondLong = java.lang.Long.reverseBytes(UNSAFE.getLong(recordAddress + 7)) >>> (8 * 5)
+      keys(2 * i) = firstLong
+      // The second long only contains 3 bytes of the keys, which are stored in the upper 4 bytes.
+      // The lower 4 bytes are used to store the record index (an integer) within a partition.
+      keys(2 * i + 1) = (secondLong << 32) | i.toLong
+      recordAddress += DaytonaSort.RECORD_SIZE
       i += 1
     }
 
@@ -192,9 +199,9 @@ object SortUtils {
 //    }
   }
 
-  final class PairLong(var _1: Long, var _2: Long)
+  private final class PairLong(var _1: Long, var _2: Long)
 
-  final class LongPairArraySorter extends SortDataFormat[PairLong, Array[Long]] {
+  private final class LongPairArraySorter extends SortDataFormat[PairLong, Array[Long]] {
     override protected def getKey(data: Array[Long], pos: Int) = ???
 
     override protected def createNewMutableThingy(): PairLong = new PairLong(0L, 0L)
@@ -204,7 +211,6 @@ object SortUtils {
       reuse._1 = data(2 * pos)
       reuse._2 = data(2 * pos + 1)
       reuse
-      //(data(2 * pos), data(2 * pos + 1))
     }
 
     /** Swap two elements. */
@@ -240,7 +246,7 @@ object SortUtils {
     override protected def allocate(length: Int): Array[Long] = new Array[Long](2 * length)
   }
 
-  final class LongPairOrdering extends Ordering[PairLong] {
+  private final class LongPairOrdering extends Ordering[PairLong] {
     override def compare(left: PairLong, right: PairLong): Int = {
       val c1 = java.lang.Long.compare(left._1, right._1)
       if (c1 != 0) {
@@ -251,6 +257,6 @@ object SortUtils {
     }
   }
 
-  val longPairOrdering = new LongPairOrdering
+  private val longPairOrdering = new LongPairOrdering
 
 }

@@ -8,12 +8,12 @@ import io.netty.buffer.ByteBuf
 import com.google.common.primitives.{Longs, UnsignedBytes}
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{LocatedFileStatus, RemoteIterator, Path}
+import org.apache.hadoop.fs.{FileSystem, LocatedFileStatus, RemoteIterator, Path}
 
 import org.apache.spark._
 import org.apache.spark.sort.SortUtils._
 import org.apache.spark.network.{ManagedBuffer, FileSegmentManagedBuffer, NettyManagedBuffer}
-import org.apache.spark.rdd.{ShuffledRDD, RDD}
+import org.apache.spark.rdd.ShuffledRDD
 
 /**
 * A version of the sort code that uses Unsafe to allocate off-heap blocks.
@@ -45,25 +45,34 @@ object DaytonaSort extends Logging {
       s"DaytonaSort - $sizeInGB GB - $numParts parts $replica replica - $dir"))
 
     // Create output dir
-    val conf = new org.apache.hadoop.conf.Configuration
-    val fs = org.apache.hadoop.fs.FileSystem.get(conf)
+    val fs = FileSystem.get(new Configuration)
     val root = new Path(outputDir)
-    if (fs.exists(root)) {
+    if (!fs.exists(root)) {
       fs.mkdirs(root)
     }
 
     // Read from input data, sort it locally, then shuffle it
-    val shuffled = readSortAndShuffle(sc, sizeInGB, numParts, dir, replica)
+    val shuffled = readInputAndShuffle(sc, sizeInGB, numParts, dir, replica)
 
     // Merge sorted partitions post-shuffle
-    val recordsAfterSort: Long = shuffled.mapPartitionsWithContext { (context, iter) =>
+    val recordsAfterSort = mergeSortedPartitions(shuffled, outputDir, replica)
+
+    println("total number of records: " + recordsAfterSort)
+  }
+
+  /**
+   * Merge sorted partitions and return the number of records sorted.
+   */
+  private def mergeSortedPartitions(
+      shuffled: ShuffledRDD[Long, Array[Long], Array[Long]],
+      outputDir: String,
+      replica: Int): Long = {
+    shuffled.mapPartitionsWithContext { (context, iter) =>
       val part = context.partitionId
       val outputFile = s"$outputDir/part$part.dat"
-
       val startTime = System.currentTimeMillis()
       val sortBuffer = sortBuffers.get()
       assert(sortBuffer != null)
-      var offset = 0L
       var numShuffleBlocks = 0
 
       sortBuffer.releaseMapSideBuffer()
@@ -93,6 +102,7 @@ object DaytonaSort extends Logging {
           offsetInChunk = 0
         }
 
+        // Populate sort buffer with remote buffers
         a match {
           case buf: NettyManagedBuffer =>
             val bytebuf = buf.convertToNetty().asInstanceOf[ByteBuf]
@@ -196,8 +206,7 @@ object DaytonaSort extends Logging {
 
         logInfo(s"XXX Reduce: writing $numRecords records started $outputFile")
         println(s"XXX Reduce: writing $numRecords records started $outputFile")
-        val conf = new org.apache.hadoop.conf.Configuration
-        val fs = org.apache.hadoop.fs.FileSystem.get(conf)
+        val fs = FileSystem.get(new Configuration)
 
         val tempFile = outputFile + s".${context.partitionId}.${context.attemptId}.tmp"
 
@@ -236,26 +245,24 @@ object DaytonaSort extends Logging {
       Iterator(recordsOutput)
 
     }.reduce(_ + _)
-
-    println("total number of records: " + recordsAfterSort)
   }
 
   private def readFileIntoBuffer(inputFile: String, fileSize: Long, sortBuffer: SortBuffer) {
     logInfo(s"XXX start reading file $inputFile")
     println(s"XXX start reading file $inputFile with size $fileSize")
     val startTime = System.currentTimeMillis()
-    assert(fileSize % 100 == 0)
+    assert(fileSize % RECORD_SIZE == 0)
 
-    val conf = new Configuration()
-    val fs = org.apache.hadoop.fs.FileSystem.get(conf)
+    val fs = FileSystem.get(new Configuration)
     val path = new Path(inputFile)
     var is: InputStream = null
 
     val baseAddress: Long = sortBuffer.address
-    val buf = new Array[Byte](4 * 1024 * 1024)
+    val bufSize = 4 * 1024 * 1024
+    val buf = new Array[Byte](bufSize)
     var read = 0L
     try {
-      is = fs.open(path, 4 * 1024 * 1024)
+      is = fs.open(path, bufSize)
       while (read < fileSize) {
         val read0 = is.read(buf)
         assert(read0 > 0, s"only read $read0 bytes this time; read $read; total $fileSize")
@@ -271,21 +278,19 @@ object DaytonaSort extends Logging {
     val timeTaken = System.currentTimeMillis() - startTime
     logInfo(s"XXX finished reading file $inputFile ($read bytes), took $timeTaken ms")
     println(s"XXX finished reading file $inputFile ($read bytes), took $timeTaken ms")
-    assert(read == fileSize)
   }
 
   /**
    * Create a shuffled RDD where each input partition is sorted locally.
    */
-  private def readSortAndShuffle(
+  private def readInputAndShuffle(
       sc: SparkContext,
       sizeInGB: Int,
       numParts: Int,
       dir: String,
-      replica: Int): RDD[(Long, Array[Long])] = {
+      replica: Int): ShuffledRDD[Long, Array[Long], Array[Long]] = {
 
-    val conf = new Configuration()
-    val fs = org.apache.hadoop.fs.FileSystem.get(conf)
+    val fs = FileSystem.get(new Configuration)
     val path = new Path(dir)
     val statuses: RemoteIterator[LocatedFileStatus] = fs.listLocatedStatus(path)
 
@@ -405,7 +410,7 @@ object DaytonaSort extends Logging {
       override def compute(split: Partition, context: TaskContext) = {
         val part = split.index
         val inputFile = s"$dir/part$part.dat"
-        val fileSize = recordsPerPartition * 100
+        val fileSize = recordsPerPartition * RECORD_SIZE
 
         if (sortBuffers.get == null) {
           val capacity = recordsPerPartition
@@ -413,6 +418,8 @@ object DaytonaSort extends Logging {
         }
         val sortBuffer = sortBuffers.get()
 
+        // Limit the number of concurrent threads reading from HDFS such that not
+        // all partitions use the same resources at the same time, now or later
         {
           logInfo(s"trying to acquire semaphore for $inputFile")
           val startTime = System.currentTimeMillis
@@ -423,7 +430,7 @@ object DaytonaSort extends Logging {
         readFileIntoBuffer(inputFile, fileSize, sortBuffer)
         diskSemaphore.release()
 
-        // Sort!!!
+        // Sort locally. The sorted buffers here will be merged later.
         {
           val startTime = System.currentTimeMillis
           sortWithKeys(sortBuffer, recordsPerPartition.toInt)

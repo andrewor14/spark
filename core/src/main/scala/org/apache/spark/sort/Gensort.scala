@@ -1,6 +1,6 @@
 package org.apache.spark.sort
 
-import java.io.File
+import java.io.{File, PrintWriter}
 
 import org.apache.spark.{Partition, SparkConf, SparkContext, TaskContext}
 
@@ -25,7 +25,12 @@ object Gensort {
     genSort(sc, sizeInGB, numParts, dir, skew)
   }
 
-  def genSort(sc: SparkContext, sizeInGB: Int, numParts: Int, dir: String, skew: Boolean): Unit = {
+  private def genSort(
+      sc: SparkContext,
+      sizeInGB: Int,
+      numParts: Int,
+      dir: String,
+      skew: Boolean): Unit = {
 
     val sizeInBytes = sizeInGB.toLong * 1000 * 1000 * 1000
     val numRecords = sizeInBytes / 100
@@ -33,6 +38,7 @@ object Gensort {
 
     val hosts = Utils.readSlaves()
 
+    // host, partition index, output path, stdout, stderr
     val output = new NodeLocalRDD[(String, Int, String, String, String)](sc, numParts, hosts) {
       override def compute(split: Partition, context: TaskContext) = {
         val part = split.index
@@ -45,8 +51,9 @@ object Gensort {
 
         val outputFile = s"$dir/part$part.dat"
         val skewFlag = if (skew) " -s " else " "
+        // e.g. /root/gensort/64/gensort -c -s -b35714286 -t1 35714286 /mnt/local/part1.dat
         val cmd = s"/root/gensort/64/gensort -c$skewFlag-b$start -t1 $recordsPerPartition $outputFile"
-        val (exitCode, stdout, stderr) = Utils.runCommand(cmd)
+        val (_, stdout, stderr) = Utils.runCommand(cmd)
         Iterator((host, part, outputFile, stdout, stderr))
       }
     }.collect()
@@ -55,13 +62,16 @@ object Gensort {
       println(s"$part\t$host\t$outputFile\t$stdout\t$stderr")
     }
 
+    // Write the checksum file; since we passed `-c` to gensort,
+    // the checksum will go to the stderr of the process, one line per record
     val maybeSkew = if (skew) "-skew" else ""
     val checksumFile = s"/root/sort-${sizeInGB}g-$numParts-gensort$maybeSkew.log"
-    println(s"checksum output: $checksumFile")
-    val writer = new java.io.PrintWriter(new File(checksumFile))
-    output.foreach {  case (host, part, outputFile, stdout, stderr: String) =>
-      writer.write(stderr)
+    val writer = new PrintWriter(new File(checksumFile))
+    try {
+      output.foreach { case (_, _, _, _, stderr: String) => writer.write(stderr) }
+    } finally {
+      writer.close()
     }
-    writer.close()
-  }  // end of genSort
+    println(s"checksum output: $checksumFile")
+  }
 }
