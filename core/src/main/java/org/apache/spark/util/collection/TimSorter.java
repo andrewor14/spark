@@ -31,7 +31,7 @@ import java.util.Comparator;
  * uses this to sort an Array with alternating elements of the form [key, value, key, value].
  * This generalization comes with minimal overhead -- see SortDataFormat for more information.
  */
-public class Sorter<K, Buffer> {
+public class TimSorter<K, Buffer> {
 
   /**
    * This is the minimum sized sequence that will be merged.  Shorter
@@ -54,7 +54,7 @@ public class Sorter<K, Buffer> {
 
   private final SortDataFormat<K, Buffer> s;
 
-  public Sorter(SortDataFormat<K, Buffer> sortDataFormat) {
+  public TimSorter(SortDataFormat<K, Buffer> sortDataFormat) {
     this.s = sortDataFormat;
   }
 
@@ -162,8 +162,8 @@ public class Sorter<K, Buffer> {
     if (start == lo)
       start++;
 
-    K mutableThiny1 = s.createNewMutableThingy();
-    K mutableThiny2 = s.createNewMutableThingy();
+    K mutableThiny1 = s.createTempKeyHolder();
+    K mutableThiny2 = s.createTempKeyHolder();
 
     Buffer pivotStore = s.allocate(1);
     for ( ; start < hi; start++) {
@@ -238,8 +238,8 @@ public class Sorter<K, Buffer> {
     if (runHi == hi)
       return 1;
 
-    K mutableThiny1 = s.createNewMutableThingy();
-    K mutableThiny2 = s.createNewMutableThingy();
+    K mutableThiny1 = s.createTempKeyHolder();
+    K mutableThiny2 = s.createTempKeyHolder();
 
     // Find end of run, and reverse range if descending
     if (c.compare(s.getKey(a, runHi++, mutableThiny1), s.getKey(a, lo, mutableThiny2)) < 0) { // Descending
@@ -475,7 +475,7 @@ public class Sorter<K, Buffer> {
       stackSize--;
 
 
-      K mutableThiny1 = s.createNewMutableThingy();
+      K mutableThiny1 = s.createTempKeyHolder();
 
       /*
        * Find where the first element of run2 goes in run1. Prior elements
@@ -526,7 +526,7 @@ public class Sorter<K, Buffer> {
       assert len > 0 && hint >= 0 && hint < len;
       int lastOfs = 0;
       int ofs = 1;
-      K mutableThiny1 = s.createNewMutableThingy();
+      K mutableThiny1 = s.createTempKeyHolder();
 
       if (c.compare(key, s.getKey(a, base + hint, mutableThiny1)) > 0) {
         // Gallop right until a[base+hint+lastOfs] < key <= a[base+hint+ofs]
@@ -598,7 +598,7 @@ public class Sorter<K, Buffer> {
 
       int ofs = 1;
       int lastOfs = 0;
-      K mutableThiny1 = s.createNewMutableThingy();
+      K mutableThiny1 = s.createTempKeyHolder();
 
       if (c.compare(key, s.getKey(a, base + hint, mutableThiny1)) < 0) {
         // Gallop left until a[b+hint - ofs] <= key < a[b+hint - lastOfs]
@@ -692,8 +692,8 @@ public class Sorter<K, Buffer> {
         return;
       }
 
-      K mutableThiny1 = s.createNewMutableThingy();
-      K mutableThiny2 = s.createNewMutableThingy();
+      K mutableThiny1 = s.createTempKeyHolder();
+      K mutableThiny2 = s.createTempKeyHolder();
 
       Comparator<? super K> c = this.c;  // Use local variable for performance
       int minGallop = this.minGallop;    //  "    "       "     "      "
@@ -800,8 +800,8 @@ public class Sorter<K, Buffer> {
       int cursor2 = len2 - 1;          // Indexes into tmp array
       int dest = base2 + len2 - 1;     // Indexes into a
 
-      K mutableThiny1 = s.createNewMutableThingy();
-      K mutableThiny2 = s.createNewMutableThingy();
+      K mutableThiny1 = s.createTempKeyHolder();
+      K mutableThiny2 = s.createTempKeyHolder();
 
 
       // Move last element of first run and deal with degenerate cases

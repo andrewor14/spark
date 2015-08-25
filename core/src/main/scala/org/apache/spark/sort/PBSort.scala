@@ -183,7 +183,7 @@ object PBSort extends Logging {
         // Sort!!!
       {
         val startTime = System.currentTimeMillis
-        //val sorter = new Sorter(new LongArraySorter).sort(
+        //val sorter = new TimSorter(new LongArraySorter).sort(
         //  sortBuffer.pointers, 0, recordsPerPartition.toInt, ord)
         sortWithKeys(sortBuffer, recordsPerPartition.toInt)
         val timeTaken = System.currentTimeMillis - startTime

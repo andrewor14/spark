@@ -9,7 +9,7 @@ import org.apache.spark._
 import org.apache.spark.sort.SortUtils._
 import org.apache.spark.network.{ManagedBuffer, FileSegmentManagedBuffer, NettyManagedBuffer}
 import org.apache.spark.rdd.{ShuffledRDD, RDD}
-import org.apache.spark.util.collection.{Sorter, SortDataFormat}
+import org.apache.spark.util.collection.{TimSorter, SortDataFormat}
 
 
 /**
@@ -164,7 +164,7 @@ object GenerateDataAndSort extends Logging {
       // Sort!!!
       {
         val startTime = System.currentTimeMillis
-        //val sorter = new Sorter(new LongArraySorter).sort(
+        //val sorter = new TimSorter(new LongArraySorter).sort(
         //  sortBuffer.pointers, 0, recordsPerPartition.toInt, ord)
         sortWithKeys(sortBuffer, recordsPerPartition.toInt)
         val timeTaken = System.currentTimeMillis - startTime
