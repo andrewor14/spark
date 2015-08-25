@@ -2,7 +2,7 @@ package org.apache.spark.sort
 
 import java.nio.ByteBuffer
 
-import org.apache.spark.util.collection.{SortDataFormat, Sorter}
+import org.apache.spark.util.collection.{SortDataFormat, TimSorter}
 
 
 object SortUtils {
@@ -143,7 +143,7 @@ object SortUtils {
     }
 
     // Sort it
-    new Sorter(new LongPairArraySorter).sort(keys, 0, numRecords, longPairOrdering)
+    new TimSorter(new LongPairArraySorter).sort(keys, 0, numRecords, longPairOrdering)
   }
 
   // Sort a range of a SortBuffer using only the keys, then update the pointers field to match
@@ -179,7 +179,7 @@ object SortUtils {
     }
 
     // Sort it
-    new Sorter(new LongPairArraySorter).sort(keys, 0, numRecords, longPairOrdering)
+    new TimSorter(new LongPairArraySorter).sort(keys, 0, numRecords, longPairOrdering)
 
     // Fill back the pointers array
     i = 0
@@ -199,12 +199,15 @@ object SortUtils {
 //    }
   }
 
-  private final class PairLong(var _1: Long, var _2: Long)
+  private[spark] final class PairLong(var _1: Long, var _2: Long) {
+    override def toString: String = "(" + _1 + ", " + _2 + ")"
+  }
 
-  private final class LongPairArraySorter extends SortDataFormat[PairLong, Array[Long]] {
+  private[spark] final class LongPairArraySorter extends SortDataFormat[PairLong, Array[Long]] {
+
     override protected def getKey(data: Array[Long], pos: Int) = ???
 
-    override protected def createNewMutableThingy(): PairLong = new PairLong(0L, 0L)
+    override protected def createTempKeyHolder(): PairLong = new PairLong(0L, 0L)
 
     /** Return the sort key for the element at the given index. */
     override protected def getKey(data: Array[Long], pos: Int, reuse: PairLong): PairLong = {
@@ -212,6 +215,30 @@ object SortUtils {
       reuse._2 = data(2 * pos + 1)
       reuse
     }
+
+    /** Put a key in the specified index in our buffer. */
+    override protected def putKey(data: Array[Long], pos: Int, reuse: PairLong): Unit = {
+      data(2 * pos) = reuse._1
+      data(2 * pos + 1) = reuse._2
+    }
+
+    override protected def getLength(data: Array[Long]): Int = {
+      assert(data.length % 2 == 0, "input array size should be even...")
+      data.length / 2
+    }
+
+    override protected def getKeyByte(key: PairLong, nthByte: Int): Byte = {
+      assert(nthByte >= 0 && nthByte < 16, "there are only 16 bytes in two longs")
+      val mask = 255 // to get the least significant byte
+      val long = if (nthByte < 8) key._1 else key._2
+      val longByteIndex = nthByte % 8
+      val shift = (7 - longByteIndex) * 8
+      // e.g. nthByte = 14, longByteIndex = 6, shift = 1
+      // in other words, we want the 7th byte of the second Long, so we shift it right by 1 byte
+      ((long >> shift) & mask).toByte
+    }
+
+    override protected def getNumKeyBytes: Int = 16
 
     /** Swap two elements. */
     override protected def swap(data: Array[Long], pos0: Int, pos1: Int) {
@@ -246,7 +273,7 @@ object SortUtils {
     override protected def allocate(length: Int): Array[Long] = new Array[Long](2 * length)
   }
 
-  private final class LongPairOrdering extends Ordering[PairLong] {
+  private[spark] final class LongPairOrdering extends Ordering[PairLong] {
     override def compare(left: PairLong, right: PairLong): Int = {
       val c1 = java.lang.Long.compare(left._1, right._1)
       if (c1 != 0) {
@@ -257,6 +284,6 @@ object SortUtils {
     }
   }
 
-  private val longPairOrdering = new LongPairOrdering
+  private[spark] val longPairOrdering = new LongPairOrdering
 
 }

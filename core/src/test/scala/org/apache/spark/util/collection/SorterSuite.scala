@@ -22,22 +22,24 @@ import java.util.{Arrays, Comparator}
 
 import org.scalatest.FunSuite
 
+import org.apache.spark.sort.SortUtils
+import org.apache.spark.sort.SortUtils.LongPairArraySorter
 import org.apache.spark.util.random.XORShiftRandom
 
 class SorterSuite extends FunSuite {
 
-  test("equivalent to Arrays.sort") {
+  test("TimSorter equivalent to Arrays.sort") {
     val rand = new XORShiftRandom(123)
     val data0 = Array.tabulate[Int](10000) { i => rand.nextInt() }
     val data1 = data0.clone()
 
     Arrays.sort(data0)
-    new Sorter(new IntArraySortDataFormat).sort(data1, 0, data1.length, Ordering.Int)
+    new TimSorter(new IntArraySortDataFormat).sort(data1, 0, data1.length, Ordering.Int)
 
     data0.zip(data1).foreach { case (x, y) => assert(x === y) }
   }
 
-  test("KVArraySorter") {
+  test("TimSorter with KVArraySorter") {
     val rand = new XORShiftRandom(456)
 
     // Construct an array of keys (to Java sort) and an array where the keys and values
@@ -52,7 +54,7 @@ class SorterSuite extends FunSuite {
       keyValueArray.grouped(2).map { case Array(k, v) => k.doubleValue() -> v.intValue() }.toMap
 
     Arrays.sort(keys)
-    new Sorter(new KVArraySortDataFormat[Double, Number])
+    new TimSorter(new KVArraySortDataFormat[Double, Number])
       .sort(keyValueArray, 0, keys.length, Ordering.Double)
 
     keys.zipWithIndex.foreach { case (k, i) =>
@@ -61,20 +63,70 @@ class SorterSuite extends FunSuite {
     }
   }
 
+  test("TimSorter and RadixSorter yield same result for LongPairArraySorter") {
+    val rand = new XORShiftRandom(123)
+    val data = Array.tabulate[Long](10000) { i => Math.abs(rand.nextLong()) }
+    val timOutput = data.clone()
+
+    println("Sorting " + data.length + " Longs...")
+
+    // Tim sort
+    val timStart = System.currentTimeMillis
+    new TimSorter(new LongPairArraySorter)
+      .sort(timOutput, 0, data.length / 2, SortUtils.longPairOrdering)
+    val timElapsed = System.currentTimeMillis - timStart
+
+    // Radix sort
+    val radixStart = System.currentTimeMillis
+    val radixOutput = new RadixSorter(new LongPairArraySorter).sort(data)
+    val radixElapsed = System.currentTimeMillis - radixStart
+
+    // In case things go wrong...
+    lazy val debugOutput: String = {
+      "\n\n" + data.mkString(", ") + "\n\n" +
+        data.map { l => l + ": " + formatLongNicely(l) }.mkString("\n")
+    }
+
+    // Note: these numbers are imprecise because
+    // (1) we're sorting a small dataset,
+    // (2) we're comparing these in the same JVM one after another, and
+    // (3) we're only doing one iteration
+    // For a more complete benchmark, see org.apache.spark.util.collection.SortMicroBenchmark
+    println("TimSort took " + timElapsed + "ms")
+    println("RadixSort took " + radixElapsed + "ms")
+    assert(radixOutput === timOutput, "uh oh, output differed for input: " + debugOutput)
+  }
+
   /**
-   * This provides a simple benchmark for comparing the Sorter with Java internal sorting.
+   * Convert a Long into a human-readable binary string.
+   * e.g. 74 -> "0000000 0000000 0000000 0000000 0000000 0000000 0000000 0100101".
+   */
+  private def formatLongNicely(l: Long): String = {
+    val binaryStr = java.lang.Long.toBinaryString(l).reverse.padTo(64, "0").reverse.mkString("")
+    val res = new StringBuilder
+    (0 to 7).foreach { i =>
+      val start = i * 8
+      val end = start + 8
+      res.append(binaryStr.slice(start, end))
+      res.append(" ")
+    }
+    res.stripSuffix(" ")toString()
+  }
+
+  /**
+   * This provides a simple benchmark for comparing the TimSorter with Java internal sorting.
    * Ideally these would be executed one at a time, each in their own JVM, so their listing
    * here is mainly to have the code.
    *
    * The goal of this code is to sort an array of key-value pairs, where the array physically
    * has the keys and values alternating. The basic Java sorts work only on the keys, so the
    * real Java solution is to make Tuple2s to store the keys and values and sort an array of
-   * those, while the Sorter approach can work directly on the input data format.
+   * those, while the TimSorter approach can work directly on the input data format.
    *
    * Note that the Java implementation varies tremendously between Java 6 and Java 7, when
    * the Java sort changed from merge sort to Timsort.
    */
-  ignore("Sorter benchmark") {
+  ignore("TimSorter benchmark") {
 
     /** Runs an experiment several times. */
     def runExperiment(name: String)(f: => Unit): Unit = {
@@ -111,12 +163,12 @@ class SorterSuite extends FunSuite {
       })
     }
 
-    // Test our Sorter where each element alternates between Float and Integer, non-primitive
+    // Test our TimSorter where each element alternates between Float and Integer, non-primitive
     val keyValueArray = Array.tabulate[AnyRef](numElements * 2) { i =>
       if (i % 2 == 0) keys(i / 2) else new Integer(i / 2)
     }
-    val sorter = new Sorter(new KVArraySortDataFormat[JFloat, AnyRef])
-    runExperiment("KV-sort using Sorter") {
+    val sorter = new TimSorter(new KVArraySortDataFormat[JFloat, AnyRef])
+    runExperiment("KV-sort using TimSorter") {
       sorter.sort(keyValueArray, 0, keys.length, new Comparator[JFloat] {
         override def compare(x: JFloat, y: JFloat): Int = Ordering.Float.compare(x, y)
       })
@@ -143,6 +195,8 @@ class IntArraySortDataFormat extends SortDataFormat[Int, Array[Int]] {
   override protected def getKey(data: Array[Int], pos: Int): Int = {
     data(pos)
   }
+
+  override protected def getLength(data: Array[Int]): Int = data.length
 
   override protected def swap(data: Array[Int], pos0: Int, pos1: Int): Unit = {
     val tmp = data(pos0)

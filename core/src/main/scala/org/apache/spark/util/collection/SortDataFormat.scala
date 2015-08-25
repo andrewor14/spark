@@ -37,11 +37,21 @@ private[spark] trait SortDataFormat[K, Buffer] extends Any {
   /** Return the sort key for the element at the given index. */
   protected def getKey(data: Buffer, pos: Int): K
 
-  protected def createNewMutableThingy(): K = null.asInstanceOf[K]
+  protected def createTempKeyHolder(): K = null.asInstanceOf[K]
 
   protected def getKey(data: Buffer, pos: Int, mutableThingy: K): K = {
     getKey(data, pos)
   }
+
+  protected def getLength(data: Buffer): Int
+
+  protected def putKey(data: Buffer, pos: Int, tempKeyHolder: K): Unit = ???
+
+  // Get the n'th byte of the key, with the 0'th byte being the most significant
+  protected def getKeyByte(key: K, nthByte: Int): Byte = ???
+
+  // Return how many bytes a key has
+  protected def getNumKeyBytes: Int = ???
 
   /** Swap two elements. */
   protected def swap(data: Buffer, pos0: Int, pos1: Int): Unit
@@ -74,6 +84,11 @@ private[spark]
 class KVArraySortDataFormat[K, T <: AnyRef : ClassTag] extends SortDataFormat[K, Array[T]] {
 
   override protected def getKey(data: Array[T], pos: Int): K = data(2 * pos).asInstanceOf[K]
+
+  override protected def getLength(data: Array[T]): Int = {
+    assert(data.length % 2 == 0, "input array size should be even...")
+    data.length / 2
+  }
 
   override protected def swap(data: Array[T], pos0: Int, pos1: Int) {
     val tmpKey = data(2 * pos0)
