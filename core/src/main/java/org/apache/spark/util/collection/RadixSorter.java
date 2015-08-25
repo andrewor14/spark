@@ -31,7 +31,10 @@ public class RadixSorter<K, Buffer> {
     assert numKeyBytes > 0 : "Um need at least 1 byte to sort?";
   }
 
-  // TODO: take in a byte comparator?
+  /**
+   * Sort the given buffer using radix sort.
+   * Note that the contents of the input buffer will be destroyed in place.
+   */
   public Buffer sort(Buffer input) {
     int length = s.getLength(input);
     Buffer tempBuffer = s.allocate(length);
@@ -91,23 +94,9 @@ public class RadixSorter<K, Buffer> {
     for (int j = 0; j < counts.length; j++) {
       counts[j] = 0;
     }
-
-//    System.out.println("END OF PHASE WITH BYTE INDEX " + byteIndex);
-//    long[] x = (long[]) inputBuffer;
-//    long[] y = (long[]) outputBuffer;
-//    String s1 = "";
-//    String s2 = "";
-//    for (int i = 0; i < x.length; i++) {
-//      s1 += x[i] + " ";
-//      s2 += y[i] + " ";
-//    }
-//    System.out.println("INPUT BUFFER = " + s1);
-//    System.out.println("OUTPUT BUFFER = " + s2);
-//    System.out.println("============================================");
   }
 
   private int getBucketIndex(K key, int byteIndex) {
-//    System.out.println(key + "(b" + byteIndex + ") = " + (s.getKeyByte(key, byteIndex) & 0xff));
     return s.getKeyByte(key, byteIndex) & 0xff;
   }
 
