@@ -2,7 +2,7 @@ package org.apache.spark.sort
 
 import java.nio.ByteBuffer
 
-import org.apache.spark.util.collection.{SortDataFormat, TimSorter}
+import org.apache.spark.util.collection.{RadixSorter, SortDataFormat, TimSorter}
 
 
 object SortUtils {
@@ -139,7 +139,7 @@ object SortUtils {
     }
 
     // Sort it
-    new TimSorter(new LongPairArraySorter).sort(keys, 0, numRecords, longPairOrdering)
+    sortBuf.keys = new RadixSorter(new LongPairArraySorter).sort(keys)
   }
 
   // Sort a range of a SortBuffer using only the keys, then update the pointers field to match
@@ -147,7 +147,7 @@ object SortUtils {
   // (with 2 Longs per record in the buffer to capture the 10-byte key and its index) and sorts
   // them without having to look up random locations in the original data on each comparison.
   def sortWithKeys(sortBuf: SortBuffer, numRecords: Int) {
-    val keys = sortBuf.keys
+    var keys = sortBuf.keys
     val pointers = sortBuf.pointers
     val baseAddress = sortBuf.address
     var recordAddress = baseAddress
@@ -168,7 +168,7 @@ object SortUtils {
     }
 
     // Sort it
-    new TimSorter(new LongPairArraySorter).sort(keys, 0, numRecords, longPairOrdering)
+    keys = new RadixSorter(new LongPairArraySorter).sort(keys)
 
     // Fill back the pointers array
     i = 0
@@ -177,15 +177,7 @@ object SortUtils {
       i += 1
     }
 
-//    val ord = new LongPairOrdering
-//    // Validate that the data is sorted
-//    i = 0
-//    while (i < numRecords - 1) {
-//      val p1 = new PairLong(keys(i * 2), keys(i * 2 + 1))
-//      val p2 = new PairLong(keys((i+1) * 2), keys((i+1) * 2 + 1))
-//      assert(ord.compare(p1, p2) <= 0)
-//      i += 1
-//    }
+    sortBuf.keys = keys
   }
 
   private[spark] final class PairLong(var _1: Long, var _2: Long) {
