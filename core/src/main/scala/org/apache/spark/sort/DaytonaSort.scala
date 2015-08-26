@@ -51,6 +51,8 @@ object DaytonaSort extends Logging {
       fs.mkdirs(root)
     }
 
+    println("* Using sort algorithm " + SortUtils.sortAlgorithm)
+
     // Read from input data, sort it locally, then shuffle it
     val shuffled = readInputAndShuffle(sc, sizeInGB, numParts, dir, replica)
 
