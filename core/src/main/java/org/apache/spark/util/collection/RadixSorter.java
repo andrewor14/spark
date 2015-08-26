@@ -20,17 +20,11 @@ public class RadixSorter {
 
   private final SortDataFormat<PairLong, long[]> s;
 
-  // Number of bytes in key K, also the number of buckets
-  private final int numKeyBytes;
-
   // Temp key holder for storing intermediate keys, reused many times
   private PairLong tempKeyHolder;
 
   public RadixSorter(SortDataFormat<PairLong, long[]> sortDataFormat) {
     this.s = sortDataFormat;
-    this.numKeyBytes = s.getNumKeyBytes();
-
-    assert numKeyBytes > 0 : "Um need at least 1 byte to sort?";
   }
 
   /**
@@ -42,7 +36,10 @@ public class RadixSorter {
    */
   public void sort(long[] buffer) {
     int length = s.getLength(buffer);
+    int numKeyBytes = s.getNumKeyBytes();
     tempKeyHolder = s.createTempKeyHolder();
+
+    assert numKeyBytes > 0 : "Um need at least 1 byte to sort?";
 
     // Build up byte indices to process, least significant byte index first
     ArrayList<Integer> byteIndices = new ArrayList<Integer>();
