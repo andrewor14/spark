@@ -2,7 +2,7 @@ package org.apache.spark.sort
 
 import java.nio.ByteBuffer
 
-import org.apache.spark.util.collection.{RadixSorter, SortDataFormat, TimSorter}
+import org.apache.spark.util.collection.{RadixSorter, SortDataFormat}
 
 
 object SortUtils {
@@ -220,7 +220,7 @@ object SortUtils {
     }
 
     override protected def getKeyByte(key: PairLong, nthByte: Int): Byte = {
-      assert(nthByte >= 0 && nthByte < 16, "there are only 16 bytes in two longs")
+      assert(nthByte >= 0 && nthByte < 16, "requested invalid byte: " + nthByte)
       val mask = 255 // to get the least significant byte
       val long = if (nthByte < 8) key._1 else key._2
       val longByteIndex = nthByte % 8
@@ -231,6 +231,11 @@ object SortUtils {
     }
 
     override protected def getNumKeyBytes: Int = 16
+
+    // This is highly-specific to our input encoding!
+    // We have 2 longs, of which the following bytes actually store the keys (denoted by 'k'):
+    // (_, k, k, k, k, k, k, k) (_, k, k, k, _, _, _, _)
+    override def keyBytesToIgnore: Set[Int] = Set(0, 8, 12, 13, 14, 15)
 
     /** Swap two elements. */
     override protected def swap(data: Array[Long], pos0: Int, pos1: Int) {

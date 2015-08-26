@@ -18,6 +18,7 @@
 package org.apache.spark.util.collection
 
 import scala.reflect.ClassTag
+import java.util
 
 /**
  * Abstraction for sorting an arbitrary input buffer of data. This interface requires determining
@@ -52,6 +53,9 @@ private[spark] trait SortDataFormat[K, Buffer] extends Any {
 
   // Return how many bytes a key has
   protected def getNumKeyBytes: Int = ???
+
+  // Ignore the following byte indices when sorting
+  protected def keyBytesToIgnore: Set[Int] = Set.empty
 
   /** Swap two elements. */
   protected def swap(data: Buffer, pos0: Int, pos1: Int): Unit

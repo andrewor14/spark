@@ -63,22 +63,23 @@ class SorterSuite extends FunSuite {
     }
   }
 
+  // NOTE: this test is highly specific to our sort format!
   test("TimSorter and RadixSorter yield same result for LongPairArraySorter") {
-    val rand = new XORShiftRandom(123)
-    val data = Array.tabulate[Long](10000) { i => Math.abs(rand.nextLong()) }
+    val sorterFormat = new LongPairArraySorter
+    val data = makeData(10, sorterFormat)
     val timOutput = data.clone()
 
     println("Sorting " + data.length + " Longs...")
 
     // Tim sort
     val timStart = System.currentTimeMillis
-    new TimSorter(new LongPairArraySorter)
+    new TimSorter(sorterFormat)
       .sort(timOutput, 0, data.length / 2, SortUtils.longPairOrdering)
     val timElapsed = System.currentTimeMillis - timStart
 
     // Radix sort
     val radixStart = System.currentTimeMillis
-    val radixOutput = new RadixSorter(new LongPairArraySorter).sort(data)
+    val radixOutput = new RadixSorter(sorterFormat).sort(data)
     val radixElapsed = System.currentTimeMillis - radixStart
 
     // In case things go wrong...
@@ -95,6 +96,55 @@ class SorterSuite extends FunSuite {
     println("TimSort took " + timElapsed + "ms")
     println("RadixSort took " + radixElapsed + "ms")
     assert(radixOutput === timOutput, "uh oh, output differed for input: " + debugOutput)
+  }
+
+  test("NOT A TEST: make sure bytes are zeroed out correctly") {
+    assert(formatLongNicely(0L) ===
+      "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000")
+    assert(formatLongNicely(-1L) ===
+      "11111111 11111111 11111111 11111111 11111111 11111111 11111111 11111111")
+    assert(formatLongNicely(nullOutBytes(-1L, Array(0))) ===
+      "00000000 11111111 11111111 11111111 11111111 11111111 11111111 11111111")
+    assert(formatLongNicely(nullOutBytes(-1L, Array(1, 3))) ===
+      "11111111 00000000 11111111 00000000 11111111 11111111 11111111 11111111")
+    assert(formatLongNicely(nullOutBytes(-1L, Array(2, 4, 6))) ===
+      "11111111 11111111 00000000 11111111 00000000 11111111 00000000 11111111")
+    assert(formatLongNicely(nullOutBytes(-1L, Array(1, 2, 3, 4, 5, 6, 7))) ===
+      "11111111 00000000 00000000 00000000 00000000 00000000 00000000 00000000")
+    assert(formatLongNicely(nullOutBytes(-1L, Array(0, 1, 2, 3, 4, 5, 6, 7))) ===
+      "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000")
+    assert(formatLongNicely(1002398914786641992L) ===
+      "00001101 11101001 00111100 10000000 10000111 00011000 01001000 01001000")
+    assert(formatLongNicely(65650192293578824L) ===
+      "00000000 11101001 00111100 10000000 10000111 00011000 01001000 01001000")
+    assert(nullOutBytes(1002398914786641992L, Array(0)) === 65650192293578824L)
+  }
+
+  private def makeData(num: Int, s: LongPairArraySorter): Array[Long] = {
+    val rand = new XORShiftRandom(123)
+    Array.tabulate[Long](num) { i =>
+      // Null out bytes we don't care about
+      val indicesToIgnore =
+        if (i % 2 == 0) {
+          s.keyBytesToIgnore.filter(_ < 8)
+        } else {
+          s.keyBytesToIgnore.filter(_ > 8).map(_ - 8)
+        }
+      val l = Math.abs(rand.nextLong())
+      nullOutBytes(l, indicesToIgnore.toArray)
+    }
+  }
+
+  /** Zero out the n'th byte in the long. */
+  private def nullOutBytes(l: Long, byteIndices: Array[Int]): Long = {
+    var mask = ~0L
+    byteIndices.foreach { index =>
+      assume(index >= 0 && index <= 7)
+      // e.g. byte index = 3,
+      // mask = 11111111 11111111 11111111 00000000 11111111 11111111 11111111 11111111
+      mask = mask & (~(((1L << 8) - 1) << ((7 - index) * 8)))
+    }
+    l & mask
   }
 
   /**

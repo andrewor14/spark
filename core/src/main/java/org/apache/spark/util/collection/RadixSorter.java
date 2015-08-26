@@ -1,5 +1,7 @@
 package org.apache.spark.util.collection;
 
+import java.util.ArrayList;
+
 /**
  * An implementation of radix sort that buckets by bytes.
  *
@@ -45,10 +47,19 @@ public class RadixSorter<K, Buffer> {
     Buffer inputBuffer = input;
     Buffer outputBuffer = tempBuffer;
 
+    // Build up byte indices to process
+    ArrayList<Integer> byteIndices = new ArrayList<Integer>();
+    for (int i = 0; i < numKeyBytes; i++) {
+      if (!s.keyBytesToIgnore().contains(i)) {
+        byteIndices.add(0, i);
+      }
+    }
+
     // Sort the keys one byte at a time, starting from the least significant byte
-    for (int i = numKeyBytes - 1; i >= 0; i--) {
-      sortByByte(inputBuffer, outputBuffer, length, i);
-      if (i != 0) {
+    int lastByteIndex = byteIndices.get(byteIndices.size() - 1);
+    for (int byteIndex : byteIndices) {
+      sortByByte(inputBuffer, outputBuffer, length, byteIndex);
+      if (byteIndex != lastByteIndex) {
         // If there is a next phase, we use our output buffer as the new source of data, so we
         // no longer need our input buffer and can reuse it to store the output of the next phase.
         Buffer temp = inputBuffer;
