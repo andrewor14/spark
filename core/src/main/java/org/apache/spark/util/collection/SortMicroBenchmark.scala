@@ -3,7 +3,7 @@ package org.apache.spark.util.collection
 import org.apache.commons.math3.stat.descriptive.rank.Median
 
 import org.apache.spark.util.random.XORShiftRandom
-import org.apache.spark.sort.{LongPairArraySorter, SortUtils}
+import org.apache.spark.sort.SortUtils
 
 /**
  * A micro-benchmark to test various sorting algorithms.

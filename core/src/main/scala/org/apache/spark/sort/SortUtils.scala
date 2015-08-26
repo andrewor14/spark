@@ -137,7 +137,7 @@ object SortUtils {
 
       // Use the lower 23 bits for index within a chunk, and bit 23 to bit 31 for chunkIndex
       keys(2 * i + 1) = (tailBytes << 32) | (chunkIndex.toLong << 23) | indexWithinChunk.toLong
-      addr += 100
+      addr += DaytonaSort.RECORD_SIZE
       i += 1
       indexWithinChunk += 1
     }
@@ -184,7 +184,7 @@ object SortUtils {
     // Fill back the pointers array
     i = 0
     while (i < numRecords) {
-      pointers(i) = baseAddress + (keys(2 * i + 1) & 0xFFFFFFFFL) * 100
+      pointers(i) = baseAddress + (keys(2 * i + 1) & 0xFFFFFFFFL) * DaytonaSort.RECORD_SIZE
       i += 1
     }
   }

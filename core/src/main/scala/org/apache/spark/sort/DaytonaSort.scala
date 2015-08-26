@@ -20,6 +20,7 @@ import org.apache.spark.rdd.ShuffledRDD
 */
 object DaytonaSort extends Logging {
   val RECORD_SIZE = 100
+  val KEY_SIZE = 10
 
   /**
    * A semaphore to control concurrency when reading from disks. Right now we allow only eight
@@ -54,7 +55,7 @@ object DaytonaSort extends Logging {
     println("* Using sort algorithm " + SortUtils.sortAlgorithm)
 
     // Read from input data, sort it locally, then shuffle it
-    val shuffled = readInputAndShuffle(sc, sizeInGB, numParts, dir, replica)
+    val shuffled = readInputAndShuffle(sc, sizeInGB, numParts, dir)
 
     // Merge sorted partitions post-shuffle
     val recordsAfterSort = mergeSortedPartitions(shuffled, outputDir, replica)
@@ -92,7 +93,7 @@ object DaytonaSort extends Logging {
       while (iter.hasNext) {
         val n = iter.next()
         val a = n._2.asInstanceOf[ManagedBuffer]
-        assert(a.size % 100 == 0, s"shuffle block size ${a.size} is wrong")
+        assert(a.size % RECORD_SIZE == 0, s"shuffle block size ${a.size} is wrong")
 
         //assert(a.size < sortBuffer.CHUNK_SIZE, s"buf len is ${a.size}")
         if (a.size > sortBuffer.CHUNK_SIZE) {
@@ -111,7 +112,7 @@ object DaytonaSort extends Logging {
             val blockLen = bytebuf.readableBytes()
             assert(blockLen == a.size, s"len $blockLen a.size ${a.size}")
             if (blockLen > 0) {
-              assert(blockLen % 100 == 0)
+              assert(blockLen % RECORD_SIZE == 0)
               assert(bytebuf.hasMemoryAddress)
               val start = bytebuf.memoryAddress + bytebuf.readerIndex
 
@@ -154,25 +155,6 @@ object DaytonaSort extends Logging {
               totalBytesRead += read
               channel.close()
               fs.close()
-
-//              val fs = new FileInputStream(buf.file)
-//              val skipped = fs.skip(buf.offset)
-//              assert(skipped == buf.offset, s"supposed to skip ${buf.offset} but got $skipped")
-//              val bfs = new BufferedInputStream(fs, 128 * 1024)
-//              val buf100 = new Array[Byte](100)
-//              var read = 0L
-//              while (read < buf.length) {
-//                val read0 = bfs.read(buf100)
-//                assert(read0 > 0, s"read0 is $read0")
-//                UNSAFE.copyMemory(buf100, BYTE_ARRAY_BASE_OFFSET,
-//                  null, sortBuffer.currentChunkBaseAddress + offsetInChunk + read,
-//                  read0)
-//                read += read0
-//              }
-//              assert(read == buf.length, s"read $read while size is ${buf.length} $buf")
-//              offsetInChunk += read
-//              totalBytesRead += read
-//              bfs.close()
             }
         }
 
@@ -183,8 +165,8 @@ object DaytonaSort extends Logging {
       sortBuffer.markLastChunkUsage(offsetInChunk)
 
       val timeTaken = System.currentTimeMillis() - startTime
-      logInfo(s"XXX Reduce: $timeTaken ms to fetch $numShuffleBlocks shuffle blocks ($totalBytesRead bytes) $outputFile")
-      println(s"XXX Reduce: $timeTaken ms to fetch $numShuffleBlocks shuffle blocks ($totalBytesRead bytes) $outputFile")
+      logInfo2(s"XXX Reduce: $timeTaken ms to fetch $numShuffleBlocks " +
+        s"shuffle blocks ($totalBytesRead bytes) $outputFile")
 
       val numRecords = (totalBytesRead / RECORD_SIZE).toInt
 
@@ -193,8 +175,7 @@ object DaytonaSort extends Logging {
         val startTime = System.currentTimeMillis
         sortWithKeysUsingChunks(sortBuffer, numRecords)
         val timeTaken = System.currentTimeMillis - startTime
-        logInfo(s"XXX Reduce: Sorting $numRecords records took $timeTaken ms $outputFile")
-        println(s"XXX Reduce: Sorting $numRecords records took $timeTaken ms $outputFile")
+        logInfo2(s"XXX Reduce: Sorting $numRecords records took $timeTaken ms $outputFile")
       }
 
       val keys = sortBuffer.keys
@@ -206,14 +187,13 @@ object DaytonaSort extends Logging {
       val recordsOutput: Long = {
         val startTime = System.currentTimeMillis
 
-        logInfo(s"XXX Reduce: writing $numRecords records started $outputFile")
-        println(s"XXX Reduce: writing $numRecords records started $outputFile")
+        logInfo2(s"XXX Reduce: writing $numRecords records started $outputFile")
         val fs = FileSystem.get(new Configuration)
 
         val tempFile = outputFile + s".${context.partitionId}.${context.attemptId}.tmp"
 
         val os = fs.create(new Path(tempFile), replica.toShort)
-        val buf = new Array[Byte](100)
+        val buf = new Array[Byte](RECORD_SIZE)
         val arrOffset = BYTE_ARRAY_BASE_OFFSET
         val MASK = ((1 << 23) - 1).toLong // mask to get the lowest 23 bits
         var i = 0
@@ -223,10 +203,10 @@ object DaytonaSort extends Logging {
           val indexWithinChunk = locationInfo & MASK
           UNSAFE.copyMemory(
             null,
-            sortBuffer.chunkBegin(chunkIndex.toInt) + indexWithinChunk * 100,
+            sortBuffer.chunkBegin(chunkIndex.toInt) + indexWithinChunk * RECORD_SIZE,
             buf,
             arrOffset,
-            100)
+            RECORD_SIZE)
           os.write(buf)
           i += 1
         }
@@ -236,8 +216,7 @@ object DaytonaSort extends Logging {
         sortBuffer.freeChunks()
 
         val timeTaken = System.currentTimeMillis - startTime
-        logInfo(s"XXX Reduce: writing $numRecords records took $timeTaken ms $outputFile")
-        println(s"XXX Reduce: writing $numRecords records took $timeTaken ms $outputFile")
+        logInfo2(s"XXX Reduce: writing $numRecords records took $timeTaken ms $outputFile")
         i.toLong
       }
 
@@ -250,8 +229,7 @@ object DaytonaSort extends Logging {
   }
 
   private def readFileIntoBuffer(inputFile: String, fileSize: Long, sortBuffer: SortBuffer) {
-    logInfo(s"XXX start reading file $inputFile")
-    println(s"XXX start reading file $inputFile with size $fileSize")
+    logInfo2(s"XXX start reading file $inputFile")
     val startTime = System.currentTimeMillis()
     assert(fileSize % RECORD_SIZE == 0)
 
@@ -278,8 +256,7 @@ object DaytonaSort extends Logging {
       }
     }
     val timeTaken = System.currentTimeMillis() - startTime
-    logInfo(s"XXX finished reading file $inputFile ($read bytes), took $timeTaken ms")
-    println(s"XXX finished reading file $inputFile ($read bytes), took $timeTaken ms")
+    logInfo2(s"XXX finished reading file $inputFile ($read bytes), took $timeTaken ms")
   }
 
   /**
@@ -289,8 +266,7 @@ object DaytonaSort extends Logging {
       sc: SparkContext,
       sizeInGB: Int,
       numParts: Int,
-      dir: String,
-      replica: Int): ShuffledRDD[Long, Array[Long], Array[Long]] = {
+      dir: String): ShuffledRDD[Long, Array[Long], Array[Long]] = {
 
     val fs = FileSystem.get(new Configuration)
     val path = new Path(dir)
@@ -316,11 +292,8 @@ object DaytonaSort extends Logging {
     }
     assert(i == numParts, "total file found: " + i)
 
-    //replicatedHosts.zipWithIndex.foreach { case (a, i) => println(s"$i: $a") }
-
     val timeTaken = System.currentTimeMillis() - startTime
-    logInfo(s"XXX took $timeTaken ms to get file metadata")
-    println(s"XXX took $timeTaken ms to get file metadata")
+    logInfo2(s"XXX took $timeTaken ms to get file metadata")
 
     ///////////////////////////////////////////////////////
     // Sample: populate range bounds for our partitioner //
@@ -346,7 +319,7 @@ object DaytonaSort extends Logging {
             val conf = new Configuration()
             val fs = org.apache.hadoop.fs.FileSystem.get(conf)
             val path = new Path(inputFile)
-            val is = fs.open(path, 10)
+            val is = fs.open(path, KEY_SIZE)
 
             // Come up with record indices to sample
             val rand = new java.util.Random(part)
@@ -360,12 +333,12 @@ object DaytonaSort extends Logging {
             while (sampleCount < samplePerPartition) {
               is.seek(sampleLocs(sampleCount) * RECORD_SIZE)
               // Read the first 10 byte, and save that.
-              val buf = new Array[Byte](10)
+              val buf = new Array[Byte](KEY_SIZE)
               var read0 = is.read(buf)
-              if (read0 < 10) {
-                read0 += is.read(buf, read0, 10 - read0)
+              if (read0 < KEY_SIZE) {
+                read0 += is.read(buf, read0, KEY_SIZE - read0)
               }
-              assert(read0 == 10, s"read $read0 bytes instead of 10 bytes, sampleCount $sampleCount")
+              assert(read0 == KEY_SIZE, s"read $read0 bytes instead of 10 bytes, sampleCount $sampleCount")
               samples(sampleCount) = buf
               sampleCount += 1
             }
@@ -378,8 +351,7 @@ object DaytonaSort extends Logging {
       }
 
       val timeTaken = System.currentTimeMillis() - startTime
-      logInfo(s"XXXX sampling ${sampleKeys.size} keys took $timeTaken ms")
-      println(s"XXXX sampling ${sampleKeys.size} keys took $timeTaken ms")
+      logInfo2(s"XXXX sampling ${sampleKeys.size} keys took $timeTaken ms")
 
       assert(sampleKeys.length == samplePerPartition * numParts,
         s"expect sampledKeys to be ${samplePerPartition * numParts}, but got ${sampleKeys.size}")
@@ -393,13 +365,6 @@ object DaytonaSort extends Logging {
         rangeBounds(i * 2) = Longs.fromBytes(0, k(0), k(1), k(2), k(3), k(4), k(5), k(6))
         // Throw away bytes 4-8 because those refer to the chunk indices, which are not compared
         rangeBounds(i * 2 + 1) = Longs.fromBytes(0, k(7), k(8), k(9), 0, 0, 0, 0)
-
-//        println(s"range bound $i : ${k.toSeq.map(x => if (x<0) 256 + x else x)}")
-//        if ( i > 0) {
-//          println(s"range $i: ${rangeBounds(i * 2) - rangeBounds(i * 2 - 2)}")
-//        } else {
-//          println(s"range $i: ${rangeBounds(i * 2)}")
-//        }
         i += 1
       }
     }
@@ -437,8 +402,7 @@ object DaytonaSort extends Logging {
           val startTime = System.currentTimeMillis
           sortWithKeys(sortBuffer, recordsPerPartition.toInt)
           val timeTaken = System.currentTimeMillis - startTime
-          logInfo(s"XXX Sorting $recordsPerPartition records took $timeTaken ms")
-          println(s"XXX Sorting $recordsPerPartition records took $timeTaken ms")
+          logInfo2(s"XXX Sorting $recordsPerPartition records took $timeTaken ms")
         }
 
         Iterator((recordsPerPartition, sortBuffer.keys))
