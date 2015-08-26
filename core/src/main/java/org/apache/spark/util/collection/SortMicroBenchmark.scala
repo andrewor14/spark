@@ -9,19 +9,20 @@ import org.apache.spark.sort.{LongPairArraySorter, SortUtils}
  * A micro-benchmark to test various sorting algorithms.
  */
 object SortMicroBenchmark {
+  private val sortAlgorithms: Set[String] = Set("tim", "radix", "radix2")
 
   def main(args: Array[String]): Unit = {
     if (args.length < 3) {
       sys.error(
         "Usage: SortMicroBenchmark [sort algorithm] [num records] [num iterations]\n" +
-        "- sort algorithm can be one of 'tim' or 'radix'")
+        "- sort algorithm can be one of 'tim', 'radix', or 'radix2'")
     }
     val sortAlgorithm = args(0)
     val numRecords = args(1).toInt
     val numIterations = args(2).toInt
 
     // Validate arguments
-    assert(sortAlgorithm == "tim" || sortAlgorithm == "radix")
+    assert(sortAlgorithms.contains(sortAlgorithm))
     assert(numRecords > 0)
     assert(numIterations > 0 && numIterations < 100)
 
@@ -32,14 +33,7 @@ object SortMicroBenchmark {
       val input = Array.tabulate[Long](numRecords * 2) { _ => Math.abs(rand.nextLong()) }
       val start = System.currentTimeMillis
 
-      sortAlgorithm match {
-        case "tim" =>
-          new TimSorter(new LongPairArraySorter)
-            .sort(input, 0, numRecords, SortUtils.longPairOrdering)
-        case "radix" =>
-          new RadixSorter(new LongPairArraySorter).sort(input)
-        case s => throw new IllegalArgumentException("unexpected sort algorithm: " + s)
-      }
+      SortUtils.sortLongPairs(input, sortAlgorithm)
 
       val elapsed = System.currentTimeMillis - start
       println(s"Iteration $i/$numIterations took ${elapsed}ms")

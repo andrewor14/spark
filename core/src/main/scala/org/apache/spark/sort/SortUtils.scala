@@ -143,7 +143,7 @@ object SortUtils {
     }
 
     // Sort it
-    doSort(keys)
+    sortLongPairs(keys)
   }
 
   // Sort a range of a SortBuffer using only the keys, then update the pointers field to match
@@ -179,7 +179,7 @@ object SortUtils {
     }
 
     // Sort it
-    doSort(keys)
+    sortLongPairs(keys)
 
     // Fill back the pointers array
     i = 0
@@ -190,9 +190,9 @@ object SortUtils {
   }
 
   /** Actually sort the pair long array, using a configurable sorting algorithm. */
-  private def doSort(keys: Array[Long]): Unit = {
+  def sortLongPairs(keys: Array[Long], algorithm: String = sortAlgorithm): Unit = {
     val sortFormat = new LongPairArraySorter
-    sortAlgorithm match {
+    algorithm match {
       case "tim" => new TimSorter(sortFormat).sort(keys, 0, keys.size / 2, longPairOrdering)
       case "radix" => new OldRadixSorter(sortFormat).sort(keys)
       case "radix2" => new RadixSorter(sortFormat).sort(keys)
