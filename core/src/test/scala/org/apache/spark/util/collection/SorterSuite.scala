@@ -22,8 +22,7 @@ import java.util.{Arrays, Comparator}
 
 import org.scalatest.FunSuite
 
-import org.apache.spark.sort.SortUtils
-import org.apache.spark.sort.SortUtils.LongPairArraySorter
+import org.apache.spark.sort.{LongPairArraySorter, SortUtils}
 import org.apache.spark.util.random.XORShiftRandom
 
 class SorterSuite extends FunSuite {
@@ -66,20 +65,20 @@ class SorterSuite extends FunSuite {
   // NOTE: this test is highly specific to our sort format!
   test("TimSorter and RadixSorter yield same result for LongPairArraySorter") {
     val sorterFormat = new LongPairArraySorter
-    val data = makeData(10, sorterFormat)
+    val data = makeData(100000, sorterFormat)
     val timOutput = data.clone()
+    val radixOutput = data.clone()
 
     println("Sorting " + data.length + " Longs...")
 
     // Tim sort
     val timStart = System.currentTimeMillis
-    new TimSorter(sorterFormat)
-      .sort(timOutput, 0, data.length / 2, SortUtils.longPairOrdering)
+    new TimSorter(sorterFormat).sort(timOutput, 0, data.length / 2, SortUtils.longPairOrdering)
     val timElapsed = System.currentTimeMillis - timStart
 
     // Radix sort
     val radixStart = System.currentTimeMillis
-    val radixOutput = new RadixSorter(sorterFormat).sort(data)
+    new RadixSorter(sorterFormat).sort(radixOutput)
     val radixElapsed = System.currentTimeMillis - radixStart
 
     // In case things go wrong...

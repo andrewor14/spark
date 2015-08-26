@@ -18,7 +18,6 @@
 package org.apache.spark.util.collection
 
 import scala.reflect.ClassTag
-import java.util
 
 /**
  * Abstraction for sorting an arbitrary input buffer of data. This interface requires determining

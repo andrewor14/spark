@@ -20,6 +20,47 @@ package org.apache.spark.util.collection
 import scala.reflect.ClassTag
 
 /**
+ * An append-only primitive vector for Long's.
+ * This is its own separate class for convenient use in Java.
+ * Note: DUPLICATE CODE ALERT!!
+ */
+private[spark] class PrimitiveLongVector(initialSize: Int = 64) {
+  private var _numElements = 0
+  private var _array: Array[Long] = _
+
+  // NB: This must be separate from the declaration, otherwise the specialized parent class
+  // will get its own array with the same initial size.
+  _array = new Array[Long](initialSize)
+
+  def size: Int = _numElements
+
+  def setSize(newSize: Int): Unit = {
+    assert(newSize <= _numElements)
+    _numElements = newSize
+  }
+
+  def append(value: Long): Unit = {
+    if (_numElements == _array.length) {
+      resize(_array.length * 2)
+    }
+    _array(_numElements) = value
+    _numElements += 1
+  }
+
+  def array: Array[Long] = _array
+
+  /** Resizes the array, dropping elements if the total length decreases. */
+  def resize(newLength: Int): Unit = {
+    val newArray = new Array[Long](newLength)
+    _array.copyToArray(newArray)
+    _array = newArray
+    if (newLength < _numElements) {
+      _numElements = newLength
+    }
+  }
+}
+
+/**
  * An append-only, non-threadsafe, array-backed vector that is optimized for primitive types.
  */
 private[spark]
@@ -35,6 +76,8 @@ class PrimitiveVector[@specialized(Long, Int, Double) V: ClassTag](initialSize: 
     require(index < _numElements)
     _array(index)
   }
+
+  def append(value: V): Unit = +=(value)
 
   def +=(value: V): Unit = {
     if (_numElements == _array.length) {

@@ -1,5 +1,7 @@
 package org.apache.spark.util.collection;
 
+import org.apache.spark.sort.PairLong;
+
 import java.util.ArrayList;
 
 /**
@@ -11,43 +13,38 @@ import java.util.ArrayList;
  * Note: This sorter currently does not support sorting buffers with a mixture of positive and
  * negative primitives, because it treats the inputs as bytes and does not know about signage.
  * E.g. -1 is treated as the max because it's all 1's, while 0 is treated as the min.
+ *
+ * HACK ALERT: This currently only works specifically with pair long arrays!!
  */
-public class RadixSorter<K, Buffer> {
+public class RadixSorter {
 
-  private final SortDataFormat<K, Buffer> s;
+  private final SortDataFormat<PairLong, long[]> s;
 
   // Number of bytes in key K, also the number of buckets
   private final int numKeyBytes;
 
-  // Number of items in each bucket, reused across many phases
-  private final int[] counts;
-
   // Temp key holder for storing intermediate keys, reused many times
-  private K tempKeyHolder;
+  private PairLong tempKeyHolder;
 
-  public RadixSorter(SortDataFormat<K, Buffer> sortDataFormat) {
+  public RadixSorter(SortDataFormat<PairLong, long[]> sortDataFormat) {
     this.s = sortDataFormat;
     this.numKeyBytes = s.getNumKeyBytes();
-    this.counts = new int[256]; // this supports at most 2^32 duplicate bytes per key
 
     assert numKeyBytes > 0 : "Um need at least 1 byte to sort?";
   }
 
   /**
-   * Sort the given buffer using radix sort.
-   * Note that the contents of the input buffer will be destroyed in place.
+   * Sort the given buffer using radix sort in place.
+   *
+   * This runs 10 phases, 1 for each key byte. Each phase takes exactly one pass over the data
+   * and allocates 256 resizable long arrays. It is not the most memory efficient approach but
+   * it takes the fewest number of passes over the data possible in Radix sort.
    */
-  public Buffer sort(Buffer input) {
-    int length = s.getLength(input);
-    Buffer tempBuffer = s.allocate(length);
+  public void sort(long[] buffer) {
+    int length = s.getLength(buffer);
     tempKeyHolder = s.createTempKeyHolder();
 
-    // To avoid copying elements back and forth between the two
-    // buffers at the end of each phase, just swap the pointers
-    Buffer inputBuffer = input;
-    Buffer outputBuffer = tempBuffer;
-
-    // Build up byte indices to process
+    // Build up byte indices to process, least significant byte index first
     ArrayList<Integer> byteIndices = new ArrayList<Integer>();
     for (int i = 0; i < numKeyBytes; i++) {
       if (!s.keyBytesToIgnore().contains(i)) {
@@ -55,59 +52,107 @@ public class RadixSorter<K, Buffer> {
       }
     }
 
-    // Sort the keys one byte at a time, starting from the least significant byte
-    int lastByteIndex = byteIndices.get(byteIndices.size() - 1);
+    // To avoid creating temp buffers all the time, we reuse two of these
+    // across many phases, alternating which one to use for input vs output.
+    PrimitiveLongVector[] tempBuffer1 = newVector();
+    PrimitiveLongVector[] tempBuffer2 = newVector();
+    PrimitiveLongVector[] inputBuffer = null;
+    PrimitiveLongVector[] outputBuffer = null;
+
+    // Sort the keys one byte at a time, starting from the least significant byte.
+    // In the first phase, we read directly from the long array provided by the user.
+    // In subsequent phases, we read from our temp buffers.
     for (int byteIndex : byteIndices) {
-      sortByByte(inputBuffer, outputBuffer, length, byteIndex);
-      if (byteIndex != lastByteIndex) {
-        // If there is a next phase, we use our output buffer as the new source of data, so we
-        // no longer need our input buffer and can reuse it to store the output of the next phase.
-        Buffer temp = inputBuffer;
+      if (inputBuffer == null) {
+        // Read directly from the user provided long array
+        assert outputBuffer == null : "output buffer shouldn't be initialized yet?";
+        outputBuffer = tempBuffer1;
+        inputBuffer = tempBuffer2;
+        sortByByte(buffer, outputBuffer, length, byteIndex);
+      } else {
+        // Read from one of our temporary buffers.
+        // If we used buffer 1 to store the output last time, use buffer 2 this time.
+        // If we used buffer 2 to store the output last time, use buffer 1 this time.
+        PrimitiveLongVector[] temp = inputBuffer;
         inputBuffer = outputBuffer;
         outputBuffer = temp;
+        sortByByte(inputBuffer, outputBuffer, byteIndex);
       }
     }
 
-    return outputBuffer;
+    // Copy elements from temp buffer back to our original buffer
+    assert outputBuffer != null : "output buffer was supposed to be initialized";
+    int copyIndex = 0;
+    for (int i = 0; i < outputBuffer.length; i += 1) {
+      PrimitiveLongVector vec = outputBuffer[i];
+      long[] arr = outputBuffer[i].array();
+      for (int j = 0; j < vec.size(); j += 1) {
+        buffer[copyIndex] = arr[j];
+        copyIndex++;
+      }
+    }
   }
 
   /**
-   * Sort the contents of the input buffer by a specific byte.
-   * This fills the output buffers with the keys in the resulting order.
+   * Sort the input buffer by the specified byte index, to be called in phases 1.
    */
-  private void sortByByte(Buffer inputBuffer, Buffer outputBuffer, int length, int byteIndex) {
+  private void sortByByte(
+      long[] inputBuffer,
+      PrimitiveLongVector[] outputBuffer,
+      int numRecords,
+      int byteIndex) {
 
-    // Hash each key by its byte at `byteIndex` and fill in the counts array
-    for (int i = 0; i < length; i++) {
+    // Hash each key in a bucket
+    for (int i = 0; i < numRecords; i++) {
       s.getKey(inputBuffer, i, tempKeyHolder);
       int bucketIndex = getBucketIndex(tempKeyHolder, byteIndex);
-      counts[bucketIndex]++;
-    }
-
-    // Convert the counts to accumulated values to use as indices later
-    // E.g. [2, 2, 1, 4, 0, 3] -> [2, 4, 5, 9, 9, 12]
-    for (int j = 1; j < counts.length; j++) {
-      counts[j] += counts[j - 1];
-    }
-
-    // Fill in temp buffer using the new ordering specified by the counts
-    // Note: we must start at the back because the previous phases have already put the keys
-    // in increasing order by the less significant bytes. Since we put the keys from back to
-    // front we should continue to respect this partial ordering.
-    for (int i = length - 1; i >= 0; i--) {
-      s.getKey(inputBuffer, i, tempKeyHolder);
-      int bucketIndex = getBucketIndex(tempKeyHolder, byteIndex);
-      counts[bucketIndex]--;
-      s.putKey(outputBuffer, counts[bucketIndex], tempKeyHolder);
-    }
-
-    // Zero out the counts array
-    for (int j = 0; j < counts.length; j++) {
-      counts[j] = 0;
+      outputBuffer[bucketIndex].append(tempKeyHolder._1());
+      outputBuffer[bucketIndex].append(tempKeyHolder._2());
     }
   }
 
-  private int getBucketIndex(K key, int byteIndex) {
+  /**
+   * Sort the input buffer by the specified byte index, to be called in phases 2 and above.
+   */
+  private void sortByByte(
+      PrimitiveLongVector[] inputBuffer,
+      PrimitiveLongVector[] outputBuffer,
+      int byteIndex) {
+    assert inputBuffer.length == outputBuffer.length : "temp buffer sizes should not change";
+
+    // Re-initialize output buffer before use
+    for (PrimitiveLongVector vec : outputBuffer) {
+      vec.setSize(0);
+    }
+
+    // Hash each key in a bucket
+    for (int i = 0; i < inputBuffer.length; i += 1) {
+      PrimitiveLongVector vec = inputBuffer[i];
+      long[] arr = inputBuffer[i].array();
+      assert arr.length % 2 == 0 : "expected even number of Long's in the array.";
+      for (int j = 0; j < vec.size(); j += 2) {
+        tempKeyHolder.set_1(arr[j]);
+        tempKeyHolder.set_2(arr[j + 1]);
+        int bucketIndex = getBucketIndex(tempKeyHolder, byteIndex);
+        outputBuffer[bucketIndex].append(tempKeyHolder._1());
+        outputBuffer[bucketIndex].append(tempKeyHolder._2());
+      }
+    }
+  }
+
+  /**
+   * Create a new primitive long vector, to be called before each phase.
+   */
+  private PrimitiveLongVector[] newVector() {
+    int size = Integer.parseInt(System.getProperty("spark.sort.radixVectorInitialSize", "2048"));
+    PrimitiveLongVector[] tempBuffer = new PrimitiveLongVector[256];
+    for (int x = 0; x < 256; x++) {
+      tempBuffer[x] = new PrimitiveLongVector(size);
+    }
+    return tempBuffer;
+  }
+
+  private int getBucketIndex(PairLong key, int byteIndex) {
     return s.getKeyByte(key, byteIndex) & 0xff;
   }
 

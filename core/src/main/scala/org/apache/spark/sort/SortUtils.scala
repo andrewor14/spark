@@ -143,7 +143,7 @@ object SortUtils {
     }
 
     // Sort it
-    sortBuf.keys = new RadixSorter(new LongPairArraySorter).sort(keys)
+    new RadixSorter(new LongPairArraySorter).sort(keys)
   }
 
   // Sort a range of a SortBuffer using only the keys, then update the pointers field to match
@@ -151,7 +151,7 @@ object SortUtils {
   // (with 2 Longs per record in the buffer to capture the 10-byte key and its index) and sorts
   // them without having to look up random locations in the original data on each comparison.
   def sortWithKeys(sortBuf: SortBuffer, numRecords: Int) {
-    var keys = sortBuf.keys
+    val keys = sortBuf.keys
     val pointers = sortBuf.pointers
     val baseAddress = sortBuf.address
     var recordAddress = baseAddress
@@ -179,7 +179,7 @@ object SortUtils {
     }
 
     // Sort it
-    keys = new RadixSorter(new LongPairArraySorter).sort(keys)
+    new RadixSorter(new LongPairArraySorter).sort(keys)
 
     // Fill back the pointers array
     i = 0
@@ -187,100 +187,102 @@ object SortUtils {
       pointers(i) = baseAddress + (keys(2 * i + 1) & 0xFFFFFFFFL) * 100
       i += 1
     }
-
-    sortBuf.keys = keys
-  }
-
-  private[spark] final class PairLong(var _1: Long, var _2: Long) {
-    override def toString: String = "(" + _1 + ", " + _2 + ")"
-  }
-
-  private[spark] final class LongPairArraySorter extends SortDataFormat[PairLong, Array[Long]] {
-
-    override protected def getKey(data: Array[Long], pos: Int) = ???
-
-    override protected def createTempKeyHolder(): PairLong = new PairLong(0L, 0L)
-
-    /** Return the sort key for the element at the given index. */
-    override protected def getKey(data: Array[Long], pos: Int, reuse: PairLong): PairLong = {
-      reuse._1 = data(2 * pos)
-      reuse._2 = data(2 * pos + 1)
-      reuse
-    }
-
-    /** Put a key in the specified index in our buffer. */
-    override protected def putKey(data: Array[Long], pos: Int, reuse: PairLong): Unit = {
-      data(2 * pos) = reuse._1
-      data(2 * pos + 1) = reuse._2
-    }
-
-    override protected def getLength(data: Array[Long]): Int = {
-      assert(data.length % 2 == 0, "input array size should be even...")
-      data.length / 2
-    }
-
-    override protected def getKeyByte(key: PairLong, nthByte: Int): Byte = {
-      assert(nthByte >= 0 && nthByte < 16, "requested invalid byte: " + nthByte)
-      val mask = 255 // to get the least significant byte
-      val long = if (nthByte < 8) key._1 else key._2
-      val longByteIndex = nthByte % 8
-      val shift = (7 - longByteIndex) * 8
-      // e.g. nthByte = 14, longByteIndex = 6, shift = 1
-      // in other words, we want the 7th byte of the second Long, so we shift it right by 1 byte
-      ((long >> shift) & mask).toByte
-    }
-
-    override protected def getNumKeyBytes: Int = 16
-
-    // This is highly-specific to our input encoding!
-    // We have 2 longs, of which the following bytes actually store the keys (denoted by 'k'):
-    // (_, k, k, k, k, k, k, k) (_, k, k, k, _, _, _, _)
-    override def keyBytesToIgnore: Set[Int] = Set(0, 8, 12, 13, 14, 15)
-
-    /** Swap two elements. */
-    override protected def swap(data: Array[Long], pos0: Int, pos1: Int) {
-      var tmp = data(2 * pos0)
-      data(2 * pos0) = data(2 * pos1)
-      data(2 * pos1) = tmp
-      tmp = data(2 * pos0 + 1)
-      data(2 * pos0 + 1) = data(2 * pos1 + 1)
-      data(2 * pos1 + 1) = tmp
-    }
-
-    /** Copy a single element from src(srcPos) to dst(dstPos). */
-    override protected def copyElement(src: Array[Long], srcPos: Int,
-                                       dst: Array[Long], dstPos: Int) {
-      dst(2 * dstPos) = src(2 * srcPos)
-      dst(2 * dstPos + 1) = src(2 * srcPos + 1)
-    }
-
-    /**
-     * Copy a range of elements starting at src(srcPos) to dst, starting at dstPos.
-     * Overlapping ranges are allowed.
-     */
-    override protected def copyRange(src: Array[Long], srcPos: Int,
-                                     dst: Array[Long], dstPos: Int, length: Int) {
-      System.arraycopy(src, 2 * srcPos, dst, 2 * dstPos, 2 * length)
-    }
-
-    /**
-     * Allocates a Buffer that can hold up to 'length' elements.
-     * All elements of the buffer should be considered invalid until data is explicitly copied in.
-     */
-    override protected def allocate(length: Int): Array[Long] = new Array[Long](2 * length)
-  }
-
-  private[spark] final class LongPairOrdering extends Ordering[PairLong] {
-    override def compare(left: PairLong, right: PairLong): Int = {
-      val c1 = java.lang.Long.compare(left._1, right._1)
-      if (c1 != 0) {
-        c1
-      } else {
-        java.lang.Long.compare(left._2, right._2)
-      }
-    }
   }
 
   private[spark] val longPairOrdering = new LongPairOrdering
 
+}
+
+final class PairLong(var _1: Long, var _2: Long) {
+  override def toString: String = "(" + _1 + ", " + _2 + ")"
+
+  // For Java.
+  def set_1(l: Long): Unit = { _1 = l }
+  def set_2(l: Long): Unit = { _2 = l }
+}
+
+private[spark] final class LongPairArraySorter extends SortDataFormat[PairLong, Array[Long]] {
+
+  override protected def getKey(data: Array[Long], pos: Int) = ???
+
+  override protected def createTempKeyHolder(): PairLong = new PairLong(0L, 0L)
+
+  /** Return the sort key for the element at the given index. */
+  override protected def getKey(data: Array[Long], pos: Int, reuse: PairLong): PairLong = {
+    reuse._1 = data(2 * pos)
+    reuse._2 = data(2 * pos + 1)
+    reuse
+  }
+
+  /** Put a key in the specified index in our buffer. */
+  override protected def putKey(data: Array[Long], pos: Int, reuse: PairLong): Unit = {
+    data(2 * pos) = reuse._1
+    data(2 * pos + 1) = reuse._2
+  }
+
+  override protected def getLength(data: Array[Long]): Int = {
+    assert(data.length % 2 == 0, "input array size should be even...")
+    data.length / 2
+  }
+
+  override protected def getKeyByte(key: PairLong, nthByte: Int): Byte = {
+    assert(nthByte >= 0 && nthByte < 16, "requested invalid byte: " + nthByte)
+    val mask = 255 // to get the least significant byte
+    val long = if (nthByte < 8) key._1 else key._2
+    val longByteIndex = nthByte % 8
+    val shift = (7 - longByteIndex) * 8
+    // e.g. nthByte = 14, longByteIndex = 6, shift = 1
+    // in other words, we want the 7th byte of the second Long, so we shift it right by 1 byte
+    ((long >> shift) & mask).toByte
+  }
+
+  override protected def getNumKeyBytes: Int = 16
+
+  // This is highly-specific to our input encoding!
+  // We have 2 longs, of which the following bytes actually store the keys (denoted by 'k'):
+  // (_, k, k, k, k, k, k, k) (_, k, k, k, _, _, _, _)
+  override def keyBytesToIgnore: Set[Int] = Set(0, 8, 12, 13, 14, 15)
+
+  /** Swap two elements. */
+  override protected def swap(data: Array[Long], pos0: Int, pos1: Int) {
+    var tmp = data(2 * pos0)
+    data(2 * pos0) = data(2 * pos1)
+    data(2 * pos1) = tmp
+    tmp = data(2 * pos0 + 1)
+    data(2 * pos0 + 1) = data(2 * pos1 + 1)
+    data(2 * pos1 + 1) = tmp
+  }
+
+  /** Copy a single element from src(srcPos) to dst(dstPos). */
+  override protected def copyElement(src: Array[Long], srcPos: Int,
+                                     dst: Array[Long], dstPos: Int) {
+    dst(2 * dstPos) = src(2 * srcPos)
+    dst(2 * dstPos + 1) = src(2 * srcPos + 1)
+  }
+
+  /**
+   * Copy a range of elements starting at src(srcPos) to dst, starting at dstPos.
+   * Overlapping ranges are allowed.
+   */
+  override protected def copyRange(src: Array[Long], srcPos: Int,
+                                   dst: Array[Long], dstPos: Int, length: Int) {
+    System.arraycopy(src, 2 * srcPos, dst, 2 * dstPos, 2 * length)
+  }
+
+  /**
+   * Allocates a Buffer that can hold up to 'length' elements.
+   * All elements of the buffer should be considered invalid until data is explicitly copied in.
+   */
+  override protected def allocate(length: Int): Array[Long] = new Array[Long](2 * length)
+}
+
+private[spark] final class LongPairOrdering extends Ordering[PairLong] {
+  override def compare(left: PairLong, right: PairLong): Int = {
+    val c1 = java.lang.Long.compare(left._1, right._1)
+    if (c1 != 0) {
+      c1
+    } else {
+      java.lang.Long.compare(left._2, right._2)
+    }
+  }
 }
