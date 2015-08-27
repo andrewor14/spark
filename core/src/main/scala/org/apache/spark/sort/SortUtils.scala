@@ -142,8 +142,9 @@ object SortUtils {
       indexWithinChunk += 1
     }
 
-    // Sort it
-    sortLongPairs(keys)
+    // Note: on the reduce side, we ALWAYS want to use TimSort
+    // because the keys should be partially sorted already.
+    sortLongPairs(keys, algorithm = "tim")
   }
 
   // Sort a range of a SortBuffer using only the keys, then update the pointers field to match
