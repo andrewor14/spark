@@ -2,7 +2,7 @@ package org.apache.spark.sort
 
 import java.nio.ByteBuffer
 
-import org.apache.spark.util.collection.{RadixSorter, SortDataFormat}
+import org.apache.spark.util.collection.{TimSorter, RadixSorter, SortDataFormat}
 
 
 object SortUtils {
@@ -138,8 +138,8 @@ object SortUtils {
       indexWithinChunk += 1
     }
 
-    // Sort it
-    sortBuf.keys = new RadixSorter(new LongPairArraySorter).sort(keys)
+    // ALWAYS use TimSort on the reduce side because the inputs are partially sorted
+    sortBuf.keys = doSort(keys, algorithm = "tim")
   }
 
   // Sort a range of a SortBuffer using only the keys, then update the pointers field to match
@@ -168,7 +168,7 @@ object SortUtils {
     }
 
     // Sort it
-    keys = new RadixSorter(new LongPairArraySorter).sort(keys)
+    keys = doSort(keys)
 
     // Fill back the pointers array
     i = 0
@@ -178,6 +178,20 @@ object SortUtils {
     }
 
     sortBuf.keys = keys
+  }
+
+  private[spark] val sortAlgorithm = sys.props.getOrElse("spark.sort.algorithm", "tim")
+
+  private def doSort(keys: Array[Long], algorithm: String = sortAlgorithm): Array[Long] = {
+    algorithm match {
+      case "tim" =>
+        new TimSorter(new LongPairArraySorter).sort(keys, 0, keys.length / 2, longPairOrdering)
+        keys
+      case "radix" =>
+        new RadixSorter(new LongPairArraySorter).sort(keys)
+      case s =>
+        throw new IllegalArgumentException("Unknown sort algorithm " + s)
+    }
   }
 
   private[spark] final class PairLong(var _1: Long, var _2: Long) {
