@@ -17,8 +17,6 @@
 
 package org.apache.spark.util.collection
 
-import java.lang.Long
-
 import scala.collection.mutable.ArrayBuffer
 
 

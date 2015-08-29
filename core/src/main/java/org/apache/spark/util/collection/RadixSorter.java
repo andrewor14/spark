@@ -20,7 +20,6 @@ package org.apache.spark.util.collection;
 import java.util.ArrayList;
 
 import org.apache.spark.sort.PairLong;
-import scala.reflect.ClassTag;
 
 
 /**
