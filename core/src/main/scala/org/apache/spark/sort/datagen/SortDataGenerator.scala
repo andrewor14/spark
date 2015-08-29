@@ -3,6 +3,8 @@ package org.apache.spark.sort.datagen
 import java.io.{FileOutputStream, BufferedOutputStream, File}
 import java.util.concurrent.atomic.AtomicInteger
 
+import scala.collection.mutable
+
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.io.nativeio.NativeIO
 import org.apache.spark.sort.{Utils, NodeLocalRDDPartition, NodeLocalRDD}
@@ -106,9 +108,9 @@ object SortDataGenerator {
 
     val rand = new java.util.Random(17)
 
-    val replicatedHosts = Array.tabulate[String](numTasks) { i =>
-      hosts(rand.nextInt(hosts.length))
-    }
+//    val replicatedHosts = Array.tabulate[String](numTasks) { i =>
+//      hosts(rand.nextInt(hosts.length))
+//    }
 
 //    val replicatedHosts = new Array[String](numTasks)
 //    for (replicaIndex <- 0 until replica) {
@@ -116,6 +118,29 @@ object SortDataGenerator {
 //        replicatedHosts(replicaIndex * numParts + i) = hosts((i + replicaIndex) % hosts.length)
 //      }
 //    }
+
+    val replicatedHosts = new Array[String](numParts * 3)
+
+    for (part <- 0 until numParts) {
+      val drawn = new mutable.HashSet[Int]
+      val i1 = rand.nextInt(hosts.size)
+      drawn += i1
+
+      var i2 = rand.nextInt(hosts.size)
+      while (drawn.contains(i2)) {
+        i2 = rand.nextInt(hosts.size)
+      }
+      drawn += i2
+
+      var i3 = rand.nextInt(hosts.size)
+      while (drawn.contains(i3)) {
+        i3 = rand.nextInt(hosts.size)
+      }
+
+      replicatedHosts(numParts * 0 + part) = hosts(i1)
+      replicatedHosts(numParts * 1 + part) = hosts(i2)
+      replicatedHosts(numParts * 2 + part) = hosts(i3)
+    }
 
     val output = new NodeLocalRDD[(String, Int, String, Unsigned16)](sc, numTasks, replicatedHosts) {
       override def compute(split: Partition, context: TaskContext) = {
