@@ -105,6 +105,13 @@ public class RadixSorter {
         copyIndex++;
       }
     }
+
+    // Free buffers, screw try finally. This never fails anyway...
+    // No need to free inputBuffers and outputBuffers because these are just pointers
+    for (int x = 0; x < 256; x++) {
+      tempBuffer1[x].free();
+      tempBuffer2[x].free();
+    }
   }
 
   /**
@@ -157,10 +164,9 @@ public class RadixSorter {
    * Create a new primitive long vector, to be called before each phase.
    */
   private PrimitiveLongChunkedVector[] newVector() {
-    int size = Integer.parseInt(System.getProperty("spark.sort.radixVectorInitialSize", "2048"));
     PrimitiveLongChunkedVector[] tempBuffer = new PrimitiveLongChunkedVector[256];
     for (int x = 0; x < 256; x++) {
-      tempBuffer[x] = new PrimitiveLongChunkedVector(size);
+      tempBuffer[x] = new PrimitiveLongChunkedVector();
     }
     return tempBuffer;
   }

@@ -17,28 +17,39 @@
 
 package org.apache.spark.util.collection
 
-import scala.collection.mutable.ArrayBuffer
+import org.apache.spark.sort.SortUtils
 
 
 /**
  * An append-only vector for [[Long]]s that avoids copying when growing.
- * @param chunkSize number of [[Long]]s in each chunk
+ * @param chunkSize size of each chunk, in bytes
  */
-class PrimitiveLongChunkedVector(chunkSize: Int = 1024) {
+class PrimitiveLongChunkedVector(chunkSize: Long, numTotalChunks: Int) {
+  import PrimitiveLongChunkedVector._
+  import SortUtils.UNSAFE
+
+  private var numChunks = 1
   private var numElements: Int = 0
   private var writeChunkIndex: Int = 0
   private var writeIndexWithinChunk: Int = 0
   private var readChunkIndex: Int = 0
   private var readIndexWithinChunk: Int = 0
-  private val chunks: ArrayBuffer[Array[Long]] = {
-    val buf = new ArrayBuffer[Array[Long]]
-    buf += new Array[Long](chunkSize)
-    buf
+
+  private val numLongsPerChunk = chunkSize / LONG_SIZE
+  private val chunkAddresses: Array[Long] = {
+    val arr = new Array[Long](numTotalChunks)
+    arr(0) = UNSAFE.allocateMemory(chunkSize)
+    arr
   }
 
-  require(chunkSize > 0, "chunk size must be greater than 0")
+  require(numLongsPerChunk > 0, "chunk size must be greater than 0")
+  require(chunkSize % LONG_SIZE == 0, "chunk size must be word-aligned")
 
   reset()
+
+  def this() {
+    this(4L * 1000 * 1000, 64)
+  }
 
   /**
    * Reset the variables describing this vector.
@@ -57,41 +68,49 @@ class PrimitiveLongChunkedVector(chunkSize: Int = 1024) {
 
   // HACK ALERT: do not use iterator here to avoid boxing and stuff
   def readNext(): Long = {
-    val res = chunks(readChunkIndex)(readIndexWithinChunk)
+    val addr = chunkAddresses(readChunkIndex) + readIndexWithinChunk * LONG_SIZE
+    val res = UNSAFE.getLong(addr)
     readIndexWithinChunk += 1
-    if (readIndexWithinChunk == chunkSize) {
+    if (readIndexWithinChunk == numLongsPerChunk) {
       readChunkIndex += 1
       readIndexWithinChunk = 0
     }
     res
   }
 
-  /** Return the [[Long]] stored at the specified index. */
-  def apply(index: Int): Long = {
-    if (index >= numElements) {
-      throw new IllegalArgumentException(s"requested index $index must be < $numElements")
-    }
-    val theChunkIndex = index / chunkSize
-    val theIndexWithinChunk = index % chunkSize
-    chunks(theChunkIndex)(theIndexWithinChunk)
-  }
-
   /** Add a new [[Long]] to this vector, allocating a new chunk if necessary */
   def append(value: Long): Unit = {
-    assert(writeIndexWithinChunk <= chunkSize, "index within chunk is not within chunk?")
-    if (writeIndexWithinChunk == chunkSize) {
+    assert(writeIndexWithinChunk <= numLongsPerChunk, "index within chunk is not within chunk?")
+    if (writeIndexWithinChunk == numLongsPerChunk) {
       writeChunkIndex += 1
       writeIndexWithinChunk = 0
-      if (writeChunkIndex < chunks.size) {
-        // There might be an existing array if we called reset() before.
-        // In this case, there's no need to allocate a new one.
-      } else {
-        chunks += new Array[Long](chunkSize)
+      assert(writeChunkIndex <= numChunks)
+      // There might be an existing array if we called reset() before.
+      // In this case, there's no need to allocate a new one.
+      if (writeChunkIndex == numChunks) {
+        chunkAddresses(numChunks) = UNSAFE.allocateMemory(chunkSize)
+        numChunks += 1
       }
     }
-    chunks(writeChunkIndex)(writeIndexWithinChunk) = value
+    val addr = chunkAddresses(writeChunkIndex) + writeIndexWithinChunk * LONG_SIZE
+    UNSAFE.putLong(addr, value)
     writeIndexWithinChunk += 1
     numElements += 1
   }
 
+  /** Free all the memory used by this vector. */
+  def free(): Unit = {
+    var i = 0
+    while (i < numChunks) {
+      val addr = chunkAddresses(i)
+      assert(addr > 0)
+      UNSAFE.freeMemory(addr)
+      i += 1
+    }
+  }
+
+}
+
+private object PrimitiveLongChunkedVector {
+  val LONG_SIZE = 8 // bytes
 }
