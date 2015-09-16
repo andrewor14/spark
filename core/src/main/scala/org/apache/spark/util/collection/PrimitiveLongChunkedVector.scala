@@ -26,8 +26,10 @@ import scala.collection.mutable.ArrayBuffer
  */
 class PrimitiveLongChunkedVector(chunkSize: Int = 1024) {
   private var numElements: Int = 0
-  private var chunkIndex: Int = 0
-  private var indexWithinChunk: Int = 0
+  private var writeChunkIndex: Int = 0
+  private var writeIndexWithinChunk: Int = 0
+  private var readChunkIndex: Int = 0
+  private var readIndexWithinChunk: Int = 0
   private val chunks: ArrayBuffer[Array[Long]] = {
     val buf = new ArrayBuffer[Array[Long]]
     buf += new Array[Long](chunkSize)
@@ -44,12 +46,25 @@ class PrimitiveLongChunkedVector(chunkSize: Int = 1024) {
    */
   def reset(): Unit = {
     numElements = 0
-    chunkIndex = 0
-    indexWithinChunk = 0
+    writeChunkIndex = 0
+    writeIndexWithinChunk = 0
+    readChunkIndex = 0
+    readIndexWithinChunk = 0
   }
 
   /** Number of elements put in this vector. */
   def size: Int = numElements
+
+  // HACK ALERT: do not use iterator here to avoid boxing and stuff
+  def readNext(): Long = {
+    val res = chunks(readChunkIndex)(readIndexWithinChunk)
+    readIndexWithinChunk += 1
+    if (readIndexWithinChunk == chunkSize) {
+      readChunkIndex += 1
+      readIndexWithinChunk = 0
+    }
+    res
+  }
 
   /** Return the [[Long]] stored at the specified index. */
   def apply(index: Int): Long = {
@@ -63,19 +78,19 @@ class PrimitiveLongChunkedVector(chunkSize: Int = 1024) {
 
   /** Add a new [[Long]] to this vector, allocating a new chunk if necessary */
   def append(value: Long): Unit = {
-    assert(indexWithinChunk <= chunkSize, "index within chunk is not within chunk?")
-    if (indexWithinChunk == chunkSize) {
-      chunkIndex += 1
-      indexWithinChunk = 0
-      if (chunkIndex < chunks.size) {
+    assert(writeIndexWithinChunk <= chunkSize, "index within chunk is not within chunk?")
+    if (writeIndexWithinChunk == chunkSize) {
+      writeChunkIndex += 1
+      writeIndexWithinChunk = 0
+      if (writeChunkIndex < chunks.size) {
         // There might be an existing array if we called reset() before.
         // In this case, there's no need to allocate a new one.
       } else {
         chunks += new Array[Long](chunkSize)
       }
     }
-    chunks(chunkIndex)(indexWithinChunk) = value
-    indexWithinChunk += 1
+    chunks(writeChunkIndex)(writeIndexWithinChunk) = value
+    writeIndexWithinChunk += 1
     numElements += 1
   }
 

@@ -101,7 +101,7 @@ public class RadixSorter {
     for (int i = 0; i < outputBuffer.length; i += 1) {
       PrimitiveLongChunkedVector vec = outputBuffer[i];
       for (int j = 0; j < vec.size(); j += 1) {
-        buffer[copyIndex] = vec.apply(j);
+        buffer[copyIndex] = vec.readNext();
         copyIndex++;
       }
     }
@@ -144,8 +144,8 @@ public class RadixSorter {
       PrimitiveLongChunkedVector vec = inputBuffer[i];
       assert vec.size() % 2 == 0 : "expected even number of Long's in the array.";
       for (int j = 0; j < vec.size(); j += 2) {
-        tempKeyHolder.set_1(vec.apply(j));
-        tempKeyHolder.set_2(vec.apply(j + 1));
+        tempKeyHolder.set_1(vec.readNext());
+        tempKeyHolder.set_2(vec.readNext());
         int bucketIndex = getBucketIndex(tempKeyHolder, byteIndex);
         outputBuffer[bucketIndex].append(tempKeyHolder._1());
         outputBuffer[bucketIndex].append(tempKeyHolder._2());
