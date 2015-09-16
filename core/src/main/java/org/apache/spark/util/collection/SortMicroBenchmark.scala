@@ -9,13 +9,14 @@ import org.apache.spark.sort.SortUtils
  * A micro-benchmark to test various sorting algorithms.
  */
 object SortMicroBenchmark {
-  private val sortAlgorithms: Set[String] = Set("tim", "radix", "radix2")
+  private val sortAlgorithms: Set[String] = Set("tim", "radix", "radix-old")
 
   def main(args: Array[String]): Unit = {
     if (args.length < 3) {
-      sys.error(
+      System.err.println(
         "Usage: SortMicroBenchmark [sort algorithm] [num records] [num iterations]\n" +
-        "- sort algorithm can be one of 'tim', 'radix', or 'radix2'")
+        "sort algorithm can be one of 'tim', 'radix', or 'radix-old'")
+      System.exit(1)
     }
     val sortAlgorithm = args(0)
     val numRecords = args(1).toInt

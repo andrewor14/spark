@@ -1,8 +1,27 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.spark.util.collection;
 
-import org.apache.spark.sort.PairLong;
-
 import java.util.ArrayList;
+
+import org.apache.spark.sort.PairLong;
+import scala.reflect.ClassTag;
+
 
 /**
  * An implementation of radix sort that buckets by bytes.
@@ -51,10 +70,10 @@ public class RadixSorter {
 
     // To avoid creating temp buffers all the time, we reuse two of these
     // across many phases, alternating which one to use for input vs output.
-    PrimitiveLongVector[] tempBuffer1 = newVector();
-    PrimitiveLongVector[] tempBuffer2 = newVector();
-    PrimitiveLongVector[] inputBuffer = null;
-    PrimitiveLongVector[] outputBuffer = null;
+    PrimitiveLongChunkedVector[] tempBuffer1 = newVector();
+    PrimitiveLongChunkedVector[] tempBuffer2 = newVector();
+    PrimitiveLongChunkedVector[] inputBuffer = null;
+    PrimitiveLongChunkedVector[] outputBuffer = null;
 
     // Sort the keys one byte at a time, starting from the least significant byte.
     // In the first phase, we read directly from the long array provided by the user.
@@ -70,7 +89,7 @@ public class RadixSorter {
         // Read from one of our temporary buffers.
         // If we used buffer 1 to store the output last time, use buffer 2 this time.
         // If we used buffer 2 to store the output last time, use buffer 1 this time.
-        PrimitiveLongVector[] temp = inputBuffer;
+        PrimitiveLongChunkedVector[] temp = inputBuffer;
         inputBuffer = outputBuffer;
         outputBuffer = temp;
         sortByByte(inputBuffer, outputBuffer, byteIndex);
@@ -81,10 +100,9 @@ public class RadixSorter {
     assert outputBuffer != null : "output buffer was supposed to be initialized";
     int copyIndex = 0;
     for (int i = 0; i < outputBuffer.length; i += 1) {
-      PrimitiveLongVector vec = outputBuffer[i];
-      long[] arr = outputBuffer[i].array();
+      PrimitiveLongChunkedVector vec = outputBuffer[i];
       for (int j = 0; j < vec.size(); j += 1) {
-        buffer[copyIndex] = arr[j];
+        buffer[copyIndex] = vec.apply(j);
         copyIndex++;
       }
     }
@@ -95,7 +113,7 @@ public class RadixSorter {
    */
   private void sortByByte(
       long[] inputBuffer,
-      PrimitiveLongVector[] outputBuffer,
+      PrimitiveLongChunkedVector[] outputBuffer,
       int numRecords,
       int byteIndex) {
 
@@ -112,24 +130,23 @@ public class RadixSorter {
    * Sort the input buffer by the specified byte index, to be called in phases 2 and above.
    */
   private void sortByByte(
-      PrimitiveLongVector[] inputBuffer,
-      PrimitiveLongVector[] outputBuffer,
+      PrimitiveLongChunkedVector[] inputBuffer,
+      PrimitiveLongChunkedVector[] outputBuffer,
       int byteIndex) {
     assert inputBuffer.length == outputBuffer.length : "temp buffer sizes should not change";
 
     // Re-initialize output buffer before use
-    for (PrimitiveLongVector vec : outputBuffer) {
-      vec.setSize(0);
+    for (PrimitiveLongChunkedVector vec : outputBuffer) {
+      vec.reset();
     }
 
     // Hash each key in a bucket
     for (int i = 0; i < inputBuffer.length; i += 1) {
-      PrimitiveLongVector vec = inputBuffer[i];
-      long[] arr = inputBuffer[i].array();
-      assert arr.length % 2 == 0 : "expected even number of Long's in the array.";
+      PrimitiveLongChunkedVector vec = inputBuffer[i];
+      assert vec.size() % 2 == 0 : "expected even number of Long's in the array.";
       for (int j = 0; j < vec.size(); j += 2) {
-        tempKeyHolder.set_1(arr[j]);
-        tempKeyHolder.set_2(arr[j + 1]);
+        tempKeyHolder.set_1(vec.apply(j));
+        tempKeyHolder.set_2(vec.apply(j + 1));
         int bucketIndex = getBucketIndex(tempKeyHolder, byteIndex);
         outputBuffer[bucketIndex].append(tempKeyHolder._1());
         outputBuffer[bucketIndex].append(tempKeyHolder._2());
@@ -140,11 +157,11 @@ public class RadixSorter {
   /**
    * Create a new primitive long vector, to be called before each phase.
    */
-  private PrimitiveLongVector[] newVector() {
+  private PrimitiveLongChunkedVector[] newVector() {
     int size = Integer.parseInt(System.getProperty("spark.sort.radixVectorInitialSize", "2048"));
-    PrimitiveLongVector[] tempBuffer = new PrimitiveLongVector[256];
+    PrimitiveLongChunkedVector[] tempBuffer = new PrimitiveLongChunkedVector[256];
     for (int x = 0; x < 256; x++) {
-      tempBuffer[x] = new PrimitiveLongVector(size);
+      tempBuffer[x] = new PrimitiveLongChunkedVector(size);
     }
     return tempBuffer;
   }

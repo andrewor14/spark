@@ -195,8 +195,8 @@ object SortUtils {
     val sortFormat = new LongPairArraySorter
     algorithm match {
       case "tim" => new TimSorter(sortFormat).sort(keys, 0, keys.size / 2, longPairOrdering)
-      case "radix" => new OldRadixSorter(sortFormat).sort(keys)
-      case "radix2" => new RadixSorter(sortFormat).sort(keys)
+      case "radix" => new RadixSorter(sortFormat).sort(keys)
+      case "radix-old" => new OldRadixSorter(sortFormat).sort(keys)
       case bad => throw new IllegalArgumentException("Unknown sorting algorithm: " + bad)
     }
   }
