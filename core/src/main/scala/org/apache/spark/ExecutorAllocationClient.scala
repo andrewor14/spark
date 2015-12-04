@@ -41,7 +41,7 @@ private[spark] trait ExecutorAllocationClient {
    *                             This includes running, pending, and completed tasks.
    * @return whether the request is acknowledged by the cluster manager.
    */
-  private[spark] def requestTotalExecutors(
+  def requestTotalExecutors(
       numExecutors: Int,
       localityAwareTasks: Int,
       hostToLocalTaskCount: Map[String, Int]): Boolean
