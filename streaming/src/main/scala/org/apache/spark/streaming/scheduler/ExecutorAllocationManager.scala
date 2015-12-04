@@ -29,15 +29,55 @@ private[streaming] class ExecutorAllocationManager(
   private val timer =  new RecurringTimer(clock, scalingIntervalSecs * 1000,
     _ => manageAllocation(), "streaming-executor-allocation-manager")
 
+  // A dummy timer for printing useful debug information. TODO: remove me.
+  private val timer2 =  new RecurringTimer(clock, 5 * 1000,
+    _ => printMoreThings(), "streaming-executor-allocation-manager-printer")
+
   def start(): Unit = {
     timer.start()
+    timer2.start()
     logInfo(s"ExecutorAllocationManager started with " +
       s"ratios = [$scalingUpRatio, $scalingDownRatio] and interval = $scalingIntervalSecs sec")
   }
 
   def stop(): Unit = {
     timer.stop(interruptTimer = true)
+    timer2.stop(interruptTimer = true)
     logInfo("ExecutorAllocationManager stopped")
+  }
+
+  // TODO: remove me
+  private def printMoreThings(): Unit = synchronized {
+    if (batchProcTimeCount > 0) {
+      val averageBatchProcTime = batchProcTimeSum / batchProcTimeCount
+      val ratio = averageBatchProcTime.toDouble / batchDurationMs
+      val executors = client.getExecutorIds()
+      val executorsWithReceivers = receiverTracker.getAllocatedExecutors.values.flatten.toSeq
+      logInfo(
+        s"""
+        |
+        |
+        | ========================== PERIODIC METRICS ==========================
+        |  application parameters
+        |    batch duration = $batchDurationMs ms
+        |    scale up ratio = $scalingUpRatio
+        |    scale down ratio = $scalingDownRatio
+        |
+        |  over the past minute so far...
+        |    batch processing time = $averageBatchProcTime ms
+        |    ratio = $ratio
+        |    num executors = ${executors.size}
+        |    num executors with receivers = ${executorsWithReceivers.size}
+        |    list of executors = ${executors.mkString("[", ",", "]")}
+        |    list of executors with receivers = ${executorsWithReceivers.mkString("[", ",", "]")}
+        | ======================================================================
+        |
+        |
+        |
+      """.stripMargin)
+    } else {
+      logInfo("=== PERIODIC METRICS NOT READY YET ===")
+    }
   }
 
   private def manageAllocation(): Unit = synchronized {
