@@ -23,13 +23,16 @@ import java.nio.ByteBuffer
 import java.nio.channels.{Pipe, ReadableByteChannel, WritableByteChannel}
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.annotation.Nullable
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy
 
+import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
 import scala.reflect.ClassTag
 import scala.util.{DynamicVariable, Failure, Success, Try}
 import scala.util.control.NonFatal
 
+import com.google.common.base.Preconditions
 import org.apache.spark.{Logging, SecurityManager, SparkConf}
 import org.apache.spark.network.TransportContext
 import org.apache.spark.network.client._
@@ -47,8 +50,7 @@ private[netty] class NettyRpcEnv(
     securityManager: SecurityManager) extends RpcEnv(conf) with Logging {
 
   private[netty] val transportConf = SparkTransportConf.fromSparkConf(
-    conf.clone.set("spark.rpc.io.numConnectionsPerPeer", "1"),
-    "rpc",
+    conf.clone.set("spark.shuffle.io.numConnectionsPerPeer", "1"),
     conf.getInt("spark.rpc.io.threads", 0))
 
   private val dispatcher: Dispatcher = new Dispatcher(this)
@@ -345,7 +347,7 @@ private[netty] class NettyRpcEnv(
         }
 
         val ioThreads = clone.getInt("spark.files.io.threads", 1)
-        val downloadConf = SparkTransportConf.fromSparkConf(clone, module, ioThreads)
+        val downloadConf = SparkTransportConf.fromSparkConf(clone, ioThreads)
         val downloadContext = new TransportContext(downloadConf, new NoOpRpcHandler(), true)
         fileDownloadFactory = downloadContext.createClientFactory(createClientBootstraps())
       }

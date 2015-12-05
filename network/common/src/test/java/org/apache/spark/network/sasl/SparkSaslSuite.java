@@ -223,7 +223,7 @@ public class SparkSaslSuite {
   public void testEncryptedMessageChunking() throws Exception {
     File file = File.createTempFile("sasltest", ".txt");
     try {
-      TransportConf conf = new TransportConf("shuffle", new SystemPropertyConfigProvider());
+      TransportConf conf = new TransportConf(new SystemPropertyConfigProvider());
 
       byte[] data = new byte[8 * 1024];
       new Random().nextBytes(data);
@@ -258,7 +258,7 @@ public class SparkSaslSuite {
     final File file = File.createTempFile("sasltest", ".txt");
     SaslTestCtx ctx = null;
     try {
-      final TransportConf conf = new TransportConf("shuffle", new SystemPropertyConfigProvider());
+      final TransportConf conf = new TransportConf(new SystemPropertyConfigProvider());
       StreamManager sm = mock(StreamManager.class);
       when(sm.getChunk(anyLong(), anyInt())).thenAnswer(new Answer<ManagedBuffer>() {
           @Override
@@ -392,7 +392,7 @@ public class SparkSaslSuite {
         boolean disableClientEncryption)
       throws Exception {
 
-      TransportConf conf = new TransportConf("shuffle", new SystemPropertyConfigProvider());
+      TransportConf conf = new TransportConf(new SystemPropertyConfigProvider());
 
       SecretKeyHolder keyHolder = mock(SecretKeyHolder.class);
       when(keyHolder.getSaslUser(anyString())).thenReturn("user");

@@ -89,7 +89,7 @@ public class ChunkFetchIntegrationSuite {
       Closeables.close(fp, shouldSuppressIOException);
     }
 
-    final TransportConf conf = new TransportConf("shuffle", new SystemPropertyConfigProvider());
+    final TransportConf conf = new TransportConf(new SystemPropertyConfigProvider());
     fileChunk = new FileSegmentManagedBuffer(conf, testFile, 10, testFile.length() - 25);
 
     streamManager = new StreamManager() {

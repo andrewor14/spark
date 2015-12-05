@@ -91,7 +91,7 @@ public class StreamSuite {
       fp.close();
     }
 
-    final TransportConf conf = new TransportConf("shuffle", new SystemPropertyConfigProvider());
+    final TransportConf conf = new TransportConf(new SystemPropertyConfigProvider());
     final StreamManager streamManager = new StreamManager() {
       @Override
       public ManagedBuffer getChunk(long streamId, int chunkIndex) {
