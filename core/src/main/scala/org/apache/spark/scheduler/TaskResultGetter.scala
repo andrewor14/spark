@@ -38,7 +38,8 @@ private[spark] class TaskResultGetter(sparkEnv: SparkEnv, scheduler: TaskSchedul
   private val getTaskResultExecutor = ThreadUtils.newDaemonFixedThreadPool(
     THREADS, "task-result-getter")
 
-  protected val serializer = new ThreadLocal[SerializerInstance] {
+  // Exposed for testing. TODO: Don't use the closure serializer here (SPARK-12415)
+  protected val closureSerializer = new ThreadLocal[SerializerInstance] {
     override def initialValue(): SerializerInstance = {
       sparkEnv.closureSerializer.newInstance()
     }
@@ -49,7 +50,8 @@ private[spark] class TaskResultGetter(sparkEnv: SparkEnv, scheduler: TaskSchedul
     getTaskResultExecutor.execute(new Runnable {
       override def run(): Unit = Utils.logUncaughtExceptions {
         try {
-          val (result, size) = serializer.get().deserialize[TaskResult[_]](serializedData) match {
+          val receivedResult = closureSerializer.get().deserialize[TaskResult[_]](serializedData)
+          val (actualResult, size) = receivedResult match {
             case directResult: DirectTaskResult[_] =>
               if (!taskSetManager.canFetchMoreResults(serializedData.limit())) {
                 return
@@ -57,7 +59,7 @@ private[spark] class TaskResultGetter(sparkEnv: SparkEnv, scheduler: TaskSchedul
               // deserialize "value" without holding any lock so that it won't block other threads.
               // We should call it here, so that when it's called again in
               // "TaskSetManager.handleSuccessfulTask", it does not need to deserialize the value.
-              directResult.value()
+              directResult.value(scheduler.resultSerializer.get())
               (directResult, serializedData.limit())
             case IndirectTaskResult(blockId, size) =>
               if (!taskSetManager.canFetchMoreResults(size)) {
@@ -76,14 +78,14 @@ private[spark] class TaskResultGetter(sparkEnv: SparkEnv, scheduler: TaskSchedul
                   taskSetManager, tid, TaskState.FINISHED, TaskResultLost)
                 return
               }
-              val deserializedResult = serializer.get().deserialize[DirectTaskResult[_]](
+              val deserializedResult = closureSerializer.get().deserialize[DirectTaskResult[_]](
                 serializedTaskResult.get)
               sparkEnv.blockManager.master.removeBlock(blockId)
               (deserializedResult, size)
           }
 
-          result.metrics.setResultSize(size)
-          scheduler.handleSuccessfulTask(taskSetManager, tid, result)
+          actualResult.metrics.setResultSize(size)
+          scheduler.handleSuccessfulTask(taskSetManager, tid, actualResult)
         } catch {
           case cnf: ClassNotFoundException =>
             val loader = Thread.currentThread.getContextClassLoader
@@ -106,7 +108,7 @@ private[spark] class TaskResultGetter(sparkEnv: SparkEnv, scheduler: TaskSchedul
           val loader = Utils.getContextOrSparkClassLoader
           try {
             if (serializedData != null && serializedData.limit() > 0) {
-              reason = serializer.get().deserialize[TaskEndReason](
+              reason = closureSerializer.get().deserialize[TaskEndReason](
                 serializedData, loader)
             }
           } catch {

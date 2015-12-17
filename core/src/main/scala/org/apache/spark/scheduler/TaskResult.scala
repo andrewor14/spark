@@ -23,8 +23,8 @@ import java.nio.ByteBuffer
 import scala.collection.Map
 import scala.collection.mutable
 
-import org.apache.spark.SparkEnv
 import org.apache.spark.executor.TaskMetrics
+import org.apache.spark.serializer.SerializerInstance
 import org.apache.spark.storage.BlockId
 import org.apache.spark.util.Utils
 
@@ -87,14 +87,13 @@ class DirectTaskResult[T](var valueBytes: ByteBuffer, var accumUpdates: Map[Long
    *
    * After the first time, `value()` is trivial and just returns the deserialized `valueObject`.
    */
-  def value(): T = {
+  def value(ser: SerializerInstance): T = {
     if (valueObjectDeserialized) {
       valueObject
     } else {
       // This should not run when holding a lock because it may cost dozens of seconds for a large
       // value.
-      val resultSer = SparkEnv.get.serializer.newInstance()
-      valueObject = resultSer.deserialize(valueBytes)
+      valueObject = ser.deserialize(valueBytes)
       valueObjectDeserialized = true
       valueObject
     }

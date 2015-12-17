@@ -34,6 +34,7 @@ import org.apache.spark.scheduler.SchedulingMode.SchedulingMode
 import org.apache.spark.scheduler.TaskLocality.TaskLocality
 import org.apache.spark.util.{ThreadUtils, Utils}
 import org.apache.spark.executor.TaskMetrics
+import org.apache.spark.serializer.SerializerInstance
 import org.apache.spark.storage.BlockManagerId
 
 /**
@@ -114,6 +115,14 @@ private[spark] class TaskSchedulerImpl(
   } catch {
     case e: java.util.NoSuchElementException =>
       throw new SparkException(s"Unrecognized spark.scheduler.mode: $schedulingModeConf")
+  }
+
+  // Some serializers are expensive to create, e.g. the Kryo serializer.
+  // To avoid creating one of these for each task, keep around one per thread and reuse it.
+  private[scheduler] val resultSerializer = new ThreadLocal[SerializerInstance] {
+    override def initialValue(): SerializerInstance = {
+      sc.env.serializer.newInstance()
+    }
   }
 
   // This is a var so that we can reset it for testing purposes.
