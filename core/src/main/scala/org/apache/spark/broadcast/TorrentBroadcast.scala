@@ -26,7 +26,7 @@ import scala.util.Random
 
 import org.apache.spark.{Logging, SparkConf, SparkEnv, SparkException}
 import org.apache.spark.io.CompressionCodec
-import org.apache.spark.serializer.Serializer
+import org.apache.spark.serializer.SerializerInstance
 import org.apache.spark.storage.{BroadcastBlockId, StorageLevel}
 import org.apache.spark.util.{ByteBufferInputStream, Utils}
 import org.apache.spark.util.io.ByteArrayChunkOutputStream
@@ -98,8 +98,8 @@ private[spark] class TorrentBroadcast[T: ClassTag](obj: T, id: Long)
     // do not create a duplicate copy of the broadcast variable's value.
     SparkEnv.get.blockManager.putSingle(broadcastId, value, StorageLevel.MEMORY_AND_DISK,
       tellMaster = false)
-    val blocks =
-      TorrentBroadcast.blockifyObject(value, blockSize, SparkEnv.get.serializer, compressionCodec)
+    val ser = SparkEnv.get.serializerInstance.get()
+    val blocks = TorrentBroadcast.blockifyObject(value, blockSize, ser, compressionCodec)
     blocks.zipWithIndex.foreach { case (block, i) =>
       SparkEnv.get.blockManager.putBytes(
         BroadcastBlockId(id, "piece" + i),
@@ -174,9 +174,8 @@ private[spark] class TorrentBroadcast[T: ClassTag](obj: T, id: Long)
           val startTimeMs = System.currentTimeMillis()
           val blocks = readBlocks()
           logInfo("Reading broadcast variable " + id + " took" + Utils.getUsedTimeMs(startTimeMs))
-
-          val obj = TorrentBroadcast.unBlockifyObject[T](
-            blocks, SparkEnv.get.serializer, compressionCodec)
+          val ser = SparkEnv.get.serializerInstance.get()
+          val obj = TorrentBroadcast.unBlockifyObject[T](blocks, ser, compressionCodec)
           // Store the merged copy in BlockManager so other tasks on this executor don't
           // need to re-fetch it.
           SparkEnv.get.blockManager.putSingle(
@@ -194,11 +193,10 @@ private object TorrentBroadcast extends Logging {
   def blockifyObject[T: ClassTag](
       obj: T,
       blockSize: Int,
-      serializer: Serializer,
+      ser: SerializerInstance,
       compressionCodec: Option[CompressionCodec]): Array[ByteBuffer] = {
     val bos = new ByteArrayChunkOutputStream(blockSize)
     val out: OutputStream = compressionCodec.map(c => c.compressedOutputStream(bos)).getOrElse(bos)
-    val ser = serializer.newInstance()
     val serOut = ser.serializeStream(out)
     serOut.writeObject[T](obj).close()
     bos.toArrays.map(ByteBuffer.wrap)
@@ -206,13 +204,12 @@ private object TorrentBroadcast extends Logging {
 
   def unBlockifyObject[T: ClassTag](
       blocks: Array[ByteBuffer],
-      serializer: Serializer,
+      ser: SerializerInstance,
       compressionCodec: Option[CompressionCodec]): T = {
     require(blocks.nonEmpty, "Cannot unblockify an empty array of blocks")
     val is = new SequenceInputStream(
       blocks.iterator.map(new ByteBufferInputStream(_)).asJavaEnumeration)
     val in: InputStream = compressionCodec.map(c => c.compressedInputStream(is)).getOrElse(is)
-    val ser = serializer.newInstance()
     val serIn = ser.deserializeStream(in)
     val obj = serIn.readObject[T]()
     serIn.close()

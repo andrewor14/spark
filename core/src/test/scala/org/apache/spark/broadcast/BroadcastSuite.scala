@@ -116,8 +116,9 @@ class BroadcastSuite extends SparkFunSuite with LocalSparkContext {
       val size = 1 + rand.nextInt(1024 * 10)
       val data: Array[Byte] = new Array[Byte](size)
       rand.nextBytes(data)
-      val blocks = blockifyObject(data, blockSize, serializer, compressionCodec)
-      val unblockified = unBlockifyObject[Array[Byte]](blocks, serializer, compressionCodec)
+      val ser = serializer.newInstance()
+      val blocks = blockifyObject(data, blockSize, ser, compressionCodec)
+      val unblockified = unBlockifyObject[Array[Byte]](blocks, ser, compressionCodec)
       assert(unblockified === data)
     }
   }

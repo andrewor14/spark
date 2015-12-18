@@ -49,34 +49,32 @@ private[spark] class ParallelCollectionPartition[T: ClassTag](
 
   @throws(classOf[IOException])
   private def writeObject(out: ObjectOutputStream): Unit = Utils.tryOrIOException {
-
-    val sfactory = SparkEnv.get.serializer
+    val env = SparkEnv.get
 
     // Treat java serializer with default action rather than going thru serialization, to avoid a
     // separate serialization header.
 
-    sfactory match {
+    env.serializer match {
       case js: JavaSerializer => out.defaultWriteObject()
       case _ =>
         out.writeLong(rddId)
         out.writeInt(slice)
-
-        val ser = sfactory.newInstance()
+        // Note: Reuse an existing serializer instance instead of creating a new one
+        val ser = env.serializerInstance.get()
         Utils.serializeViaNestedStream(out, ser)(_.writeObject(values))
     }
   }
 
   @throws(classOf[IOException])
   private def readObject(in: ObjectInputStream): Unit = Utils.tryOrIOException {
-
-    val sfactory = SparkEnv.get.serializer
-    sfactory match {
+    val env = SparkEnv.get
+    env.serializer match {
       case js: JavaSerializer => in.defaultReadObject()
       case _ =>
         rddId = in.readLong()
         slice = in.readInt()
-
-        val ser = sfactory.newInstance()
+        // Note: Reuse an existing serializer instance instead of creating a new one
+        val ser = env.serializerInstance.get()
         Utils.deserializeViaNestedStream(in, ser)(ds => values = ds.readObject[Seq[T]]())
     }
   }

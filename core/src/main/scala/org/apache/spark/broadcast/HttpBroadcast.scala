@@ -173,7 +173,7 @@ private[broadcast] object HttpBroadcast extends Logging {
           new BufferedOutputStream(fileOutputStream, bufferSize)
         }
       }
-      val ser = SparkEnv.get.serializer.newInstance()
+      val ser = SparkEnv.get.serializerInstance.get()
       val serOut = ser.serializeStream(out)
       Utils.tryWithSafeFinally {
         serOut.writeObject(value)
@@ -213,7 +213,7 @@ private[broadcast] object HttpBroadcast extends Logging {
         new BufferedInputStream(inputStream, bufferSize)
       }
     }
-    val ser = SparkEnv.get.serializer.newInstance()
+    val ser = SparkEnv.get.serializerInstance.get()
     val serIn = ser.deserializeStream(in)
     Utils.tryWithSafeFinally {
       serIn.readObject[T]()

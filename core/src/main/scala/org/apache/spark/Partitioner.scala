@@ -207,15 +207,15 @@ class RangePartitioner[K : Ordering : ClassTag, V](
 
   @throws(classOf[IOException])
   private def writeObject(out: ObjectOutputStream): Unit = Utils.tryOrIOException {
-    val sfactory = SparkEnv.get.serializer
-    sfactory match {
+    val env = SparkEnv.get
+    env.serializer match {
       case js: JavaSerializer => out.defaultWriteObject()
       case _ =>
         out.writeBoolean(ascending)
         out.writeObject(ordering)
         out.writeObject(binarySearch)
 
-        val ser = sfactory.newInstance()
+        val ser = env.serializerInstance.get()
         Utils.serializeViaNestedStream(out, ser) { stream =>
           stream.writeObject(scala.reflect.classTag[Array[K]])
           stream.writeObject(rangeBounds)
@@ -225,15 +225,15 @@ class RangePartitioner[K : Ordering : ClassTag, V](
 
   @throws(classOf[IOException])
   private def readObject(in: ObjectInputStream): Unit = Utils.tryOrIOException {
-    val sfactory = SparkEnv.get.serializer
-    sfactory match {
+    val env = SparkEnv.get
+    env.serializer match {
       case js: JavaSerializer => in.defaultReadObject()
       case _ =>
         ascending = in.readBoolean()
         ordering = in.readObject().asInstanceOf[Ordering[K]]
         binarySearch = in.readObject().asInstanceOf[(Array[K], K) => Int]
 
-        val ser = sfactory.newInstance()
+        val ser = env.serializerInstance.get()
         Utils.deserializeViaNestedStream(in, ser) { ds =>
           implicit val classTag = ds.readObject[ClassTag[Array[K]]]()
           rangeBounds = ds.readObject[Array[K]]()

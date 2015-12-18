@@ -103,11 +103,37 @@ abstract class Serializer {
 @DeveloperApi
 object Serializer {
   def getSerializer(serializer: Serializer): Serializer = {
-    if (serializer == null) SparkEnv.get.serializer else serializer
+    getSerializer(Option(serializer))
   }
 
   def getSerializer(serializer: Option[Serializer]): Serializer = {
     serializer.getOrElse(SparkEnv.get.serializer)
+  }
+
+  /**
+   * Return an instance of the given serializer.
+   * If possible, reuse a cached instance instead of creating a new one.
+   */
+  private[spark] def getOrCreateInstance(serializer: Serializer): SerializerInstance = {
+    getOrCreateInstance(Option(serializer))
+  }
+
+  /**
+   * Return an instance of the given serializer.
+   * If possible, reuse a cached instance instead of creating a new one.
+   */
+  private[spark] def getOrCreateInstance(serializer: Option[Serializer]): SerializerInstance = {
+    val env = SparkEnv.get
+    // SparkEnv may not be present in tests, in which case we expect the serializer to be there
+    assert(serializer.isDefined || env != null,
+      "expected a non-empty serializer since SparkEnv is not present")
+    val ser = getSerializer(serializer)
+    // SparkEnv already has a few cached instances, so just reuse these if possible
+    if (env != null && ser == env.serializer) {
+      env.serializerInstance.get()
+    } else {
+      ser.newInstance()
+    }
   }
 }
 

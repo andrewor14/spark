@@ -113,7 +113,7 @@ class ExternalAppendOnlyMap[K, V, C](
   def peakMemoryUsedBytes: Long = _peakMemoryUsedBytes
 
   private val keyComparator = new HashComparator[K]
-  private val ser = serializer.newInstance()
+  private val ser = Serializer.getOrCreateInstance(serializer)
 
   /**
    * Number of files this map has spilled so far.

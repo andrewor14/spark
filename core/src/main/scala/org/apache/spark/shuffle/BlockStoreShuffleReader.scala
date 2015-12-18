@@ -54,7 +54,7 @@ private[spark] class BlockStoreShuffleReader[K, C](
     }
 
     val ser = Serializer.getSerializer(dep.serializer)
-    val serializerInstance = ser.newInstance()
+    val serializerInstance = Serializer.getOrCreateInstance(ser)
 
     // Create a key/value iterator for each stream
     val recordIter = wrappedStreams.flatMap { wrappedStream =>

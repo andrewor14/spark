@@ -164,6 +164,12 @@ private[spark] class BlockManager(
    * loaded yet. */
   private lazy val compressionCodec: CompressionCodec = CompressionCodec.createCodec(conf)
 
+  // Some serializers are expensive to create, e.g. the Kryo serializer.
+  // To avoid creating one of these for each task, keep around one per thread and reuse it.
+  private val serializerInstance = new ThreadLocal[SerializerInstance] {
+    override def initialValue(): SerializerInstance = defaultSerializer.newInstance()
+  }
+
   /**
    * Initializes the BlockManager with the given appId. This is not performed in the constructor as
    * the appId may not be known at BlockManager instantiation time (in particular for the driver,
@@ -1202,7 +1208,7 @@ private[spark] class BlockManager(
       outputStream: OutputStream,
       values: Iterator[Any]): Unit = {
     val byteStream = new BufferedOutputStream(outputStream)
-    val ser = defaultSerializer.newInstance()
+    val ser = serializerInstance.get()
     ser.serializeStream(wrapForCompression(blockId, byteStream)).writeAll(values).close()
   }
 
@@ -1228,8 +1234,7 @@ private[spark] class BlockManager(
    */
   def dataDeserializeStream(blockId: BlockId, inputStream: InputStream): Iterator[Any] = {
     val stream = new BufferedInputStream(inputStream)
-    defaultSerializer
-      .newInstance()
+    serializerInstance.get()
       .deserializeStream(wrapForCompression(blockId, stream))
       .asIterator
   }

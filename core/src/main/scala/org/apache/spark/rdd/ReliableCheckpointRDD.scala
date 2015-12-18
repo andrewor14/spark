@@ -176,7 +176,7 @@ private[spark] object ReliableCheckpointRDD extends Logging {
       // This is mainly for testing purpose
       fs.create(tempOutputPath, false, bufferSize, fs.getDefaultReplication, blockSize)
     }
-    val serializer = env.serializer.newInstance()
+    val serializer = env.serializerInstance.get()
     val serializeStream = serializer.serializeStream(fileOutputStream)
     Utils.tryWithSafeFinally {
       serializeStream.writeAll(iterator)
@@ -211,7 +211,7 @@ private[spark] object ReliableCheckpointRDD extends Logging {
       val bufferSize = sc.conf.getInt("spark.buffer.size", 65536)
       val fs = partitionerFilePath.getFileSystem(sc.hadoopConfiguration)
       val fileOutputStream = fs.create(partitionerFilePath, false, bufferSize)
-      val serializer = SparkEnv.get.serializer.newInstance()
+      val serializer = SparkEnv.get.serializerInstance.get()
       val serializeStream = serializer.serializeStream(fileOutputStream)
       Utils.tryWithSafeFinally {
         serializeStream.writeObject(partitioner)
@@ -240,7 +240,7 @@ private[spark] object ReliableCheckpointRDD extends Logging {
       val fs = partitionerFilePath.getFileSystem(sc.hadoopConfiguration)
       if (fs.exists(partitionerFilePath)) {
         val fileInputStream = fs.open(partitionerFilePath, bufferSize)
-        val serializer = SparkEnv.get.serializer.newInstance()
+        val serializer = SparkEnv.get.serializerInstance.get()
         val deserializeStream = serializer.deserializeStream(fileInputStream)
         val partitioner = Utils.tryWithSafeFinally[Partitioner] {
           deserializeStream.readObject[Partitioner]
@@ -272,7 +272,7 @@ private[spark] object ReliableCheckpointRDD extends Logging {
     val fs = path.getFileSystem(broadcastedConf.value.value)
     val bufferSize = env.conf.getInt("spark.buffer.size", 65536)
     val fileInputStream = fs.open(path, bufferSize)
-    val serializer = env.serializer.newInstance()
+    val serializer = env.serializerInstance.get()
     val deserializeStream = serializer.deserializeStream(fileInputStream)
 
     // Register an on-task-completion callback to close the input stream.

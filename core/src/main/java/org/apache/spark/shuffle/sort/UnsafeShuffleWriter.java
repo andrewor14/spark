@@ -46,7 +46,7 @@ import org.apache.spark.network.util.LimitedInputStream;
 import org.apache.spark.scheduler.MapStatus;
 import org.apache.spark.scheduler.MapStatus$;
 import org.apache.spark.serializer.SerializationStream;
-import org.apache.spark.serializer.Serializer;
+import org.apache.spark.serializer.Serializer$;
 import org.apache.spark.serializer.SerializerInstance;
 import org.apache.spark.shuffle.IndexShuffleBlockResolver;
 import org.apache.spark.shuffle.ShuffleWriter;
@@ -117,7 +117,7 @@ public class UnsafeShuffleWriter<K, V> extends ShuffleWriter<K, V> {
     this.mapId = mapId;
     final ShuffleDependency<K, V, V> dep = handle.dependency();
     this.shuffleId = dep.shuffleId();
-    this.serializer = Serializer.getSerializer(dep.serializer()).newInstance();
+    this.serializer = Serializer$.MODULE$.getOrCreateInstance(dep.serializer());
     this.partitioner = dep.partitioner();
     this.writeMetrics = new ShuffleWriteMetrics();
     taskContext.taskMetrics().shuffleWriteMetrics_$eq(Option.apply(writeMetrics));

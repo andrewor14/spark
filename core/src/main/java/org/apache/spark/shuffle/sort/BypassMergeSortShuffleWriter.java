@@ -41,7 +41,7 @@ import org.apache.spark.TaskContext;
 import org.apache.spark.executor.ShuffleWriteMetrics;
 import org.apache.spark.scheduler.MapStatus;
 import org.apache.spark.scheduler.MapStatus$;
-import org.apache.spark.serializer.Serializer;
+import org.apache.spark.serializer.Serializer$;
 import org.apache.spark.serializer.SerializerInstance;
 import org.apache.spark.shuffle.IndexShuffleBlockResolver;
 import org.apache.spark.shuffle.ShuffleWriter;
@@ -83,7 +83,7 @@ final class BypassMergeSortShuffleWriter<K, V> extends ShuffleWriter<K, V> {
   private final ShuffleWriteMetrics writeMetrics;
   private final int shuffleId;
   private final int mapId;
-  private final Serializer serializer;
+  private final SerializerInstance serializerInstance;
   private final IndexShuffleBlockResolver shuffleBlockResolver;
 
   /** Array of file writers, one for each partition */
@@ -116,7 +116,7 @@ final class BypassMergeSortShuffleWriter<K, V> extends ShuffleWriter<K, V> {
     this.numPartitions = partitioner.numPartitions();
     this.writeMetrics = new ShuffleWriteMetrics();
     taskContext.taskMetrics().shuffleWriteMetrics_$eq(Option.apply(writeMetrics));
-    this.serializer = Serializer.getSerializer(dep.serializer());
+    this.serializerInstance = Serializer$.MODULE$.getOrCreateInstance(dep.serializer());
     this.shuffleBlockResolver = shuffleBlockResolver;
   }
 
@@ -129,7 +129,6 @@ final class BypassMergeSortShuffleWriter<K, V> extends ShuffleWriter<K, V> {
       mapStatus = MapStatus$.MODULE$.apply(blockManager.shuffleServerId(), partitionLengths);
       return;
     }
-    final SerializerInstance serInstance = serializer.newInstance();
     final long openStartTime = System.nanoTime();
     partitionWriters = new DiskBlockObjectWriter[numPartitions];
     for (int i = 0; i < numPartitions; i++) {
@@ -137,8 +136,8 @@ final class BypassMergeSortShuffleWriter<K, V> extends ShuffleWriter<K, V> {
         blockManager.diskBlockManager().createTempShuffleBlock();
       final File file = tempShuffleBlockIdPlusFile._2();
       final BlockId blockId = tempShuffleBlockIdPlusFile._1();
-      partitionWriters[i] =
-        blockManager.getDiskWriter(blockId, file, serInstance, fileBufferSize, writeMetrics).open();
+      partitionWriters[i] = blockManager.getDiskWriter(
+        blockId, file, serializerInstance, fileBufferSize, writeMetrics).open();
     }
     // Creating the file to write to and creating a disk writer both involve interacting with
     // the disk, and can take a long time in aggregate when we open many files, so should be

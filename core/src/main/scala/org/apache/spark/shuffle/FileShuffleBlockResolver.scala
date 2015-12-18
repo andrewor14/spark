@@ -79,7 +79,7 @@ private[spark] class FileShuffleBlockResolver(conf: SparkConf)
       private val shuffleState = shuffleStates(shuffleId)
 
       val openStartTime = System.nanoTime
-      val serializerInstance = serializer.newInstance()
+      val serializerInstance = Serializer.getOrCreateInstance(serializer)
       val writers: Array[DiskBlockObjectWriter] = {
         Array.tabulate[DiskBlockObjectWriter](numReducers) { bucketId =>
           val blockId = ShuffleBlockId(shuffleId, mapId, bucketId)
