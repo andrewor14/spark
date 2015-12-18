@@ -37,7 +37,7 @@ import org.apache.spark.rpc.{RpcEndpointRef, RpcEndpoint, RpcEnv}
 import org.apache.spark.rpc.akka.AkkaRpcEnv
 import org.apache.spark.scheduler.{OutputCommitCoordinator, LiveListenerBus}
 import org.apache.spark.scheduler.OutputCommitCoordinator.OutputCommitCoordinatorEndpoint
-import org.apache.spark.serializer.Serializer
+import org.apache.spark.serializer.{SerializerInstance, Serializer}
 import org.apache.spark.shuffle.ShuffleManager
 import org.apache.spark.storage._
 import org.apache.spark.util.{AkkaUtils, RpcUtils, Utils}
@@ -78,6 +78,16 @@ class SparkEnv (
 
   private[spark] var isStopped = false
   private val pythonWorkers = mutable.HashMap[(String, Map[String, String]), PythonWorkerFactory]()
+
+  // Some serializers are expensive to create, e.g. the Kryo serializer.
+  // To avoid creating one of these for each task, keep around one per thread and reuse it.
+  //
+  // Note: It's OK to not do this for closure serializer too, because it's always Java
+  // serializer anyway, which is cheap to create. In the future, the closure serializer
+  // will be removed entirely so it's not worth optimizing this now (SPARK-12414).
+  private[spark] val serializerInstance = new ThreadLocal[SerializerInstance] {
+    override def initialValue(): SerializerInstance = serializer.newInstance()
+  }
 
   // A general, soft-reference map for metadata needed during HadoopRDD split computation
   // (e.g., HadoopFileRDD uses this to cache JobConfs and InputFormats).
