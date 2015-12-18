@@ -32,6 +32,7 @@ import org.apache.spark.deploy.SparkHadoopUtil
 import org.apache.spark.memory.TaskMemoryManager
 import org.apache.spark.rpc.RpcTimeout
 import org.apache.spark.scheduler.{DirectTaskResult, IndirectTaskResult, Task}
+import org.apache.spark.serializer.SerializerInstance
 import org.apache.spark.shuffle.FetchFailedException
 import org.apache.spark.storage.{StorageLevel, TaskResultBlockId}
 import org.apache.spark.util._
@@ -96,6 +97,17 @@ private[spark] class Executor(
 
   // Set the classloader for serializer
   env.serializer.setDefaultClassLoader(replClassLoader)
+
+  // Some serializers are expensive to create, e.g. the Kryo serializer.
+  // To avoid creating one of these for each task, keep around one per thread and reuse it.
+  // Note: It's OK to not do this for closure serializer too, because it's always Java
+  // serializer anyway, which is cheap to create. In the future, the closure serializer
+  // will be removed entirely so it's not worth optimizing this now (SPARK-12414).
+  private val resultSerializer = new ThreadLocal[SerializerInstance] {
+    override def initialValue(): SerializerInstance = {
+      env.serializer.newInstance()
+    }
+  }
 
   // Akka's message frame size. If task result is bigger than this, we use the block manager
   // to send the result back.
@@ -235,9 +247,8 @@ private[spark] class Executor(
           throw new TaskKilledException
         }
 
-        val resultSer = env.serializer.newInstance()
         val beforeSerialization = System.currentTimeMillis()
-        val valueBytes = resultSer.serialize(value)
+        val valueBytes = resultSerializer.get().serialize(value)
         val afterSerialization = System.currentTimeMillis()
 
         for (m <- task.metrics) {
