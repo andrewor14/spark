@@ -85,7 +85,9 @@ private[hive] class HiveQl(conf: ParserConf) extends SparkQl(conf) with Logging 
   // Token text -> human readable text
   private val hiveUnsupportedCommands = Map(
     "TOK_CREATEROLE" -> "CREATE ROLE",
+    "TOK_CREATEMACRO" -> "CREATE TEMPORARY MACRO",
     "TOK_DROPROLE" -> "DROP ROLE",
+    "TOK_DROPMACRO" -> "DROP TEMPORARY MACRO",
     "TOK_EXPORT" -> "EXPORT TABLE",
     "TOK_GRANT" -> "GRANT",
     "TOK_GRANT_ROLE" -> "GRANT",
@@ -116,10 +118,8 @@ private[hive] class HiveQl(conf: ParserConf) extends SparkQl(conf) with Logging 
     "TOK_ALTERVIEW_RENAME",
 
     "TOK_CREATEINDEX",
-    "TOK_CREATEMACRO",
 
     "TOK_DROPINDEX",
-    "TOK_DROPMACRO",
     "TOK_DROPTABLE_PROPERTIES",
     "TOK_DROPVIEW",
     "TOK_DROPVIEW_PROPERTIES",

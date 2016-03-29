@@ -1272,6 +1272,11 @@ class HiveQuerySuite extends HiveComparisonTest with BeforeAndAfter {
     assertUnsupportedFeature { sql("EXPORT TABLE my_table TO 'my_path'") }
   }
 
+  test("macro commands are not supported") {
+    assertUnsupportedFeature { sql("CREATE TEMPORARY MACRO square (x DOUBLE) x * x") }
+    assertUnsupportedFeature { sql("DROP TEMPORARY MACRO square") }
+  }
+
   test("some show commands are not supported") {
     assertUnsupportedFeature { sql("SHOW CREATE TABLE my_table") }
     assertUnsupportedFeature { sql("SHOW COMPACTIONS") }
