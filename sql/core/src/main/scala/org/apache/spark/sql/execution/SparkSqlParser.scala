@@ -406,8 +406,7 @@ class SparkSqlAstBuilder extends AstBuilder {
   override def visitBucketTable(ctx: BucketTableContext): LogicalPlan = withOrigin(ctx) {
     AlterTableStorageProperties(
       visitTableIdentifier(ctx.tableIdentifier),
-      visitBucketSpec(ctx.bucketSpec))(
-      command(ctx))
+      visitBucketSpec(ctx.bucketSpec))
   }
 
   /**

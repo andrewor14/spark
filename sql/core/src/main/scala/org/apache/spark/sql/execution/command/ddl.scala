@@ -306,10 +306,46 @@ case class AlterTableSerDeProperties(
 
 }
 
+/**
+ * A command that alters a table/view's storage properties metadata.
+ *
+ * The syntax of this command is:
+ * {{{
+ *   ALTER TABLE table CLUSTERED BY (col, ...) [SORTED BY (col, ...)] INTO n BUCKETS;
+ * }}}
+ */
 case class AlterTableStorageProperties(
     tableName: TableIdentifier,
-    buckets: BucketSpec)(sql: String)
-  extends NativeDDLCommand(sql) with Logging
+    bucketSpec: BucketSpec)
+  extends RunnableCommand {
+
+  override def run(sqlContext: SQLContext): Seq[Row] = {
+    val catalog = sqlContext.sessionState.catalog
+    val table = catalog.getTable(tableName)
+    val cols = table.partitionColumns
+    val colNames = cols.map(_.name).toSet
+    bucketSpec.bucketColumnNames.foreach { c =>
+      if (!colNames.contains(c)) {
+        throw new AnalysisException(s"partition column '$c' not found in table '$tableName'")
+      }
+    }
+    bucketSpec.sortColumnNames.foreach { c =>
+      if (!colNames.contains(c)) {
+        throw new AnalysisException(s"sort column '$c' not found in table '$tableName'")
+      }
+    }
+    val partitionCols = cols.filter { c => bucketSpec.bucketColumnNames.contains(c.name) }
+    // TODO: If the user did not specify sort columns, should we remove existing ones?
+    val sortCols = cols.filter { c => bucketSpec.sortColumnNames.contains(c.name) }
+    val newTable = table.copy(
+      partitionColumns = partitionCols,
+      sortColumns = sortCols,
+      numBuckets = bucketSpec.numBuckets)
+    catalog.alterTable(newTable)
+    Seq.empty[Row]
+  }
+
+}
 
 case class AlterTableNotClustered(
     tableName: TableIdentifier)(sql: String) extends NativeDDLCommand(sql) with Logging

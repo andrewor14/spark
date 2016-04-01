@@ -23,9 +23,7 @@ import org.scalatest.BeforeAndAfterEach
 
 import org.apache.spark.sql.{AnalysisException, QueryTest, Row}
 import org.apache.spark.sql.catalyst.TableIdentifier
-import org.apache.spark.sql.catalyst.catalog.{CatalogDatabase, CatalogStorageFormat}
-import org.apache.spark.sql.catalyst.catalog.{CatalogTable, CatalogTableType}
-import org.apache.spark.sql.catalyst.catalog.{CatalogTablePartition, SessionCatalog}
+import org.apache.spark.sql.catalyst.catalog._
 import org.apache.spark.sql.catalyst.catalog.ExternalCatalog.TablePartitionSpec
 import org.apache.spark.sql.test.SharedSQLContext
 
@@ -320,6 +318,57 @@ class DDLSuite extends QueryTest with SharedSQLContext with BeforeAndAfterEach {
     intercept[AnalysisException] {
       sql("ALTER TABLE does_not_exist SET SERDE 'whatever' WITH SERDEPROPERTIES ('x' = 'y')")
     }
+  }
+
+  test("alter table: bucketing") {
+    val catalog = sqlContext.sessionState.catalog
+    val tableIdent = TableIdentifier("tab1", Some("dbx"))
+    createDatabase(catalog, "dbx")
+    createTable(catalog, tableIdent)
+    // set partition columns; we need to do this before changing bucket columns
+    val cols = Seq(
+      CatalogColumn("blood", "orange"),
+      CatalogColumn("lemon", "jasmine"),
+      CatalogColumn("fuji apple", "black"),
+      CatalogColumn("grape", "oolong"))
+    catalog.alterTable(catalog.getTable(tableIdent).copy(partitionColumns = cols))
+    assert(catalog.getTable(tableIdent).numBuckets == 0)
+    assert(catalog.getTable(tableIdent).partitionColumns == cols)
+    assert(catalog.getTable(tableIdent).sortColumns.isEmpty)
+    // set num buckets and bucket columns
+    sql("ALTER TABLE dbx.tab1 CLUSTERED BY (blood, lemon, grape) INTO 11 BUCKETS")
+    assert(catalog.getTable(tableIdent).numBuckets == 11)
+    assert(catalog.getTable(tableIdent).partitionColumns == Seq(
+      CatalogColumn("blood", "orange"),
+      CatalogColumn("lemon", "jasmine"),
+      CatalogColumn("grape", "oolong")))
+    assert(catalog.getTable(tableIdent).sortColumns.isEmpty)
+    // set num buckets, bucket columns, and sort columns
+    sql("ALTER TABLE dbx.tab1 CLUSTERED BY (blood, lemon) SORTED BY (blood) INTO 5 BUCKETS")
+    assert(catalog.getTable(tableIdent).numBuckets == 5)
+    assert(catalog.getTable(tableIdent).partitionColumns == Seq(
+      CatalogColumn("blood", "orange"),
+      CatalogColumn("lemon", "jasmine")))
+    assert(catalog.getTable(tableIdent).sortColumns == Seq(CatalogColumn("blood", "orange")))
+    catalog.setCurrentDatabase("dbx")
+    // set things without explicitly specifying database
+    sql("ALTER TABLE tab1 CLUSTERED BY (lemon) SORTED BY (lemon) INTO 6 BUCKETS")
+    assert(catalog.getTable(tableIdent).numBuckets == 6)
+    assert(catalog.getTable(tableIdent).partitionColumns == Seq(CatalogColumn("lemon", "jasmine")))
+    assert(catalog.getTable(tableIdent).sortColumns == Seq(CatalogColumn("lemon", "jasmine")))
+    // table to alter does not exist
+    intercept[AnalysisException] {
+      sql("ALTER TABLE does_not_exist CLUSTERED BY (lemon) SORTED BY (lemon) INTO 6 BUCKETS")
+    }
+    // bucket/sort column does not exist
+    val e1 = intercept[AnalysisException] {
+      sql("ALTER TABLE tab1 CLUSTERED BY ('deedee') SORTED BY ('lemon') INTO 6 BUCKETS")
+    }
+    val e2 = intercept[AnalysisException] {
+      sql("ALTER TABLE tab1 CLUSTERED BY ('lemon') SORTED BY ('doodoo') INTO 7 BUCKETS")
+    }
+    assert(e1.getMessage.contains("deedee"))
+    assert(e2.getMessage.contains("doodoo"))
   }
 
 }
