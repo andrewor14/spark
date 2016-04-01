@@ -329,33 +329,29 @@ class DDLSuite extends QueryTest with SharedSQLContext with BeforeAndAfterEach {
     val cols = Seq(
       CatalogColumn("blood", "orange"),
       CatalogColumn("lemon", "jasmine"),
-      CatalogColumn("fuji apple", "black"),
+      CatalogColumn("fuji_apple", "black"),
       CatalogColumn("grape", "oolong"))
-    catalog.alterTable(catalog.getTable(tableIdent).copy(partitionColumns = cols))
+    catalog.alterTable(catalog.getTable(tableIdent).copy(schema = cols))
     assert(catalog.getTable(tableIdent).numBuckets == 0)
-    assert(catalog.getTable(tableIdent).partitionColumns == cols)
-    assert(catalog.getTable(tableIdent).sortColumns.isEmpty)
+    assert(catalog.getTable(tableIdent).schema == cols)
+    assert(catalog.getTable(tableIdent).bucketColumnNames.isEmpty)
+    assert(catalog.getTable(tableIdent).sortColumnNames.isEmpty)
     // set num buckets and bucket columns
     sql("ALTER TABLE dbx.tab1 CLUSTERED BY (blood, lemon, grape) INTO 11 BUCKETS")
     assert(catalog.getTable(tableIdent).numBuckets == 11)
-    assert(catalog.getTable(tableIdent).partitionColumns == Seq(
-      CatalogColumn("blood", "orange"),
-      CatalogColumn("lemon", "jasmine"),
-      CatalogColumn("grape", "oolong")))
-    assert(catalog.getTable(tableIdent).sortColumns.isEmpty)
+    assert(catalog.getTable(tableIdent).bucketColumnNames == Seq("blood", "lemon", "grape"))
+    assert(catalog.getTable(tableIdent).sortColumnNames.isEmpty)
     // set num buckets, bucket columns, and sort columns
-    sql("ALTER TABLE dbx.tab1 CLUSTERED BY (blood, lemon) SORTED BY (blood) INTO 5 BUCKETS")
+    sql("ALTER TABLE dbx.tab1 CLUSTERED BY (blood, fuji_apple) SORTED BY (grape) INTO 5 BUCKETS")
     assert(catalog.getTable(tableIdent).numBuckets == 5)
-    assert(catalog.getTable(tableIdent).partitionColumns == Seq(
-      CatalogColumn("blood", "orange"),
-      CatalogColumn("lemon", "jasmine")))
-    assert(catalog.getTable(tableIdent).sortColumns == Seq(CatalogColumn("blood", "orange")))
+    assert(catalog.getTable(tableIdent).bucketColumnNames == Seq("blood", "fuji_apple"))
+    assert(catalog.getTable(tableIdent).sortColumnNames == Seq("grape"))
     catalog.setCurrentDatabase("dbx")
     // set things without explicitly specifying database
     sql("ALTER TABLE tab1 CLUSTERED BY (lemon) SORTED BY (lemon) INTO 6 BUCKETS")
     assert(catalog.getTable(tableIdent).numBuckets == 6)
-    assert(catalog.getTable(tableIdent).partitionColumns == Seq(CatalogColumn("lemon", "jasmine")))
-    assert(catalog.getTable(tableIdent).sortColumns == Seq(CatalogColumn("lemon", "jasmine")))
+    assert(catalog.getTable(tableIdent).bucketColumnNames == Seq("lemon"))
+    assert(catalog.getTable(tableIdent).sortColumnNames == Seq("lemon"))
     // table to alter does not exist
     intercept[AnalysisException] {
       sql("ALTER TABLE does_not_exist CLUSTERED BY (lemon) SORTED BY (lemon) INTO 6 BUCKETS")

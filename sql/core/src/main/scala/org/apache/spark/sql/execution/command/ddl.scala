@@ -322,24 +322,21 @@ case class AlterTableStorageProperties(
   override def run(sqlContext: SQLContext): Seq[Row] = {
     val catalog = sqlContext.sessionState.catalog
     val table = catalog.getTable(tableName)
-    val cols = table.partitionColumns
-    val colNames = cols.map(_.name).toSet
-    bucketSpec.bucketColumnNames.foreach { c =>
-      if (!colNames.contains(c)) {
-        throw new AnalysisException(s"partition column '$c' not found in table '$tableName'")
-      }
+    val columnMap = table.schema.map { c => (c.name, c) }.toMap
+    val (bucketCols, missingBucketCols) =
+      bucketSpec.bucketColumnNames.partition(columnMap.contains)
+    val (sortCols, missingSortCols) =
+      bucketSpec.sortColumnNames.partition(columnMap.contains)
+    val missingCols = missingBucketCols ++ missingSortCols
+    if (missingCols.nonEmpty) {
+      throw new AnalysisException(
+        s"columns not found in table '$tableName': ${missingCols.mkString(", ")}")
     }
-    bucketSpec.sortColumnNames.foreach { c =>
-      if (!colNames.contains(c)) {
-        throw new AnalysisException(s"sort column '$c' not found in table '$tableName'")
-      }
-    }
-    val partitionCols = cols.filter { c => bucketSpec.bucketColumnNames.contains(c.name) }
     // TODO: If the user did not specify sort columns, should we remove existing ones?
-    val sortCols = cols.filter { c => bucketSpec.sortColumnNames.contains(c.name) }
+    // TODO: sort columns are currently not passed to Hive (see HiveClientImpl)
     val newTable = table.copy(
-      partitionColumns = partitionCols,
-      sortColumns = sortCols,
+      bucketColumnNames = bucketCols,
+      sortColumnNames = sortCols,
       numBuckets = bucketSpec.numBuckets)
     catalog.alterTable(newTable)
     Seq.empty[Row]
