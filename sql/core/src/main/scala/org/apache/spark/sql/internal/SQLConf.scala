@@ -436,6 +436,12 @@ object SQLConf {
     .stringConf
     .createOptional
 
+  // TODO: hajima!
+  val CATALOG_IMPLEMENTATION = SQLConfigBuilder("spark.catalog")
+    .doc("Implementation of catalog used in SparkSession, must be either 'hive' or 'in-memory'.")
+    .stringConf
+    .createWithDefault("hive")
+
   object Deprecated {
     val MAPRED_REDUCE_TASKS = "mapred.reduce.tasks"
     val EXTERNAL_SORT = "spark.sql.planner.externalSort"
@@ -465,6 +471,8 @@ private[sql] class SQLConf extends Serializable with CatalystConf with Logging {
     new java.util.HashMap[String, String]())
 
   /** ************************ Spark SQL Params/Hints ******************* */
+
+  def catalogImplementation: String = getConf(CATALOG_IMPLEMENTATION)
 
   def checkpointLocation: String = getConf(CHECKPOINT_LOCATION)
 

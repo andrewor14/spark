@@ -92,17 +92,7 @@ object Main extends Logging {
   }
 
   def createSQLContext(): SQLContext = {
-    val name = "org.apache.spark.sql.hive.HiveContext"
-    val loader = Utils.getContextOrSparkClassLoader
-    try {
-      sqlContext = loader.loadClass(name).getConstructor(classOf[SparkContext])
-        .newInstance(sparkContext).asInstanceOf[SQLContext]
-      logInfo("Created sql context (with Hive support)..")
-    } catch {
-      case _: java.lang.ClassNotFoundException | _: java.lang.NoClassDefFoundError =>
-        sqlContext = new SQLContext(sparkContext)
-        logInfo("Created sql context..")
-    }
+    sqlContext = new org.apache.spark.sql.SparkSession(sparkContext)
     sqlContext
   }
 
