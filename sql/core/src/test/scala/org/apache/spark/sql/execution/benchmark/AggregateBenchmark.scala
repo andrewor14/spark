@@ -131,9 +131,9 @@ class AggregateBenchmark extends BenchmarkBase {
   }
 
   test("aggregate with randomized keys") {
-    val N = 20 << 19
+    val N = 20 << 22
 
-    val numIters = 3
+    val numIters = 10
     val benchmark = new Benchmark("Aggregate w keys", N)
     sparkSession.range(N).selectExpr("id", "floor(rand() * 10000) as k")
       .createOrReplaceTempView("test")
@@ -151,25 +151,28 @@ class AggregateBenchmark extends BenchmarkBase {
       }
     }
 
-    benchmark.addCase(s"codegen = T hashmap = T cache = F", numIters) { iter =>
-      sparkSession.conf.set("spark.sql.codegen.wholeStage", value = true)
-      sparkSession.conf.set("spark.sql.codegen.aggregate.map.columns.max", 3)
-      run()
-    }
+    println("Sleeping for 5 seconds before starting...")
+    Thread.sleep(5000L)
 
-    benchmark.addCase(s"codegen = T hashmap = T cache = T compress = F", numIters) { iter =>
-      sparkSession.conf.set("spark.sql.codegen.wholeStage", value = true)
-      sparkSession.conf.set("spark.sql.codegen.aggregate.map.columns.max", 3)
+//    benchmark.addCase(s"codegen = F hashmap = F cache = F", numIters) { iter =>
+//      sparkSession.conf.set("spark.sql.codegen.wholeStage", value = false)
+//      sparkSession.conf.set("spark.sql.codegen.aggregate.map.columns.max", 0)
+//      run()
+//    }
+
+    benchmark.addCase(s"codegen = F hashmap = F cache = T compress = F", numIters) { iter =>
+      sparkSession.conf.set("spark.sql.codegen.wholeStage", value = false)
+      sparkSession.conf.set("spark.sql.codegen.aggregate.map.columns.max", 0)
       sparkSession.conf.set("spark.sql.inMemoryColumnarStorage.compressed", value = false)
       run(cache = true)
     }
 
-    benchmark.addCase(s"codegen = T hashmap = T cache = T compress = T", numIters) { iter =>
-      sparkSession.conf.set("spark.sql.codegen.wholeStage", value = true)
-      sparkSession.conf.set("spark.sql.codegen.aggregate.map.columns.max", 3)
-      sparkSession.conf.set("spark.sql.inMemoryColumnarStorage.compressed", value = true)
-      run(cache = true)
-    }
+//    benchmark.addCase(s"codegen = F hashmap = F cache = T compress = T", numIters) { iter =>
+//      sparkSession.conf.set("spark.sql.codegen.wholeStage", value = false)
+//      sparkSession.conf.set("spark.sql.codegen.aggregate.map.columns.max", 0)
+//      sparkSession.conf.set("spark.sql.inMemoryColumnarStorage.compressed", value = true)
+//      run(cache = true)
+//    }
 
     benchmark.run()
 

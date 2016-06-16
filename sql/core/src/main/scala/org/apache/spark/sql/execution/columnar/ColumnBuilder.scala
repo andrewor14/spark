@@ -69,7 +69,8 @@ private[columnar] class BasicColumnBuilder[JvmType](
 
   override def appendFrom(row: InternalRow, ordinal: Int): Unit = {
     buffer = ensureFreeSpace(buffer, columnType.actualSize(row, ordinal))
-    columnType.append(row, ordinal, buffer)
+//    columnType.append(row, ordinal, buffer)
+    buffer.putLong(row.getLong(ordinal))
   }
 
   override def build(): ByteBuffer = {
@@ -100,7 +101,7 @@ private[columnar] abstract class NativeColumnBuilder[T <: AtomicType](
   extends BasicColumnBuilder[T#InternalType](columnStats, columnType)
   with NullableColumnBuilder
   with AllCompressionSchemes
-  with CompressibleColumnBuilder[T]
+//  with CompressibleColumnBuilder[T]
 
 private[columnar]
 class BooleanColumnBuilder extends NativeColumnBuilder(new BooleanColumnStats, BOOLEAN)

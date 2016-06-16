@@ -184,6 +184,7 @@ private[sql] case class InMemoryRelation(
     cached.setName(
       tableName.map(n => s"In-memory table $n")
         .getOrElse(StringUtils.abbreviate(child.toString, 1024)))
+
     _cachedColumnBuffers = cached
   }
 

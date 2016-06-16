@@ -71,8 +71,14 @@ private[columnar] abstract class NativeColumnAccessor[T <: AtomicType](
     override protected val buffer: ByteBuffer,
     override protected val columnType: NativeColumnType[T])
   extends BasicColumnAccessor(buffer, columnType)
-  with NullableColumnAccessor
-  with CompressibleColumnAccessor[T]
+  with NullableColumnAccessor {
+//  with NullableColumnAccessor
+//  with CompressibleColumnAccessor[T] {
+
+  override def initialize(): Unit = { }
+  override def extractTo(row: MutableRow, ordinal: Int): Unit = { }
+  override def extractSingle(row: MutableRow, ordinal: Int): Unit = { }
+}
 
 private[columnar] class BooleanColumnAccessor(buffer: ByteBuffer)
   extends NativeColumnAccessor(buffer, BOOLEAN)
