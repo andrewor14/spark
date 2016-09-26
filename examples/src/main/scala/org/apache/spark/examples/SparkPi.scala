@@ -35,18 +35,18 @@ object SparkPi {
         var piApprox: Double = 0.0
         for (i <- 1 to 1000) {
           val startTime = System.currentTimeMillis()
-          val n = math.min(100000L * slices, Int.MaxValue).toInt // avoid overflow
+          val n = math.min(1000L * slices, Int.MaxValue).toInt // avoid overflow
           val count = sc.parallelize(1 until n, slices).map { i =>
-              val x = random * 2 - 1
-              val y = random * 2 - 1
-              if (x*x + y*y < 1) 1 else 0
-            }.reduce(_ + _)
+            val x = random * 2 - 1
+            val y = random * 2 - 1
+            if (x*x + y*y < 1) 1 else 0
+          }.reduce(_ + _)
           countTotal += count
           val newPi = 4.0 * countTotal / ((n - 1) * i)
           val dPi = Math.abs(newPi - piApprox)
           piApprox = newPi
           val t = System.currentTimeMillis() - startTime
-          val newWeight = dPi / t
+          val newWeight = dPi * 100000000 // TODO: include time
           sc.setPoolWeight(name, newWeight.toInt)
         }
         println(s"Pi[$name] is approximately $piApprox")
