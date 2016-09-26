@@ -21,68 +21,54 @@ package org.apache.spark.examples
 import scala.math.random
 
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.SparkContext
 
 /** Computes an approximation to pi */
 object SparkPi {
+
+  private def makeThread(sc: SparkContext, name: String, slices: Int): Thread = {
+    new Thread {
+      override def run(): Unit = {
+        sc.setLocalProperty("spark.scheduler.pool", name)
+        println(s"Pi is running in pool $name")
+        var countTotal = 0
+        var piApprox: Double = 0.0
+        for (i <- 1 to 1000) {
+          val startTime = System.currentTimeMillis()
+          val n = math.min(100000L * slices, Int.MaxValue).toInt // avoid overflow
+          val count = sc.parallelize(1 until n, slices).map { i =>
+              val x = random * 2 - 1
+              val y = random * 2 - 1
+              if (x*x + y*y < 1) 1 else 0
+            }.reduce(_ + _)
+          countTotal += count
+          val newPi = 4.0 * countTotal / ((n - 1) * i)
+          val dPi = Math.abs(newPi - piApprox)
+          piApprox = newPi
+          val t = System.currentTimeMillis() - startTime
+          val newWeight = dPi / t
+          sc.setPoolWeight(name, newWeight.toInt)
+        }
+        println(s"Pi[$name] is approximately $piApprox")
+      }
+    }
+  }
+
   def main(args: Array[String]) {
     val spark = SparkSession
       .builder
       .appName("Spark Pi")
       .getOrCreate()
-    val sc = new SparkContext()
-    sc.addSchedulablePool("sparkpi1",1,1)
-    sc.addSchedulablePool("sparkpi2",1,1)
-    val t1 = new Thread{
-        override def run() {
-          sc.setLocalProperty("spark.scheduler.pool","sparkpi1")
-          val slices = if (args.length > 0) args(0).toInt else 2
-          var countTotal = 0
-          var piApprox = 0
-          for(i <- 1 to 1000) {
-            val startTime = System.currentTimeMillis()
-            val n = math.min(100000L * slices, Int.MaxValue).toInt // avoid overflow
-            val count = spark.sparkContext.parallelize(1 until n, slices).map { i =>
-              val x = random * 2 - 1
-              val y = random * 2 - 1
-              if (x*x + y*y < 1) 1 else 0
-            }.reduce(_ + _)
-          countTotal += count
-          val newPi = 4.0 * countTotal / ((n - 1) * i)
-          val dPi = Math.abs(dPi - piApprox)
-          piApprox = newPi
-          val t = System.currentTimeMillis() - startTime
-          val newWeight = dPi / t
-          sc.setPoolWeight("sparkpi1",newWeight)
-          }
-        }
-        println(s"Pi1 is approximately $piApprox")
-    }.start()
-    val t2 = new Thread{
-        override def run() {
-          sc.setLocalProperty("spark.scheduler.pool","sparkpi2")
-          val slices = if (args.length > 0) args(0).toInt else 2
-          var countTotal = 0
-          var piApprox = 0
-          for(i <- 1 to 1000) {
-            val startTime = System.currentTimeMillis()
-            val n = math.min(100000L * slices, Int.MaxValue).toInt // avoid overflow
-            val count = spark.sparkContext.parallelize(1 until n, slices).map { i =>
-              val x = random * 2 - 1
-              val y = random * 2 - 1
-              if (x*x + y*y < 1) 1 else 0
-            }.reduce(_ + _)
-          countTotal += count
-          val newPi = 4.0 * countTotal / ((n - 1) * i)
-          val dPi = Math.abs(dPi - piApprox)
-          piApprox = newPi
-          val t = System.currentTimeMillis() - startTime
-          val newWeight = dPi / t
-          sc.setPoolWeight("sparkpi2",newWeight)
-          }
-        }
-        println(s"Pi2 is approximately $piApprox")
-    }.start()
-    
+    val sc = spark.sparkContext
+    val slices = if (args.length > 0) args(0).toInt else 2
+    sc.addSchedulablePool("sparkpi1", 1, 1)
+    sc.addSchedulablePool("sparkpi2", 1, 1)
+    val t1 = makeThread(sc, "sparkpi1", slices)
+    val t2 = makeThread(sc, "sparkpi2", slices)
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
     spark.stop()
   }
 }
