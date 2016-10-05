@@ -327,11 +327,17 @@ class KMeans private (
           }
           j += 1
         }
+        var poolName = sc.getLocalProperty("spark.scheduler.pool")
+        if (poolName != null) {
+          sc.setPoolWeight(poolName, (changedDist * 1000000).toInt)
+        }
         if (!changed) {
           active(run) = false
           logInfo("Run " + run + " finished in " + (iteration + 1) + " iterations")
         }
         costs(run) = costAccums(i).value
+        // test current iteration
+        logInfo(s"LOGAN: $poolName KMeans at iteration $iteration has changedDist=$changedDist")
       }
 
       activeRuns = activeRuns.filter(active(_))
