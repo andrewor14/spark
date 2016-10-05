@@ -315,7 +315,6 @@ class KMeans private (
       iteration += 1
 
       // Change scheduler pool weight based on changed distance
-
       val poolName = sc.getLocalProperty("spark.scheduler.pool")
       if (poolName != null) {
         sc.setPoolWeight(poolName, (changedDist * 1000000).toInt)
