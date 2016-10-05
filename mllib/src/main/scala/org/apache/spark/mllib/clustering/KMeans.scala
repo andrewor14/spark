@@ -316,12 +316,15 @@ class KMeans private (
       for ((run, i) <- activeRuns.zipWithIndex) {
         var changed = false
         var j = 0
+        var changedDist = 0.0
         while (j < k) {
           val (sum, count) = totalContribs((i, j))
           if (count != 0) {
             scal(1.0 / count, sum)
             val newCenter = new VectorWithNorm(sum)
-            if (KMeans.fastSquaredDistance(newCenter, centers(run)(j)) > epsilon * epsilon) {
+            val dist = KMeans.fastSquaredDistance(newCenter, centers(run)(j))
+            changedDist += dist.toDouble
+            if (dist > epsilon * epsilon) {
               changed = true
             }
             centers(run)(j) = newCenter
