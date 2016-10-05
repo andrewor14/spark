@@ -296,19 +296,31 @@ class KMeans private (
 
       bcCenters.destroy(blocking = false)
 
+      var changedDist = 0.0
+
       // Update the cluster centers and costs
       converged = true
       totalContribs.foreach { case (j, (sum, count)) =>
         scal(1.0 / count, sum)
         val newCenter = new VectorWithNorm(sum)
-        if (converged && KMeans.fastSquaredDistance(newCenter, centers(j)) > epsilon * epsilon) {
+        val dist = KMeans.fastSquaredDistance(newCenter, centers(j))
+        if (converged && dist > epsilon * epsilon) {
           converged = false
         }
+        changedDist += dist.toDouble
         centers(j) = newCenter
       }
 
       cost = costAccum.value
       iteration += 1
+
+      // Change scheduler pool weight based on changed distance
+
+      val poolName = sc.getLocalProperty("spark.scheduler.pool")
+      if (poolName != null) {
+        sc.setPoolWeight(poolName, (changedDist * 1000000).toInt)
+      }
+      logInfo(s"LOGAN: $poolName KMeans at iteration $iteration has changedDist=$changedDist")
     }
 
     val iterationTimeInSeconds = (System.nanoTime() - iterationStartTime) / 1e9

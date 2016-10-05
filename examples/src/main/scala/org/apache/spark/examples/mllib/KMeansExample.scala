@@ -33,21 +33,41 @@ object KMeansExample {
 
     // $example on$
     // Load and parse the data
-    val data = sc.textFile("data/mllib/kmeans_data.txt")
+    val data = sc.textFile("data/mllib/RAND_CLUSTERS")
     val parsedData = data.map(s => Vectors.dense(s.split(' ').map(_.toDouble))).cache()
 
     // Cluster the data into two classes using KMeans
-    val numClusters = 2
-    val numIterations = 20
-    val clusters = KMeans.train(parsedData, numClusters, numIterations)
+    val numClusters = 5
+    val numIterations = 1000
+    val t1 = new Thread {
+      override def run: Unit = {
+        sc.setLocalProperty("spark.scheduler.pool", "kmeans1")
+        val clusters = KMeans.train(parsedData, numClusters, numIterations, 1,
+          KMeans.K_MEANS_PARALLEL, 1L)
+        // Evaluate clustering by computing Within Set Sum of Squared Errors
+        val WSSSE = clusters.computeCost(parsedData)
+        println("Within Set Sum of Squared Errors = " + WSSSE)
+      }
+    }
 
-    // Evaluate clustering by computing Within Set Sum of Squared Errors
-    val WSSSE = clusters.computeCost(parsedData)
-    println("Within Set Sum of Squared Errors = " + WSSSE)
-
+    val t2 = new Thread {
+      override def run: Unit = {
+        sc.setLocalProperty("spark.scheduler.pool", "kmeans2")
+        val clusters = KMeans.train(parsedData, numClusters, numIterations, 1,
+          KMeans.K_MEANS_PARALLEL, 1L)
+        // Evaluate clustering by computing Within Set Sum of Squared Errors
+        val WSSSE = clusters.computeCost(parsedData)
+        println("Within Set Sum of Squared Errors = " + WSSSE)
+      }
+    }
+    t1.start()
+    Thread.sleep(10000)
+    t2.start()
+    t1.join()
+    t2.join()
     // Save and load model
-    clusters.save(sc, "target/org/apache/spark/KMeansExample/KMeansModel")
-    val sameModel = KMeansModel.load(sc, "target/org/apache/spark/KMeansExample/KMeansModel")
+    // clusters.save(sc, "target/org/apache/spark/KMeansExample/KMeansModel")
+    // val sameModel = KMeansModel.load(sc, "target/org/apache/spark/KMeansExample/KMeansModel")
     // $example off$
 
     sc.stop()
