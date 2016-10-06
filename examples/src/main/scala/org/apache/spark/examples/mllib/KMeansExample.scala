@@ -33,7 +33,7 @@ object KMeansExample {
 
     // $example on$
     // Load and parse the data
-    val data = sc.textFile("data/mllib/RAND_CLUSTERS")
+    val data = sc.textFile("data/mllib/RAND_CLUSTERS", 1000)
     val parsedData = data.map(s => Vectors.dense(s.split(' ').map(_.toDouble))).cache()
 
     // Cluster the data into two classes using KMeans
@@ -43,7 +43,7 @@ object KMeansExample {
       override def run: Unit = {
         sc.setLocalProperty("spark.scheduler.pool", "kmeans1")
         val clusters = KMeans.train(parsedData, numClusters, numIterations, 1,
-          KMeans.K_MEANS_PARALLEL, 1L)
+          KMeans.RANDOM, 1L)
         // Evaluate clustering by computing Within Set Sum of Squared Errors
         val WSSSE = clusters.computeCost(parsedData)
         println("Within Set Sum of Squared Errors = " + WSSSE)
@@ -54,7 +54,7 @@ object KMeansExample {
       override def run: Unit = {
         sc.setLocalProperty("spark.scheduler.pool", "kmeans2")
         val clusters = KMeans.train(parsedData, numClusters, numIterations, 1,
-          KMeans.K_MEANS_PARALLEL, 1L)
+          KMeans.RANDOM, 1L)
         // Evaluate clustering by computing Within Set Sum of Squared Errors
         val WSSSE = clusters.computeCost(parsedData)
         println("Within Set Sum of Squared Errors = " + WSSSE)
