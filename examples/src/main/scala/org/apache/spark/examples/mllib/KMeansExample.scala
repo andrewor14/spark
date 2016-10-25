@@ -33,38 +33,26 @@ object KMeansExample {
 
     // $example on$
     // Load and parse the data
-    val data = sc.textFile("data/mllib/RAND_CLUSTERS", 1000)
+    val data = sc.textFile("data/mllib/tmp", 1000)
     val parsedData = data.map(s => Vectors.dense(s.split(' ').map(_.toDouble))).cache()
+    parsedData.count()
 
     // Cluster the data into two classes using KMeans
-    val numClusters = 5
+    val numClusters = 20
     val numIterations = 1000
-    val t1 = new Thread {
-      override def run: Unit = {
-        sc.setLocalProperty("spark.scheduler.pool", "kmeans1")
-        val clusters = KMeans.train(parsedData, numClusters, numIterations, 1,
-          KMeans.RANDOM, 1L)
-        // Evaluate clustering by computing Within Set Sum of Squared Errors
-        val WSSSE = clusters.computeCost(parsedData)
-        println("Within Set Sum of Squared Errors = " + WSSSE)
-      }
-    }
-
-    val t2 = new Thread {
-      override def run: Unit = {
-        sc.setLocalProperty("spark.scheduler.pool", "kmeans2")
-        val clusters = KMeans.train(parsedData, numClusters, numIterations, 1,
-          KMeans.RANDOM, 1L)
-        // Evaluate clustering by computing Within Set Sum of Squared Errors
-        val WSSSE = clusters.computeCost(parsedData)
-        println("Within Set Sum of Squared Errors = " + WSSSE)
-      }
-    }
-    t1.start()
-    Thread.sleep(10000)
-    t2.start()
-    t1.join()
-    t2.join()
+    val threads = (1 to 10).map(i => new Thread {
+        override def run: Unit = {
+          sc.addSchedulablePool("kmeans" + i, 0, Integer.MAX_VALUE)
+          sc.setLocalProperty("spark.scheduler.pool", "kmeans" + i)
+          val clusters = KMeans.train(parsedData, numClusters, numIterations, 1,
+            KMeans.RANDOM, 1L)
+          // Evaluate clustering by computing Within Set Sum of Squared Errors
+          val WSSSE = clusters.computeCost(parsedData)
+          println("Within Set Sum of Squared Errors = " + WSSSE)
+        }
+      }).toArray
+    threads.foreach{t => t.start(); Thread.sleep(100000)}
+    threads.foreach{t => t.join() }
     // Save and load model
     // clusters.save(sc, "target/org/apache/spark/KMeansExample/KMeansModel")
     // val sameModel = KMeansModel.load(sc, "target/org/apache/spark/KMeansExample/KMeansModel")
