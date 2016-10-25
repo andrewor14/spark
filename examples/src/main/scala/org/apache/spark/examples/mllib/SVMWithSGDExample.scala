@@ -33,7 +33,7 @@ object SVMWithSGDExample {
 
     // $example on$
     // Load training data in LIBSVM format.
-    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/sample_libsvm_data.txt")
+    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/SVM_TEST_DATA3")
 
     // Split data into training (60%) and test (40%).
     val splits = data.randomSplit(Array(0.6, 0.4), seed = 11L)
@@ -41,7 +41,7 @@ object SVMWithSGDExample {
     val test = splits(1)
 
     // Run training algorithm to build the model
-    val numIterations = 100
+    val numIterations = 1000
     val model = SVMWithSGD.train(training, numIterations)
 
     // Clear the default threshold.
