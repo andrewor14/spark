@@ -21,6 +21,7 @@ import scala.collection.mutable.ArrayBuffer
 
 import breeze.linalg.{norm, DenseVector => BDV}
 
+import org.apache.spark.PoolReweighter
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
@@ -235,6 +236,7 @@ object GradientDescent extends Logging {
       val bcWeights = data.context.broadcast(weights)
       // Sample a subset (fraction miniBatchFraction) of the total data
       // compute and sum up the subgradients on this subset (this is one map-reduce)
+      val t1 = System.currentTimeMillis()
       val (gradientSum, lossSum, miniBatchSize) = data.sample(false, miniBatchFraction, 42 + i)
         .treeAggregate((BDV.zeros[Double](n), 0.0, 0L))(
           seqOp = (c, v) => {
@@ -246,7 +248,7 @@ object GradientDescent extends Logging {
             // c: (grad, loss, count)
             (c1._1 += c2._1, c1._2 + c2._2, c1._3 + c2._3)
           })
-
+      val t2 = System.currentTimeMillis()
       if (miniBatchSize > 0) {
         /**
          * lossSum is computed using the weights from the previous iteration
@@ -261,6 +263,28 @@ object GradientDescent extends Logging {
 
         previousWeights = currentWeights
         currentWeights = Some(weights)
+        if(previousWeights != null && previousWeights != None) {
+          // val model = new SVMModel(previousWeights.get, 0.0)
+          // val scoreAndLabels = data.map { point =>
+          //   val score = model.predict(point._2)
+          //   (score, point._1)
+          // }
+
+          // Get evaluation metrics.
+          // val metrics = new BinaryClassificationMetrics(scoreAndLabels)
+          // val auROC = metrics.areaUnderROC()
+          // val solVecDiff = norm(previousWeights.get.asBreeze.toDenseVector -
+          //   currentWeights.get.asBreeze.toDenseVector)
+          // val tolerance = convergenceTol *
+          //   Math.max(norm(currentWeights.get.asBreeze.toDenseVector), 1.0)
+          // logInfo(s"LOGAN iteration $i, auROC: $auROC, lossSum: $lossSum," +
+          //   s"solVecDiff: $solVecDiff, tolerance: $tolerance")
+          val solVecDiff = norm(previousWeights.get.asBreeze.toDenseVector -
+            currentWeights.get.asBreeze.toDenseVector)
+          PoolReweighter.updateWeight((solVecDiff * 100).toInt)
+
+          logInfo(s"LOGAN iteration $i, solVecDiff: $solVecDiff, tDiff: ${t2 - t1}")
+        }
         if (previousWeights != None && currentWeights != None) {
           converged = isConverged(previousWeights.get,
             currentWeights.get, convergenceTol)
