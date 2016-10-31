@@ -29,13 +29,12 @@ object SVMWithSGDExample {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("SVMWithSGDExample")
     val sc = new SparkContext(conf)
-    PoolReweighter.registerSC(sc)
     // $example on$
     // Load training data in LIBSVM format.
     val data = MLUtils.loadLibSVMFile(sc, "data/mllib/SVM_TEST_DATA6")
 
     // Split data into training (60%) and test (40%).
-    val splits = data.randomSplit(Array(0.6, 0.4), seed = 11L)
+    val splits = data.randomSplit(Array(0.9, 0.1), seed = 11L)
     val training = splits(0).cache()
     training.count()
     val test = splits(1)
@@ -51,7 +50,7 @@ object SVMWithSGDExample {
         model.clearThreshold()
       }
     })
-    threads.foreach { t => t.start(); Thread.sleep(10000) }
+    threads.foreach { t => t.start(); Thread.sleep(200000) }
     threads.foreach { t => t.join() }
 
     // Compute raw scores on the test set.
