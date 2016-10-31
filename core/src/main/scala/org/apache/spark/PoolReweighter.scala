@@ -17,20 +17,13 @@
 
 package org.apache.spark
 
-object PoolReweighter {
-  var sc: SparkContext = null
+import org.apache.spark.internal.Logging
 
-  def registerSC(sc: SparkContext): Unit = {
-    this.sc = sc
-  }
-
+object PoolReweighter extends Logging {
   def updateWeight(value: Int): Unit = {
-    if (sc == null) {
-      // println("Uh oh sparkContext is null, not setting weight")
-      return
-    }
-    val poolName = sc.getLocalProperty("spark.scheduler.pool")
-    sc.setPoolWeight(poolName, value)
+    val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
+    logInfo(s"LOGAN: $poolName solVecDiff: $value")
+    SparkContext.getOrCreate.setPoolWeight(poolName, value)
   }
 
 }
