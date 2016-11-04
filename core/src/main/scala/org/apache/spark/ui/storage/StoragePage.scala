@@ -49,7 +49,7 @@ private[ui] class StoragePage(parent: StorageTab) extends WebUIPage("") {
 
   /** Header fields for the RDD table */
   private val rddHeader = Seq(
-    "RDD Name",
+    "RDD Name [ID]",
     "Storage Level",
     "Cached Partitions",
     "Fraction Cached",
@@ -62,7 +62,7 @@ private[ui] class StoragePage(parent: StorageTab) extends WebUIPage("") {
     <tr>
       <td>
         <a href={"%s/storage/rdd?id=%s".format(UIUtils.prependBaseUri(parent.basePath), rdd.id)}>
-          {rdd.name}
+          {rdd.name} [{rdd.id}]
         </a>
       </td>
       <td>{rdd.storageLevel.description}
