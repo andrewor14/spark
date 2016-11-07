@@ -31,14 +31,15 @@ object SVMWithSGDExample {
     val sc = new SparkContext(conf)
     // $example on$
     // Load training data in LIBSVM format.
-    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/SVM_TEST_DATA6")
+    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label")
+    // val data = MLUtils.loadLibSVMFile(sc, "data/mllib/SVM_TEST_DATA6")
 
-    // Split data into training (60%) and test (40%).
+    // Split data into training (90%) and test (10%).
     val splits = data.randomSplit(Array(0.9, 0.1), seed = 11L)
     val training = splits(0).cache()
     training.count()
-    val test = splits(1)
-    val numThreads = 2
+    val validation = splits(1).cache()
+    val numThreads = 1
     // Run training algorithm to build the model
     val numIterations = 1000
 
@@ -46,11 +47,12 @@ object SVMWithSGDExample {
       override def run: Unit = {
         sc.addSchedulablePool("svm" + i, 0, Integer.MAX_VALUE)
         sc.setLocalProperty("spark.scheduler.pool", "svm" + i)
+        PoolReweighter.registerValidationSet(validation)
         val model = SVMWithSGD.train(training, numIterations)
         model.clearThreshold()
       }
     })
-    threads.foreach { t => t.start(); Thread.sleep(200000) }
+    threads.foreach { t => t.start(); Thread.sleep(150000) }
     threads.foreach { t => t.join() }
 
     // Compute raw scores on the test set.
