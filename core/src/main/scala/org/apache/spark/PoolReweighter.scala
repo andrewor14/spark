@@ -17,13 +17,27 @@
 
 package org.apache.spark
 
+import java.util.concurrent.ConcurrentHashMap
+
 import org.apache.spark.internal.Logging
+import org.apache.spark.rdd.RDD
 
 object PoolReweighter extends Logging {
-  def updateWeight(value: Int): Unit = {
+  private[PoolReweighter] val poolValidationSets = new ConcurrentHashMap[String, RDD[_]]
+  def updateWeight(value: Double): Unit = {
     val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
-    logInfo(s"LOGAN: $poolName solVecDiff: $value")
-    SparkContext.getOrCreate.setPoolWeight(poolName, value)
+    logInfo(s"LOGAN: $poolName value: $value")
+    SparkContext.getOrCreate.setPoolWeight(poolName, (value * 1000000).toInt)
+  }
+
+  def registerValidationSet(rdd: RDD[_]): Unit = {
+    val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
+    poolValidationSets.put(poolName, rdd)
+  }
+
+  def getValidationSet(): RDD[_] = {
+    val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
+    poolValidationSets.get(poolName)
   }
 
 }

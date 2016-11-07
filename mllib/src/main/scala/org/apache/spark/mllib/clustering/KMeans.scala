@@ -19,6 +19,7 @@ package org.apache.spark.mllib.clustering
 
 import scala.collection.mutable.ArrayBuffer
 
+import org.apache.spark.PoolReweighter
 import org.apache.spark.annotation.Since
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.internal.Logging
@@ -311,15 +312,9 @@ class KMeans private (
         centers(j) = newCenter
       }
 
+      PoolReweighter.updateWeight(changedDist)
       cost = costAccum.value
       iteration += 1
-
-      // Change scheduler pool weight based on changed distance
-      val poolName = sc.getLocalProperty("spark.scheduler.pool")
-      if (poolName != null) {
-        sc.setPoolWeight(poolName, (changedDist * 1000000).toInt)
-      }
-      logInfo(s"LOGAN: $poolName KMeans at iteration $iteration has changedDist=$changedDist")
     }
 
     val iterationTimeInSeconds = (System.nanoTime() - iterationStartTime) / 1e9

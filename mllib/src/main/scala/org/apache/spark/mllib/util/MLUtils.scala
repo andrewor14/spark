@@ -77,7 +77,7 @@ object MLUtils extends Logging {
     val d = if (numFeatures > 0) {
       numFeatures
     } else {
-      parsed.persist(StorageLevel.MEMORY_ONLY)
+      // parsed.persist(StorageLevel.MEMORY_ONLY)
       computeNumFeatures(parsed)
     }
 

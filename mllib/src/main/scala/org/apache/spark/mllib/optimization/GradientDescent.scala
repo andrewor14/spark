@@ -24,9 +24,12 @@ import breeze.linalg.{norm, DenseVector => BDV}
 import org.apache.spark.PoolReweighter
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
+import org.apache.spark.mllib.classification.SVMModel
+import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
+import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
-import org.apache.spark.SparkContext
+
 
 /**
  * Class used to solve an optimization problem using Gradient Descent.
@@ -40,7 +43,7 @@ class GradientDescent private[spark] (private var gradient: Gradient, private va
   private var numIterations: Int = 100
   private var regParam: Double = 0.0
   private var miniBatchFraction: Double = 1.0
-  private var convergenceTol: Double = 0.0000001
+  private var convergenceTol: Double = 0.001
 
   /**
    * Set the initial step size of SGD for the first step. Default 1.0.
@@ -230,6 +233,10 @@ object GradientDescent extends Logging {
     var regVal = updater.compute(
       weights, Vectors.zeros(weights.size), 0, 1, regParam)._2
 
+    // remap the validation set
+    val valSet: RDD[LabeledPoint] = PoolReweighter.getValidationSet.asInstanceOf[RDD[LabeledPoint]]
+    PoolReweighter.registerValidationSet(valSet.map(lp => (lp.label, lp.features)))
+
     var converged = false // indicates whether converged based on convergenceTol
     var i = 1
     while (!converged && i <= numIterations) {
@@ -261,14 +268,23 @@ object GradientDescent extends Logging {
 
         previousWeights = currentWeights
         currentWeights = Some(weights)
-        if(previousWeights != null && previousWeights != None) {
-          val solVecDiff = norm(previousWeights.get.asBreeze.toDenseVector -
-            currentWeights.get.asBreeze.toDenseVector)
-          val currNorm = Math.max(norm(currentWeights.get.asBreeze.toDenseVector), 1.0)
-          PoolReweighter.updateWeight((solVecDiff * 10000).toInt)
-          val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
-          logInfo(s"LOGAN $poolName solVecDiff: ${solVecDiff / currNorm * 10000}")
+        // scalastyle:off
+
+        if(currentWeights != None) {
+          // create temp model and validate
+          val model = new SVMModel(currentWeights.get, 0)
+          model.clearThreshold()
+          val validationSet = PoolReweighter.getValidationSet.asInstanceOf[RDD[(Double, Vector)]]
+          val scoreAndLabels = validationSet.map { point =>
+            val score = model.predict(point._2)
+            (score, point._1)
+          }
+          val metrics = new BinaryClassificationMetrics(scoreAndLabels)
+          val auROC = metrics.areaUnderROC()
+          // update my thread weight
+          PoolReweighter.updateWeight(1 - 2*(auROC - 0.5))
         }
+        // scalastyle:on
         if (previousWeights != None && currentWeights != None) {
           converged = isConverged(previousWeights.get,
             currentWeights.get, convergenceTol)

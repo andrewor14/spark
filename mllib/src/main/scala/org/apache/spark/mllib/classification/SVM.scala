@@ -252,6 +252,6 @@ object SVMWithSGD {
    */
   @Since("0.8.0")
   def train(input: RDD[LabeledPoint], numIterations: Int): SVMModel = {
-    train(input, numIterations, 1.0, 0.0001, 1.0)
+    train(input, numIterations, 1.0, 0.01, 1.0)
   }
 }
