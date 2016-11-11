@@ -32,14 +32,14 @@ object SVMWithSGDExample {
     // $example on$
     // Load training data in LIBSVM format.
     val data = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label")
-    // val data = MLUtils.loadLibSVMFile(sc, "data/mllib/SVM_TEST_DATA6")
 
     // Split data into training (90%) and test (10%).
     val splits = data.randomSplit(Array(0.9, 0.1), seed = 11L)
     val training = splits(0).cache()
     training.count()
     val validation = splits(1).cache()
-    val numThreads = 1
+    validation.count()
+    val numThreads = 2
     // Run training algorithm to build the model
     val numIterations = 1000
 
@@ -52,7 +52,7 @@ object SVMWithSGDExample {
         model.clearThreshold()
       }
     })
-    threads.foreach { t => t.start(); Thread.sleep(150000) }
+    threads.foreach { t => t.start(); Thread.sleep(100000) }
     threads.foreach { t => t.join() }
 
     // Compute raw scores on the test set.
