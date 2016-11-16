@@ -382,6 +382,8 @@ class LogisticRegressionWithLBFGS
     if (numOfLinearPredictor == 1) {
       new LogisticRegressionModel(weights, intercept)
     } else {
+      logInfo(s"LOGAN: intercept: $intercept, numFeatures: " +
+        s"$numFeatures, numOfLinearPredictor: $numOfLinearPredictor")
       new LogisticRegressionModel(weights, intercept, numFeatures, numOfLinearPredictor + 1)
     }
   }
