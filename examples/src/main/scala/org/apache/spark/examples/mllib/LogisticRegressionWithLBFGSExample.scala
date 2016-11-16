@@ -18,7 +18,7 @@
 // scalastyle:off println
 package org.apache.spark.examples.mllib
 
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.{PoolReweighter, SparkConf, SparkContext}
 // $example on$
 import org.apache.spark.mllib.classification.{LogisticRegressionModel, LogisticRegressionWithLBFGS}
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
@@ -34,16 +34,23 @@ object LogisticRegressionWithLBFGSExample {
 
     // $example on$
     // Load training data in LIBSVM format.
-    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/sample_libsvm_data.txt")
+    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label")
 
     // Split data into training (60%) and test (40%).
-    val splits = data.randomSplit(Array(0.6, 0.4), seed = 11L)
+    val splits = data.randomSplit(Array(0.98, 0.02), seed = 11L)
     val training = splits(0).cache()
-    val test = splits(1)
+    val validation = splits(1).cache()
+    training.count()
+    validation.count()
+    val test = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label.t")
+
+    sc.addSchedulablePool("logistic", 0, 1)
+    sc.setLocalProperty("spark.scheduler.pool", "logistic")
+    PoolReweighter.registerValidationSet(validation)
 
     // Run training algorithm to build the model
     val model = new LogisticRegressionWithLBFGS()
-      .setNumClasses(10)
+      .setNumClasses(2)
       .run(training)
 
     // Compute raw scores on the test set.
