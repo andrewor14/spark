@@ -39,7 +39,7 @@ object SVMWithSGDExample {
     training.count()
     val validation = splits(1).cache()
     validation.count()
-    val numThreads = 2
+    val numThreads = 1
     // Run training algorithm to build the model
     val numIterations = 1000
 
@@ -48,7 +48,7 @@ object SVMWithSGDExample {
         sc.addSchedulablePool("svm" + i, 0, Integer.MAX_VALUE)
         sc.setLocalProperty("spark.scheduler.pool", "svm" + i)
         PoolReweighter.registerValidationSet(validation)
-        val model = SVMWithSGD.train(training, numIterations)
+        val model = SVMWithSGD.train(training, numIterations, 100, 0.00001, 1)
         model.clearThreshold()
       }
     })
