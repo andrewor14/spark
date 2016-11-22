@@ -561,6 +561,7 @@ class LogisticRegression @Since("1.2.0") (
          */
         val arrayBuilder = mutable.ArrayBuilder.make[Double]
         var state: optimizer.State = null
+        var prevAccuracy = 0.0
         while (states.hasNext) {
           state = states.next()
           val valSet = PoolReweighter.getValidationSet()
@@ -571,7 +572,9 @@ class LogisticRegression @Since("1.2.0") (
             (prediction, label)
           }
           val metrics = new MulticlassMetrics(predictionsAndLabels)
-          PoolReweighter.updateWeight(metrics.accuracy)
+          PoolReweighter.updateWeight(Math.abs(metrics.accuracy - prevAccuracy))
+          logInfo(s"logistic accuracy: ${metrics.accuracy}")
+          prevAccuracy = metrics.accuracy
           arrayBuilder += state.adjustedValue
         }
         bcFeaturesStd.destroy(blocking = false)

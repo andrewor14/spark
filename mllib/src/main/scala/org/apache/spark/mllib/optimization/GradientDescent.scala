@@ -25,7 +25,7 @@ import org.apache.spark.PoolReweighter
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
 import org.apache.spark.mllib.classification.SVMModel
-import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
+import org.apache.spark.mllib.evaluation.{BinaryClassificationMetrics, MulticlassMetrics}
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
@@ -236,6 +236,7 @@ object GradientDescent extends Logging {
     // remap the validation set
     val valSet: RDD[LabeledPoint] = PoolReweighter.getValidationSet.asInstanceOf[RDD[LabeledPoint]]
     PoolReweighter.registerValidationSet(valSet.map(lp => (lp.label, lp.features)))
+    var prevAccuracy = 0.0
 
     var converged = false // indicates whether converged based on convergenceTol
     var i = 1
@@ -273,16 +274,17 @@ object GradientDescent extends Logging {
         if(currentWeights != None) {
           // create temp model and validate
           val model = new SVMModel(currentWeights.get, 0)
-          model.clearThreshold()
+          model.setThreshold(0)
           val validationSet = PoolReweighter.getValidationSet.asInstanceOf[RDD[(Double, Vector)]]
           val scoreAndLabels = validationSet.map { point =>
             val score = model.predict(point._2)
             (score, point._1)
           }
-          val metrics = new BinaryClassificationMetrics(scoreAndLabels)
-          val auROC = metrics.areaUnderROC()
+          val metrics = new MulticlassMetrics(scoreAndLabels)
           // update my thread weight
-          PoolReweighter.updateWeight(1 - 2*(auROC - 0.5))
+          PoolReweighter.updateWeight(Math.abs(metrics.accuracy - prevAccuracy))
+          prevAccuracy = metrics.accuracy
+          logInfo(s"svm accuracy: ${metrics.accuracy}")
         }
         // scalastyle:on
         if (previousWeights != None && currentWeights != None) {

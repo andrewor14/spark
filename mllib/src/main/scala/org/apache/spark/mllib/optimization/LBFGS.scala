@@ -210,6 +210,7 @@ object LBFGS extends Logging {
      * NOTE: lossSum and loss is computed using the weights from the previous iteration
      * and regVal is the regularization value computed in the previous iteration as well.
      */
+    var prevAccuracy = 0.0
     var state = states.next()
     while (states.hasNext) {
       lossHistory += state.value
@@ -222,7 +223,9 @@ object LBFGS extends Logging {
         (prediction, label)
       }
       val metrics = new MulticlassMetrics(predictionsAndLabels)
-      PoolReweighter.updateWeight(metrics.accuracy)
+      PoolReweighter.updateWeight(Math.abs(metrics.accuracy - prevAccuracy))
+      prevAccuracy = metrics.accuracy
+      logInfo(s"logistic accuracy: ${metrics.accuracy}")
       // scalastyle:on
       state = states.next()
     }
