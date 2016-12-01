@@ -22,9 +22,9 @@ import scala.collection.mutable
 import breeze.linalg.{DenseVector => BDV}
 import breeze.optimize.{CachedDiffFunction, DiffFunction, LBFGS => BreezeLBFGS}
 
-import org.apache.spark.PoolReweighter
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
+import org.apache.spark.mllib.PoolReweighter
 import org.apache.spark.mllib.classification.LogisticRegressionModel
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
@@ -210,22 +210,13 @@ object LBFGS extends Logging {
      * NOTE: lossSum and loss is computed using the weights from the previous iteration
      * and regVal is the regularization value computed in the previous iteration as well.
      */
-    var prevAccuracy = 0.0
     var state = states.next()
     while (states.hasNext) {
       lossHistory += state.value
       // scalastyle:off
       val weights = Vectors.fromBreeze(state.x)
       val model = new LogisticRegressionModel(weights, 0, weights.size / (3-1), 3)
-      val validationSet = PoolReweighter.getValidationSet()
-      val predictionsAndLabels = validationSet.map{ case LabeledPoint(label, features) =>
-        val prediction = model.predict(features)
-        (prediction, label)
-      }
-      val metrics = new MulticlassMetrics(predictionsAndLabels)
-      PoolReweighter.updateWeight(Math.abs(metrics.accuracy - prevAccuracy))
-      prevAccuracy = metrics.accuracy
-      logInfo(s"logistic accuracy: ${metrics.accuracy}")
+      PoolReweighter.updateModel("logreg", model)
       // scalastyle:on
       state = states.next()
     }

@@ -19,12 +19,12 @@ package org.apache.spark.mllib.clustering
 
 import scala.collection.mutable.ArrayBuffer
 
-import org.apache.spark.PoolReweighter
 import org.apache.spark.annotation.Since
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.internal.Logging
 import org.apache.spark.ml.clustering.{KMeans => NewKMeans}
 import org.apache.spark.ml.util.Instrumentation
+import org.apache.spark.mllib.PoolReweighter
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.linalg.BLAS.{axpy, scal}
 import org.apache.spark.mllib.util.MLUtils
@@ -332,7 +332,7 @@ class KMeans private (
           }
           j += 1
         }
-        PoolReweighter.updateWeight(changedDist)
+        // PoolReweighter.updateModel("kmeans", changedDist)
         if (!changed) {
           active(run) = false
           logInfo("Run " + run + " finished in " + (iteration + 1) + " iterations")
