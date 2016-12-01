@@ -18,8 +18,9 @@
 // scalastyle:off println
 package org.apache.spark.examples.mllib
 
-import org.apache.spark.{PoolReweighter, SparkConf, SparkContext}
+import org.apache.spark.{SparkConf, SparkContext}
 // $example on$
+import org.apache.spark.mllib.PoolReweighter
 import org.apache.spark.mllib.classification.{LogisticRegressionModel, LogisticRegressionWithLBFGS}
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.regression.LabeledPoint

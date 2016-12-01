@@ -21,11 +21,11 @@ import scala.collection.mutable.ArrayBuffer
 
 import breeze.linalg.{norm, DenseVector => BDV}
 
-import org.apache.spark.PoolReweighter
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
+import org.apache.spark.mllib.PoolReweighter
 import org.apache.spark.mllib.classification.SVMModel
-import org.apache.spark.mllib.evaluation.{BinaryClassificationMetrics, MulticlassMetrics}
+import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
@@ -43,7 +43,7 @@ class GradientDescent private[spark] (private var gradient: Gradient, private va
   private var numIterations: Int = 100
   private var regParam: Double = 0.0
   private var miniBatchFraction: Double = 1.0
-  private var convergenceTol: Double = 0.001
+  private var convergenceTol: Double = 0.00001
 
   /**
    * Set the initial step size of SGD for the first step. Default 1.0.
@@ -233,11 +233,6 @@ object GradientDescent extends Logging {
     var regVal = updater.compute(
       weights, Vectors.zeros(weights.size), 0, 1, regParam)._2
 
-    // remap the validation set
-    val valSet: RDD[LabeledPoint] = PoolReweighter.getValidationSet.asInstanceOf[RDD[LabeledPoint]]
-    PoolReweighter.registerValidationSet(valSet.map(lp => (lp.label, lp.features)))
-    var prevAccuracy = 0.0
-
     var converged = false // indicates whether converged based on convergenceTol
     var i = 1
     while (!converged && i <= numIterations) {
@@ -275,16 +270,7 @@ object GradientDescent extends Logging {
           // create temp model and validate
           val model = new SVMModel(currentWeights.get, 0)
           model.setThreshold(0)
-          val validationSet = PoolReweighter.getValidationSet.asInstanceOf[RDD[(Double, Vector)]]
-          val scoreAndLabels = validationSet.map { point =>
-            val score = model.predict(point._2)
-            (score, point._1)
-          }
-          val metrics = new MulticlassMetrics(scoreAndLabels)
-          // update my thread weight
-          PoolReweighter.updateWeight(Math.abs(metrics.accuracy - prevAccuracy))
-          prevAccuracy = metrics.accuracy
-          logInfo(s"svm accuracy: ${metrics.accuracy}")
+          PoolReweighter.updateModel("svm", model)
         }
         // scalastyle:on
         if (previousWeights != None && currentWeights != None) {

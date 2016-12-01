@@ -23,7 +23,7 @@ import breeze.linalg.{DenseVector => BDV}
 import breeze.optimize.{CachedDiffFunction, DiffFunction, LBFGS => BreezeLBFGS, OWLQN => BreezeOWLQN}
 import org.apache.hadoop.fs.Path
 
-import org.apache.spark.{PoolReweighter, SparkException}
+import org.apache.spark.SparkException
 import org.apache.spark.annotation.{Experimental, Since}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.internal.Logging
@@ -33,6 +33,7 @@ import org.apache.spark.ml.linalg.BLAS._
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.param.shared._
 import org.apache.spark.ml.util._
+import org.apache.spark.mllib.PoolReweighter
 import org.apache.spark.mllib.classification.{LogisticRegressionModel => MLlibModel}
 import org.apache.spark.mllib.evaluation.{BinaryClassificationMetrics, MulticlassMetrics}
 import org.apache.spark.mllib.linalg.VectorImplicits._
@@ -561,20 +562,11 @@ class LogisticRegression @Since("1.2.0") (
          */
         val arrayBuilder = mutable.ArrayBuilder.make[Double]
         var state: optimizer.State = null
-        var prevAccuracy = 0.0
         while (states.hasNext) {
           state = states.next()
-          val valSet = PoolReweighter.getValidationSet()
           val coeffs = Vectors.dense(state.x.toArray.clone())
           val model = new MLlibModel(coeffs, 0.0)
-          val predictionsAndLabels = valSet.map { case LabeledPoint(label, features) =>
-            val prediction = model.predict(features)
-            (prediction, label)
-          }
-          val metrics = new MulticlassMetrics(predictionsAndLabels)
-          PoolReweighter.updateWeight(Math.abs(metrics.accuracy - prevAccuracy))
-          logInfo(s"logistic accuracy: ${metrics.accuracy}")
-          prevAccuracy = metrics.accuracy
+          PoolReweighter.updateModel("logreg", model)
           arrayBuilder += state.adjustedValue
         }
         bcFeaturesStd.destroy(blocking = false)
