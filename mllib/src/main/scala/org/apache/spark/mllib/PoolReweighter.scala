@@ -32,16 +32,41 @@ object PoolReweighter extends Logging {
   private[PoolReweighter] val poolModels = new TrieMap[String, (String, Object)]
   private[PoolReweighter] val newModels = new TrieMap[String, Boolean]
   private[PoolReweighter] val currAccuracy = new TrieMap[String, Double]
+
   def updateModel(model: (String, Object)): Unit = {
     val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
     // SparkContext.getOrCreate.setPoolWeight(poolName, (value * 1000000).toInt)
     poolModels.put(poolName, model)
     newModels.put(poolName, true)
   }
+
   // register your validation set with the thread you're on for testing
   def registerValidationSet(rdd: RDD[_]): Unit = {
     val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
     poolValidationSets.put(poolName, rdd)
+  }
+
+  // set batch to every t seconds
+  def registerThread(t: Int): Unit = {
+    val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
+    if (poolValidationSets.contains(poolName)) {
+      // create the thread
+      val thread = new Thread {
+        override def run(): Unit = {
+          while (true) {
+            SparkContext.getOrCreate.setLocalProperty("spark.scheduler.pool", poolName)
+            batchUpdate(poolName)
+            Thread.sleep(1000L * t)
+          }
+        }
+      }
+      thread.start()
+    }
+  }
+  // register your rdd and how often you want to batch
+  def register(rdd: RDD[_], t: Int = 5): Unit = {
+    registerValidationSet(rdd)
+    registerThread(t)
   }
 
   def getValidationSet(): RDD[_] = {
@@ -49,53 +74,41 @@ object PoolReweighter extends Logging {
     poolValidationSets.getOrElse(poolName, null)
   }
 
-  // start the batch-scheduled timer which runs every t seconds
-  def startScheduler(t: Int): Unit = {
-    val timer = new java.util.Timer()
-    val task = new java.util.TimerTask {
-      override def run(): Unit = batchUpdate()
-    }
-    timer.scheduleAtFixedRate(task, 0L, 1000L * t)
-  }
 
-  private[PoolReweighter] def batchUpdate(): Unit = {
-    poolModels.foreach { case (poolName: String, (n: String, m: Object)) =>
-      if (newModels.getOrElse(poolName, false)) {
-        SparkContext.getOrCreate.setLocalProperty("spark.scheduler.pool", poolName)
-        if (n.equals("svm")) {
-          val validationSet = poolValidationSets
-            .getOrElse(poolName, None).asInstanceOf[RDD[LabeledPoint]]
-          val model = m.asInstanceOf[SVMModel]
-          newModels.put(poolName, false)
-          val predictionAndLabels = validationSet.map { case LabeledPoint(label, features) =>
-            val prediction = model.predict(features)
-            (prediction, label)
-          }
-          val metrics = new MulticlassMetrics(predictionAndLabels)
-          // update my thread weight
-
-          val value = metrics.accuracy - currAccuracy.getOrElse(poolName, 0.0)
-          currAccuracy.put(poolName, metrics.accuracy)
-          logInfo(s"LOGAN: $poolName accuracy is now ${metrics.accuracy}")
-          SparkContext.getOrCreate.setPoolWeight(poolName, Math.max((value * 1000000).toInt, 1))
-        } else if (n.equals("logreg")) {
-          val validationSet = poolValidationSets
-            .getOrElse(poolName, None).asInstanceOf[RDD[LabeledPoint]]
-          val model = m.asInstanceOf[LogisticRegressionModel]
-          newModels.put(poolName, false)
-          val predictionAndLabels = validationSet.map { case LabeledPoint(label, features) =>
-            val prediction = model.predict(features)
-            (prediction, label)
-          }
-          val metrics = new MulticlassMetrics(predictionAndLabels)
-          // update my thread weight
-          val value = metrics.accuracy - currAccuracy.getOrElse(poolName, 0.0)
-          currAccuracy.put(poolName, metrics.accuracy)
-          logInfo(s"LOGAN: $poolName accuracy is now ${metrics.accuracy}")
-          SparkContext.getOrCreate.setPoolWeight(poolName, Math.max((value * 1000000).toInt, 1))
-        } else {
-          logInfo(s"LOGAN: ERROR unrecognized algorithm")
+  private[PoolReweighter] def batchUpdate(poolName: String): Unit = {
+    if (newModels.getOrElse(poolName, false)) {
+      val (n: String, m: Object) = poolModels.getOrElse(poolName, null)
+      if (n.equals("svm")) {
+        val validationSet = poolValidationSets
+          .getOrElse(poolName, None).asInstanceOf[RDD[LabeledPoint]]
+        val model = m.asInstanceOf[SVMModel]
+        newModels.put(poolName, false)
+        val predictionAndLabels = validationSet.map { case LabeledPoint(label, features) =>
+          val prediction = model.predict(features)
+          (prediction, label)
         }
+        val metrics = new MulticlassMetrics(predictionAndLabels)
+        val value = metrics.accuracy - currAccuracy.getOrElse(poolName, 0.0)
+        currAccuracy.put(poolName, metrics.accuracy)
+        logInfo(s"LOGAN: $poolName accuracy is now ${metrics.accuracy}")
+        SparkContext.getOrCreate.setPoolWeight(poolName, Math.max((value * 1000000).toInt, 1))
+      } else if (n.equals("logreg")) {
+        val validationSet = poolValidationSets
+          .getOrElse(poolName, None).asInstanceOf[RDD[LabeledPoint]]
+        val model = m.asInstanceOf[LogisticRegressionModel]
+        newModels.put(poolName, false)
+        val predictionAndLabels = validationSet.map { case LabeledPoint(label, features) =>
+          val prediction = model.predict(features)
+          (prediction, label)
+        }
+        val metrics = new MulticlassMetrics(predictionAndLabels)
+        // update my thread weight
+        val value = metrics.accuracy - currAccuracy.getOrElse(poolName, 0.0)
+        currAccuracy.put(poolName, metrics.accuracy)
+        logInfo(s"LOGAN: $poolName accuracy is now ${metrics.accuracy}")
+        SparkContext.getOrCreate.setPoolWeight(poolName, Math.max((value * 1000000).toInt, 1))
+      } else {
+        logInfo(s"LOGAN: ERROR unrecognized algorithm")
       }
     }
   }
