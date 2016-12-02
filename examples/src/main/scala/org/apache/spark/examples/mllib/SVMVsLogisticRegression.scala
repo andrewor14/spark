@@ -37,15 +37,16 @@ object SVMVsLogisticRegression {
 
     val testing = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label.t")
     val numIterations = 200
-    val numThreads = 10
-    val sleepTime = 20 // seconds
+    val numThreads = 5
+    val sleepTime = 60 // seconds
+    val batchTime = 5 // seconds
 
     val svmThreads = (1 to numThreads).map( i =>
       new Thread {
         override def run: Unit = {
           sc.addSchedulablePool("svm" + i, 0, 1000000)
           sc.setLocalProperty("spark.scheduler.pool", "svm" + i)
-          PoolReweighter.registerValidationSet(validation)
+          PoolReweighter.register(validation, batchTime)
           val model = SVMWithSGD.train(training, numIterations, 100, 0.00001, 1)
         }
       }
@@ -56,15 +57,13 @@ object SVMVsLogisticRegression {
         override def run: Unit = {
           sc.addSchedulablePool("logistic" + i, 0, 1000000)
           sc.setLocalProperty("spark.scheduler.pool", "logistic" + i)
-          PoolReweighter.registerValidationSet(validation)
+          PoolReweighter.register(validation, batchTime)
           val model = new LogisticRegressionWithLBFGS()
             .setNumClasses(2)
             .run(training)
         }
       }
     )
-
-    PoolReweighter.startScheduler(5)
 
     (1 to numThreads).foreach { i =>
       logRegThreads(i - 1).start()
