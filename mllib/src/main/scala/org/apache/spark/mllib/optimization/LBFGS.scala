@@ -22,14 +22,12 @@ import scala.collection.mutable
 import breeze.linalg.{DenseVector => BDV}
 import breeze.optimize.{CachedDiffFunction, DiffFunction, LBFGS => BreezeLBFGS}
 
+import org.apache.spark.PoolReweighter
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
-import org.apache.spark.mllib.PoolReweighter
 import org.apache.spark.mllib.classification.LogisticRegressionModel
-import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.linalg.BLAS.axpy
-import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
 
 /**
@@ -216,7 +214,7 @@ object LBFGS extends Logging {
       // scalastyle:off
       val weights = Vectors.fromBreeze(state.x)
       val model = new LogisticRegressionModel(weights, 0, weights.size / (3-1), 3)
-      PoolReweighter.updateModel("logreg", model)
+      PoolReweighter.updateModel(model)
       // scalastyle:on
       state = states.next()
     }
