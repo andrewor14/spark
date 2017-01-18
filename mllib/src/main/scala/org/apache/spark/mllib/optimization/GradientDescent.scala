@@ -21,13 +21,11 @@ import scala.collection.mutable.ArrayBuffer
 
 import breeze.linalg.{norm, DenseVector => BDV}
 
+import org.apache.spark.PoolReweighter
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
-import org.apache.spark.mllib.PoolReweighter
 import org.apache.spark.mllib.classification.SVMModel
-import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
-import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
 
 
@@ -43,7 +41,7 @@ class GradientDescent private[spark] (private var gradient: Gradient, private va
   private var numIterations: Int = 100
   private var regParam: Double = 0.0
   private var miniBatchFraction: Double = 1.0
-  private var convergenceTol: Double = 0.00001
+  private var convergenceTol: Double = 0.001
 
   /**
    * Set the initial step size of SGD for the first step. Default 1.0.
@@ -270,7 +268,7 @@ object GradientDescent extends Logging {
           // create temp model and validate
           val model = new SVMModel(currentWeights.get, 0)
           model.setThreshold(0)
-          PoolReweighter.updateModel("svm", model)
+          PoolReweighter.updateModel(model)
         }
         // scalastyle:on
         if (previousWeights != None && currentWeights != None) {
