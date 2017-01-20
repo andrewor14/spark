@@ -224,6 +224,7 @@ class JobProgressListener(conf: SparkConf) extends SparkListener with Logging {
         completedJobs += jobData
         trimJobsIfNecessary(completedJobs)
         jobData.status = JobExecutionStatus.SUCCEEDED
+        PoolReweighter.jobEnd(jobData)
         numCompletedJobs += 1
       case JobFailed(exception) =>
         failedJobs += jobData

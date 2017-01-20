@@ -26,43 +26,6 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.{PoolReweighter, SparkConf, SparkContext}
 
 object SVMVsLogisticRegression {
-/*
-  def svmValFunc(poolName: String, validationSet: RDD[_], m: Object): Unit = {
-    val currAccuracy = PoolReweighter.getAccuracy(poolName)
-    val t = PoolReweighter.getMsSinceLast(poolName)
-    val model = m.asInstanceOf[SVMModel]
-    val predictionAndLabels = validationSet.map { case LabeledPoint(label, features) =>
-      val prediction = model.predict(features)
-      (prediction, label)
-    }
-    val metrics = new MulticlassMetrics(predictionAndLabels)
-    val dAccuracy = metrics.accuracy - currAccuracy
-    var smoothedWeight = PoolReweighter.getSmoothedWeight(poolName)
-    val weight = Math.max((dAccuracy * 1000000000L / t).toInt, 1)
-    smoothedWeight = if(smoothedWeight == 0) weight else (smoothedWeight * 0.8 + weight * 0.2).toInt
-    PoolReweighter.putSmoothedWeight(poolName, smoothedWeight)
-    SparkContext.getOrCreate.setPoolWeight(poolName, smoothedWeight)
-    PoolReweighter.updateAccuracy(poolName, metrics.accuracy)
-  }
-
-  def logRegValFunc(poolName: String, validationSet: RDD[_], m: Object): Unit = {
-    val currAccuracy = PoolReweighter.getAccuracy(poolName)
-    val t = PoolReweighter.getMsSinceLast(poolName)
-    val model = m.asInstanceOf[LogisticRegressionModel]
-    val predictionAndLabels = validationSet.map { case LabeledPoint(label, features) =>
-      val prediction = model.predict(features)
-      (prediction, label)
-    }
-    val metrics = new MulticlassMetrics(predictionAndLabels)
-    val dAccuracy = metrics.accuracy - currAccuracy
-    var smoothedWeight = PoolReweighter.getSmoothedWeight(poolName)
-    val weight = Math.max((dAccuracy * 1000000000L / t).toInt, 1)
-    smoothedWeight = if(smoothedWeight == 0) weight else (smoothedWeight * 0.8 + weight * 0.2).toInt
-    PoolReweighter.putSmoothedWeight(poolName, smoothedWeight)
-    SparkContext.getOrCreate.setPoolWeight(poolName, smoothedWeight)
-    PoolReweighter.updateAccuracy(poolName, metrics.accuracy)
-  }
-*/
 
   def svmValFunc(validationSet: RDD[_], m: Object): Double = {
     val model = m.asInstanceOf[SVMModel]
@@ -83,7 +46,14 @@ object SVMVsLogisticRegression {
     val metrics = new MulticlassMetrics(predictionsAndLabels)
     metrics.accuracy
   }
-
+  // numCores is current number of cores
+  def utilityFunc(time: Long, accuracy: Double, numCores: Int): Double = {
+    val quality_sens = 1.0
+    val latency_sens = 1.0
+    val min_qual = 0.85
+    val max_latency = 60 * 1000
+    quality_sens * (accuracy - min_qual) - latency_sens * (time - max_latency)
+  }
 
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("SVMWithSGDExample")
@@ -103,12 +73,13 @@ object SVMVsLogisticRegression {
     val sleepTime = 30 // seconds
     sc.setPoolWeight("default", 32)
 
+
     val svmThreads = (1 to numThreads).map( i =>
       new Thread {
         override def run: Unit = {
           sc.addSchedulablePool("svm" + i, 0, 32)
           sc.setLocalProperty("spark.scheduler.pool", "svm" + i)
-          PoolReweighter.register(validation, svmValFunc)
+          PoolReweighter.register(validation, svmValFunc, utilityFunc)
           val model = SVMWithSGD.train(training, numIterations, 100, 0.00001, 1)
         }
       }
@@ -119,7 +90,7 @@ object SVMVsLogisticRegression {
         override def run: Unit = {
           sc.addSchedulablePool("logistic" + i, 0, 32)
           sc.setLocalProperty("spark.scheduler.pool", "logistic" + i)
-          PoolReweighter.register(validation, logRegValFunc)
+          PoolReweighter.register(validation, logRegValFunc, utilityFunc)
           val model = new LogisticRegressionWithLBFGS()
             .setNumClasses(2)
             .run(training)
@@ -129,8 +100,10 @@ object SVMVsLogisticRegression {
 
     (0 to numThreads - 1).foreach { i =>
       svmThreads(i).start()
+      PoolReweighter.start("svm" + i)
       Thread.sleep(sleepTime * 1000L)
       logRegThreads(i).start()
+      PoolReweighter.start("logistic" + i)
       Thread.sleep(sleepTime * 1000L)
     }
 
