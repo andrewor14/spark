@@ -17,7 +17,6 @@
 // scalastyle:off
 package org.apache.spark.examples.mllib
 
-import org.apache.spark.PoolReweighter._
 import org.apache.spark.mllib.classification.{LogisticRegressionModel, LogisticRegressionWithLBFGS, SVMModel, SVMWithSGD}
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.regression.LabeledPoint
@@ -47,7 +46,7 @@ object SVMVsLogisticRegression {
     metrics.accuracy
   }
   // numCores is current number of cores
-  def utilityFunc(time: Long, accuracy: Double, numCores: Int): Double = {
+  def utilityFunc(time: Long, accuracy: Double): Double = {
     val quality_sens = 1.0
     val latency_sens = 1.0
     val min_qual = 0.85
@@ -70,16 +69,16 @@ object SVMVsLogisticRegression {
     val testing = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label.t")
     val numIterations = 200
     val numThreads = 1
-    val sleepTime = 30 // seconds
+    val sleepTime = 0 // seconds
     sc.setPoolWeight("default", 32)
 
 
     val svmThreads = (1 to numThreads).map( i =>
       new Thread {
         override def run: Unit = {
-          sc.addSchedulablePool("svm" + i, 0, 32)
+          sc.addSchedulablePool("svm" + i, 0, 16)
           sc.setLocalProperty("spark.scheduler.pool", "svm" + i)
-          PoolReweighter.register(validation, svmValFunc, utilityFunc)
+          PoolReweighter.register("svm" + i, validation, svmValFunc, utilityFunc)
           val model = SVMWithSGD.train(training, numIterations, 100, 0.00001, 1)
         }
       }
@@ -88,9 +87,9 @@ object SVMVsLogisticRegression {
     val logRegThreads = (1 to numThreads).map( i =>
       new Thread {
         override def run: Unit = {
-          sc.addSchedulablePool("logistic" + i, 0, 32)
+          sc.addSchedulablePool("logistic" + i, 0, 16)
           sc.setLocalProperty("spark.scheduler.pool", "logistic" + i)
-          PoolReweighter.register(validation, logRegValFunc, utilityFunc)
+          PoolReweighter.register("logistic" + i, validation, logRegValFunc, utilityFunc)
           val model = new LogisticRegressionWithLBFGS()
             .setNumClasses(2)
             .run(training)
@@ -112,6 +111,7 @@ object SVMVsLogisticRegression {
 
     svmThreads.foreach { t => t.join() }
     logRegThreads.foreach { t => t.join() }
+    PoolReweighter.kill()
   }
 }
 // scalastyle:on

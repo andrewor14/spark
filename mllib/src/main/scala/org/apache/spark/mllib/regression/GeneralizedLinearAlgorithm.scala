@@ -17,7 +17,7 @@
 
 package org.apache.spark.mllib.regression
 
-import org.apache.spark.SparkException
+import org.apache.spark.{SparkContext, SparkException}
 import org.apache.spark.annotation.{DeveloperApi, Since}
 import org.apache.spark.internal.Logging
 import org.apache.spark.mllib.feature.StandardScaler
@@ -200,9 +200,12 @@ abstract class GeneralizedLinearAlgorithm[M <: GeneralizedLinearModel]
    * Generate the initial weights when the user does not supply them
    */
   protected def generateInitialWeights(input: RDD[LabeledPoint]): Vector = {
+    val currPool = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
+    SparkContext.getOrCreate.setLocalProperty("spark.scheduler.pool", "default")
     if (numFeatures < 0) {
       numFeatures = input.map(_.features.size).first()
     }
+    SparkContext.getOrCreate.setLocalProperty("spark.scheduler.pool", currPool)
 
     /**
      * When `numOfLinearPredictor > 1`, the intercepts are encapsulated into weights,

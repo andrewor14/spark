@@ -614,6 +614,11 @@ class SparkContext(config: SparkConf) extends Logging with ExecutorAllocationCli
     sched.weight = weight
   }
 
+  def getPoolWeight(name: String): Int = {
+    val sched = taskScheduler.rootPool.schedulableNameToSchedulable.get(name).asInstanceOf[Pool]
+    sched.weight
+  }
+
   private[spark] def getLocalProperties: Properties = localProperties.get()
 
   private[spark] def setLocalProperties(props: Properties) {

@@ -229,7 +229,7 @@ class LogisticRegressionWithSGD private[mllib] (
    */
   @Since("0.8.0")
   @deprecated("Use ml.classification.LogisticRegression or LogisticRegressionWithLBFGS", "2.0.0")
-  def this() = this(1.0, 100, 0.01, 1.0)
+  def this() = this(100, 200, 0.00001, 1.0)
 
   override protected[mllib] def createModel(weights: Vector, intercept: Double) = {
     new LogisticRegressionModel(weights, intercept)
@@ -428,6 +428,7 @@ class LogisticRegressionWithLBFGS
         // Prepare the ml LogisticRegression based on our settings
         val lr = new org.apache.spark.ml.classification.LogisticRegression()
         lr.setRegParam(optimizer.getRegParam())
+        logInfo(s"LOGAN: regParam: ${optimizer.getRegParam()}")
         lr.setElasticNetParam(elasticNetParam)
         lr.setStandardization(useFeatureScaling)
         if (userSuppliedWeights) {

@@ -22,7 +22,7 @@ import scala.collection.mutable
 import breeze.linalg.{DenseVector => BDV}
 import breeze.optimize.{CachedDiffFunction, DiffFunction, LBFGS => BreezeLBFGS}
 
-import org.apache.spark.PoolReweighter
+import org.apache.spark.{PoolReweighter, SparkContext}
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
 import org.apache.spark.mllib.classification.LogisticRegressionModel
@@ -141,6 +141,7 @@ class LBFGS(private var gradient: Gradient, private var updater: Updater)
   }
 
   override def optimize(data: RDD[(Double, Vector)], initialWeights: Vector): Vector = {
+    logInfo(s"LOGAN: regParam: $regParam")
     val (weights, _) = LBFGS.runLBFGS(
       data,
       gradient,
@@ -194,7 +195,10 @@ object LBFGS extends Logging {
 
     val lossHistory = mutable.ArrayBuilder.make[Double]
 
+    val currPool = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
+    SparkContext.getOrCreate.setLocalProperty("spark.scheduler.pool", "default")
     val numExamples = data.count()
+    SparkContext.getOrCreate.setLocalProperty("spark.scheduler.pool", currPool)
 
     val costFun =
       new CostFun(data, gradient, updater, regParam, numExamples)
