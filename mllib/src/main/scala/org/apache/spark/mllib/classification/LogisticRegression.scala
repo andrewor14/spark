@@ -389,8 +389,6 @@ class LogisticRegressionWithLBFGS
     if (numOfLinearPredictor == 1) {
       new LogisticRegressionModel(weights, intercept)
     } else {
-      logInfo(s"LOGAN: intercept: $intercept, numFeatures: " +
-        s"$numFeatures, numOfLinearPredictor: $numOfLinearPredictor")
       new LogisticRegressionModel(weights, intercept, numFeatures, numOfLinearPredictor + 1)
     }
   }
@@ -435,7 +433,6 @@ class LogisticRegressionWithLBFGS
         // Prepare the ml LogisticRegression based on our settings
         val lr = new org.apache.spark.ml.classification.LogisticRegression()
         lr.setRegParam(optimizer.getRegParam())
-        logInfo(s"LOGAN: regParam: ${optimizer.getRegParam()}")
         lr.setElasticNetParam(elasticNetParam)
         lr.setStandardization(useFeatureScaling)
         if (userSuppliedWeights) {
