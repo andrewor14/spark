@@ -141,7 +141,6 @@ class LBFGS(private var gradient: Gradient, private var updater: Updater)
   }
 
   override def optimize(data: RDD[(Double, Vector)], initialWeights: Vector): Vector = {
-    logInfo(s"LOGAN: regParam: $regParam")
     val (weights, _) = LBFGS.runLBFGS(
       data,
       gradient,
