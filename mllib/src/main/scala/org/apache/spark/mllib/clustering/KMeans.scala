@@ -311,7 +311,7 @@ class KMeans private (
         centers(j) = newCenter
       }
 
-      //PoolReweighter.updateModel("kmeans", changedDist)
+      // PoolReweighter.updateModel("kmeans", changedDist)
       cost = costAccum.value
       iteration += 1
     }
