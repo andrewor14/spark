@@ -21,23 +21,33 @@ import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
 
 import org.apache.spark.internal.Logging
 import org.apache.spark.rdd.RDD
-import org.apache.spark.ui.jobs.UIData.JobUIData
+import org.apache.spark.scheduler._
 
-class Job(id: Long, pn: String) {
+class Job(id: Long, pn: String, sis: Seq[Int]) {
   var jobId : Long = id
   var duration : Long = 0
-  var done : Boolean = false
+  var finTime : Long = 0
   var poolName : String = pn
+  var stageIds = sis
+}
+
+class BatchWindow() {
+  var finTime: Long = _
+  var jobs: ArrayBuffer[Job] = new ArrayBuffer[Job]
+  var accuracy: Double = _
+  var dAccuracy: Double = _
+  var totalDuration: Long = 0L
 }
 
 // Main API
 object PoolReweighter extends Logging {
 
   type ValidationFunc = (RDD[_], Object) => Double
-  type UtilityFunc = (Long, Double, Int) => Double
+  type UtilityFunc = (Long, Double) => Double
 
   private[PoolReweighter] val validationSets = new ConcurrentHashMap[String, RDD[_]]
   private[PoolReweighter] val validationFuncs =
@@ -45,13 +55,13 @@ object PoolReweighter extends Logging {
   private[PoolReweighter] val utilityFuncs =
     new ConcurrentHashMap[String, UtilityFunc]
   private[PoolReweighter] val models = new ConcurrentHashMap[String, Object]
-  private[PoolReweighter] val currAccuracy = new ConcurrentHashMap[String, Double]
-  private[PoolReweighter] val jobIdToJob = new ConcurrentHashMap[Long, Job]
+  // val jobIdToJob = new ConcurrentHashMap[Long, Job]
   private[PoolReweighter] val startTime = new ConcurrentHashMap[String, Long]
-
-  def updateAccuracy(poolName: String, acc: Double): Unit = {
-    currAccuracy.put(poolName, acc)
-  }
+  val batchWindows = new ConcurrentHashMap[String, ArrayBuffer[BatchWindow]]
+  val currWindow = new ConcurrentHashMap[String, BatchWindow]
+  val listener = new JobListener
+  var batchTime = 0
+  var isRunning = false
 
   def updateModel(model: Object): Unit = {
     val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
@@ -59,19 +69,19 @@ object PoolReweighter extends Logging {
   }
 
   // register your validation set with the thread you're on for testing
-  def registerValidationSet(rdd: RDD[_]): Unit = {
-    val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
+  def registerValidationSet(poolName: String, rdd: RDD[_]): Unit = {
     validationSets.put(poolName, rdd)
   }
 
   // set batch to every t seconds
-  def start(t: Int = 10): Unit = {
-
+  def start(t: Int = 3): Unit = {
+    batchTime = t
+    isRunning = true
     val thread = new Thread {
       override def run(): Unit = {
-        while (true) {
-          batchUpdate()
+        while (isRunning) {
           Thread.sleep(1000L * t)
+          batchUpdate()
         }
       }
     }
@@ -79,58 +89,39 @@ object PoolReweighter extends Logging {
   }
 
   // register validation function
-  def registerValidationFunction(func: ValidationFunc): Unit = {
-    val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
+  def registerValidationFunction(poolName: String, func: ValidationFunc): Unit = {
     validationFuncs.put(poolName, func)
   }
 
-  def registerUtilityFunction(func: UtilityFunc): Unit = {
-    val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
+  def registerUtilityFunction(poolName: String, func: UtilityFunc): Unit = {
     utilityFuncs.put(poolName, func)
   }
 
   // register your rdd and how often you want to batch
-  def register(rdd: RDD[_], valFunc: ValidationFunc, utilFunc: UtilityFunc): Unit = {
-    registerValidationSet(rdd)
-    registerValidationFunction(valFunc)
-    registerUtilityFunction(utilFunc)
-    // registerThread(t)
+  def register(poolName: String, rdd: RDD[_],
+               valFunc: ValidationFunc,
+               utilFunc: UtilityFunc): Unit = {
+    registerValidationSet(poolName, rdd)
+    registerValidationFunction(poolName, valFunc)
+    registerUtilityFunction(poolName, utilFunc)
+    SparkContext.getOrCreate.addSparkListener(listener)
   }
 
   def start(poolName: String): Unit = {
     startTime.put(poolName, System.currentTimeMillis())
   }
 
-  def getValidationSet(): RDD[_] = {
-    val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
-    validationSets.get(poolName)
-  }
-
-  def mapJobToPool(jobId: Long, poolName: String): Unit = {
-    if (!jobIdToJob.containsKey(jobId)) {
-      jobIdToJob.put(jobId, new Job(jobId, poolName))
-    } else {
-      jobIdToJob.get(jobId).poolName = poolName
-    }
-  }
-
-  def jobEnd(jobData: JobUIData): Unit = {
-    jobIdToJob.get(jobData.jobId).done = true
-  }
-
-  /*
-  adds total amount of core time used by one algorithm
-   */
-  def addPoolTime(jobId: Long, duration: Long): Unit = {
-    val job = jobIdToJob.get(jobId)
-    job.duration += duration
+  def kill(): Unit = {
+    isRunning = false
   }
 
   def computeAccuracy(poolName: String): Double = {
-    val accuracy = validationFuncs.get(poolName)(
-      validationSets.get(poolName),
-      models.get(poolName))
-    accuracy
+    if (models.containsKey(poolName)) {
+      val accuracy = validationFuncs.get(poolName)(
+        validationSets.get(poolName),
+        models.get(poolName))
+      accuracy
+    } else 0.5
   }
 
   private[PoolReweighter] def batchUpdate(): Unit = {
@@ -138,44 +129,142 @@ object PoolReweighter extends Logging {
     def diff(t: (String, Double)) = t._2
     val heap = new mutable.PriorityQueue[(String, Double)]()(Ordering.by(diff))
     val pool2numCores = new ConcurrentHashMap[String, Int]
-    val dAccuracy = new ConcurrentHashMap[String, Double]
     val currTime = System.currentTimeMillis()
 
-    for((jobId: Long, job: Job) <- jobIdToJob.asScala) {
-      pool2numCores.put(job.poolName, 0)
-      val utilFunc = utilityFuncs.get(job.poolName)
-      val newAccuracy = computeAccuracy(job.poolName)
-      val oldAccuracy = currAccuracy.getOrDefault(job.poolName, 0.5)
-      dAccuracy.put(job.poolName, newAccuracy - oldAccuracy)
-      updateAccuracy(job.poolName, newAccuracy)
+    for((poolName: String, bw: BatchWindow) <- currWindow.asScala) {
+      if (!batchWindows.containsKey(poolName)) {
+        batchWindows.put(poolName, new ArrayBuffer[BatchWindow])
+      }
+      batchWindows.get(poolName).append(bw)
+    }
+    currWindow.clear()
 
-      val wallTime = currTime - startTime.get(job.poolName)
-      val utility = utilFunc(wallTime, predAccuracy(newAccuracy, dAccuracy.get(job.poolName)), 0)
-      heap.enqueue((job.poolName, utility))
+    for ((poolName: String, valFunc: ValidationFunc) <- validationFuncs.asScala) {
+      pool2numCores.put(poolName, 0)
+      val bws = batchWindows.get(poolName)
+      if(bws != null && bws.size != 0) {
+        val utilFunc = utilityFuncs.get(poolName)
+        val accuracy = computeAccuracy(poolName)
+        bws.last.accuracy = accuracy
+        // set dAccuracy
+        if (bws.size > 1) {
+          bws.last.dAccuracy = bws.last.accuracy - bws(bws.size - 2).accuracy
+        } else {
+          bws.last.dAccuracy = bws.last.accuracy - 0.5
+        }
+        val wallTime = currTime - startTime.get(poolName)
+        val predicted = predAccuracy(poolName, 1)
+        val utility = utilFunc(wallTime, predicted)
+        heap.enqueue((poolName, utility))
+        val weight = SparkContext.getOrCreate.getPoolWeight(poolName)
+        logInfo(s"LOGAN: predicted acc of $poolName: ${predAccuracy(poolName, weight)}, " +
+          s"actual acc: $accuracy")
+      }
     }
 
-    for(i <- 1 to numCores) {
+
+    for (i <- 1 to numCores) {
       val top = heap.dequeue()
       val poolName = top._1
       val numCores = pool2numCores.get(poolName)
       pool2numCores.put(poolName, numCores + 1)
       val utilFunc = utilityFuncs.get(poolName)
       val wallTime = currTime - startTime.get(poolName)
-      val utility = utilFunc(wallTime, currAccuracy.get(poolName), numCores)
+      val predicted = predAccuracy(poolName, numCores + 1)
+      val utility = utilFunc(wallTime, predicted)
       heap.enqueue((poolName, utility))
     }
 
     // apply new values to pool weights
     var weights = ""
     for((poolName: String, v: Int) <- pool2numCores.asScala) {
-      SparkContext.getOrCreate.setPoolWeight(poolName, v)
+      // SparkContext.getOrCreate.setPoolWeight(poolName, v)
       weights += poolName + "," + v + " "
     }
-    logInfo(s"LOGAN changing weights: $weights")
+    // logInfo(s"LOGAN changing weights: $weights")
+
   }
 
-  def predAccuracy(currAccuracy: Double, dAccuracy: Double): Double = {
-    currAccuracy + dAccuracy
+  def predAccuracy(poolName: String, numCores: Int): Double = {
+
+    val numMs = numCores * batchTime * 1000
+    val avgLen = listener.getAvgJobLen(poolName)
+    // number of jobs that can be completed this round with numCores
+    val numJobs = numMs / avgLen
+
+    var sum = 0.0
+    val bws = batchWindows.get(poolName)
+    val lnbws = bws.takeRight(3)
+    for(i <- 0 to lnbws.size - 1) {
+      sum += lnbws(i).dAccuracy / lnbws(i).jobs.size
+    }
+    sum /= lnbws.size
+//    logInfo(s"LOGAN: ${bws.last.accuracy} ${bws.last.dAccuracy}")
+//    logInfo(s"LOGAN: ${bws.size} ${bws.last.jobs.size} predicting accuracy of " +
+//      s"${bws.last.accuracy + sum * numJobs} for $poolName with $numCores cores")
+    Math.min(bws.last.accuracy + sum * numJobs, 1.0)
+  }
+}
+
+
+class JobListener extends SparkListener with Logging {
+
+  val stageIdToDuration = new mutable.HashMap[Long, Long]
+  val currentJobs = new mutable.HashMap[Long, Job]
+  val avgJobLen = new mutable.HashMap[String, (Int, Double)]
+
+  def getAvgJobLen(poolName: String): Double = {
+    avgJobLen(poolName)._2
   }
 
+  override def onJobStart(jobStart: SparkListenerJobStart): Unit = synchronized {
+    val poolName = jobStart.properties.getProperty("spark.scheduler.pool")
+    if(poolName != null) {
+      val job = new Job(jobStart.jobId, poolName, jobStart.stageIds.toList)
+      currentJobs.put(job.jobId, job)
+    }
+  }
+
+  override def onJobEnd(jobEnd: SparkListenerJobEnd): Unit = synchronized {
+    val jobId = jobEnd.jobId
+    if(currentJobs.contains(jobId)) {
+      val job = currentJobs(jobId)
+      job.finTime = jobEnd.time
+      currentJobs.remove(jobId)
+      if(!avgJobLen.contains(job.poolName)) {
+        avgJobLen.put(job.poolName, (1, job.duration))
+      } else {
+        val curAvg = avgJobLen(job.poolName)
+        val newAvg = (curAvg._2 * curAvg._1 + job.duration) / (curAvg._1 + 1)
+        avgJobLen.put(job.poolName, (curAvg._1 + 1, newAvg))
+      }
+//      logInfo(s"LOGAN: $jobId in ${job.poolName} finished in ${job.duration}, " +
+//        s"new avg is ${avgJobLen(job.poolName)._2} with ${avgJobLen(job.poolName)._1} elts")
+      if(PoolReweighter.currWindow.containsKey(job.poolName)) {
+        val bw = PoolReweighter.currWindow.get(job.poolName)
+        bw.jobs.append(job)
+        bw.totalDuration += job.duration
+      } else {
+        val bw = new BatchWindow
+        bw.jobs.append(job)
+        bw.totalDuration += job.duration
+        PoolReweighter.currWindow.put(job.poolName, bw)
+      }
+    }
+  }
+
+  // figure out which job this belongs to, and add that duration
+  override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit = {
+    val duration = taskEnd.taskInfo.duration
+    val stageId = taskEnd.stageId
+    for((jobId: Long, j: Job) <- currentJobs) {
+      var contains = false
+      for (i: Int <- j.stageIds) {
+        if (i == stageId) {
+          contains = true
+        }
+      }
+      if (contains) j.duration += duration
+    }
+  }
 }

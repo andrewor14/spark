@@ -423,14 +423,6 @@ private[spark] class TaskSchedulerImpl(
       tid: Long,
       taskResult: DirectTaskResult[_]): Unit = synchronized {
     taskSetManager.handleSuccessfulTask(tid, taskResult)
-    val poolName = taskSetManager.parent.poolName
-    val stageId = taskSetManager.stageId
-
-    val stage = dagScheduler.stageIdToStage(stageId)
-    val jobId = stage.firstJobId
-    val taskId = taskSetManager.taskInfos(tid)
-    PoolReweighter.mapJobToPool(jobId, poolName)
-    PoolReweighter.addPoolTime(jobId, taskId.duration)
   }
 
   def handleFailedTask(

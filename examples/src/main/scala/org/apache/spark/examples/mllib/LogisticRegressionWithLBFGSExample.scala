@@ -15,18 +15,37 @@
  * limitations under the License.
  */
 
-// scalastyle:off println
+// scalastyle:off
 package org.apache.spark.examples.mllib
-
-import org.apache.spark.{PoolReweighter, SparkConf, SparkContext}
 // $example on$
-import org.apache.spark.mllib.classification.{LogisticRegressionModel, LogisticRegressionWithLBFGS}
+
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{PoolReweighter, SparkConf, SparkContext}
+import org.apache.spark.mllib.classification.{LogisticRegressionModel, LogisticRegressionWithLBFGS, LogisticRegressionWithSGD}
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.util.MLUtils
 // $example off$
 
 object LogisticRegressionWithLBFGSExample {
+
+  def utilFunc(time: Long, accuracy: Double): Double = {
+    val quality_sens = 1.0
+    val latency_sens = 1.0
+    val min_qual = 0.85
+    val max_latency = 60 * 1000
+    quality_sens * (accuracy - min_qual) - latency_sens * (time - max_latency)
+  }
+
+  def valFunc(validationSet: RDD[_], m: Object): Double = {
+    val model = m.asInstanceOf[LogisticRegressionModel]
+    val predictionsAndLabels = validationSet.map { case LabeledPoint(label, features) =>
+      val pred = model.predict(features)
+      (pred, label)
+    }
+    val metrics = new MulticlassMetrics(predictionsAndLabels)
+    metrics.accuracy
+  }
 
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("LogisticRegressionWithLBFGSExample")
@@ -37,24 +56,26 @@ object LogisticRegressionWithLBFGSExample {
     val data = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label")
 
     // Split data into training (60%) and test (40%).
-    val splits = data.randomSplit(Array(0.98, 0.02), seed = 11L)
+    val splits = data.randomSplit(Array(0.99, 0.01), seed = 11L)
     val training = splits(0).cache()
     val validation = splits(1).cache()
     training.count()
     validation.count()
-    val test = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label.t")
+//    val test = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label.t")
 
     sc.addSchedulablePool("logistic", 0, 1)
     sc.setLocalProperty("spark.scheduler.pool", "logistic")
-    PoolReweighter.registerValidationSet(validation)
-
+    PoolReweighter.register("logistic", validation, valFunc, utilFunc)
+    PoolReweighter.start("logistic")
+    PoolReweighter.start()
     // Run training algorithm to build the model
-    val model = new LogisticRegressionWithLBFGS()
-      .setNumClasses(2)
-      .run(training)
-
+    val model = new LogisticRegressionWithSGD().run(training)
+//    val model = new LogisticRegressionWithLBFGS()
+//      .setNumClasses(2)
+//      .run(training)
+    PoolReweighter.kill()
     // Compute raw scores on the test set.
-    val predictionAndLabels = test.map { case LabeledPoint(label, features) =>
+    val predictionAndLabels = validation.map { case LabeledPoint(label, features) =>
       val prediction = model.predict(features)
       (prediction, label)
     }
@@ -63,14 +84,14 @@ object LogisticRegressionWithLBFGSExample {
     val metrics = new MulticlassMetrics(predictionAndLabels)
     val accuracy = metrics.accuracy
     println(s"Accuracy = $accuracy")
-
-    // Save and load model
-    model.save(sc, "target/tmp/scalaLogisticRegressionWithLBFGSModel")
-    val sameModel = LogisticRegressionModel.load(sc,
-      "target/tmp/scalaLogisticRegressionWithLBFGSModel")
-    // $example off$
+//
+//    // Save and load model
+//    model.save(sc, "target/tmp/scalaLogisticRegressionWithLBFGSModel")
+//    val sameModel = LogisticRegressionModel.load(sc,
+//      "target/tmp/scalaLogisticRegressionWithLBFGSModel")
+//    // $example off$
 
     sc.stop()
   }
 }
-// scalastyle:on println
+// scalastyle:on
