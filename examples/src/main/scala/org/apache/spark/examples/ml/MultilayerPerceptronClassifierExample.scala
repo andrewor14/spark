@@ -19,6 +19,7 @@
 package org.apache.spark.examples.ml
 
 // $example on$
+import org.apache.spark.{PoolReweighterLoss, SparkContext}
 import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 // $example off$
@@ -29,6 +30,13 @@ import org.apache.spark.sql.SparkSession
  */
 object MultilayerPerceptronClassifierExample {
 
+  def utilFunc(time: Long, accuracy: Double): Double = {
+    val quality_sens = 1.0
+    val latency_sens = 1.0
+    val min_qual = 0.85
+    val max_latency = 60 * 1000
+    quality_sens * (accuracy - min_qual) - latency_sens * (time - max_latency)
+  }
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
       .builder
@@ -38,17 +46,23 @@ object MultilayerPerceptronClassifierExample {
     // $example on$
     // Load the data stored in LIBSVM format as a DataFrame.
     val data = spark.read.format("libsvm")
-      .load("data/mllib/sample_multiclass_classification_data.txt")
+      .load("data/mllib/epsilon_normalized_01label")
 
     // Split the data into train and test
-    val splits = data.randomSplit(Array(0.6, 0.4), seed = 1234L)
+    val splits = data.randomSplit(Array(0.9, 0.1), seed = 1234L)
     val train = splits(0)
     val test = splits(1)
 
     // specify layers for the neural network:
     // input layer of size 4 (features), two intermediate of size 5 and 4
     // and output of size 3 (classes)
-    val layers = Array[Int](4, 5, 4, 3)
+    val poolName = "mlpc"
+    PoolReweighterLoss.startTime(poolName)
+    PoolReweighterLoss.start(5)
+    SparkContext.getOrCreate().addSchedulablePool(poolName, 0, 32)
+    SparkContext.getOrCreate().setLocalProperty("spark.scheduler.pool", poolName)
+    PoolReweighterLoss.register(poolName, utilFunc)
+    val layers = Array[Int](2000, 15, 2)
 
     // create the trainer and set its parameters
     val trainer = new MultilayerPerceptronClassifier()
@@ -59,6 +73,7 @@ object MultilayerPerceptronClassifierExample {
 
     // train the model
     val model = trainer.fit(train)
+    PoolReweighterLoss.kill()
 
     // compute accuracy on the test set
     val result = model.transform(test)

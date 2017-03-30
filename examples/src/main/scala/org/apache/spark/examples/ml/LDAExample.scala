@@ -17,12 +17,12 @@
 
 package org.apache.spark.examples.ml
 
-// scalastyle:off println
-// $example on$
+// scalastyle:off
+import org.apache.spark.SparkContext
 import org.apache.spark.ml.clustering.LDA
-// $example off$
+import org.apache.spark.mllib.util.MLUtils
+import org.apache.spark.storage.StorageLevel
 import org.apache.spark.sql.SparkSession
-
 /**
  * An example demonstrating LDA.
  * Run with
@@ -41,10 +41,10 @@ object LDAExample {
     // $example on$
     // Loads data.
     val dataset = spark.read.format("libsvm")
-      .load("data/mllib/sample_lda_libsvm_data.txt")
+      .load("data/mllib/epsilon_normalized_01label")
 
     // Trains a LDA model.
-    val lda = new LDA().setK(10).setMaxIter(10)
+    val lda = new LDA().setK(2).setMaxIter(200)
     val model = lda.fit(dataset)
 
     val ll = model.logLikelihood(dataset)
@@ -65,4 +65,4 @@ object LDAExample {
     spark.stop()
   }
 }
-// scalastyle:on println
+// scalastyle:on

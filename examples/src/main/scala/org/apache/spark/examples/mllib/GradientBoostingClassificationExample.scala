@@ -18,7 +18,7 @@
 // scalastyle:off println
 package org.apache.spark.examples.mllib
 
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.{PoolReweighterLoss, SparkConf, SparkContext}
 // $example on$
 import org.apache.spark.mllib.tree.GradientBoostedTrees
 import org.apache.spark.mllib.tree.configuration.BoostingStrategy
@@ -27,27 +27,43 @@ import org.apache.spark.mllib.util.MLUtils
 // $example off$
 
 object GradientBoostingClassificationExample {
+
+  def utilFunc(time: Long, accuracy: Double): Double = {
+    val quality_sens = 1.0
+    val latency_sens = 1.0
+    val min_qual = 0.85
+    val max_latency = 60 * 1000
+    quality_sens * (accuracy - min_qual) - latency_sens * (time - max_latency)
+  }
+
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("GradientBoostedTreesClassificationExample")
     val sc = new SparkContext(conf)
     // $example on$
     // Load and parse the data file.
-    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/sample_libsvm_data.txt")
+    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label")
     // Split the data into training and test sets (30% held out for testing)
     val splits = data.randomSplit(Array(0.7, 0.3))
     val (trainingData, testData) = (splits(0), splits(1))
+    trainingData.cache()
+    testData.cache()
 
     // Train a GradientBoostedTrees model.
     // The defaultParams for Classification use LogLoss by default.
     val boostingStrategy = BoostingStrategy.defaultParams("Classification")
-    boostingStrategy.numIterations = 3 // Note: Use more iterations in practice.
+    boostingStrategy.numIterations = 200 // Note: Use more iterations in practice.
     boostingStrategy.treeStrategy.numClasses = 2
     boostingStrategy.treeStrategy.maxDepth = 5
     // Empty categoricalFeaturesInfo indicates all features are continuous.
     boostingStrategy.treeStrategy.categoricalFeaturesInfo = Map[Int, Int]()
-
+    val poolName = "gbt"
+    sc.addSchedulablePool(poolName, 0, 32)
+    sc.setLocalProperty("spark.scheduler.pool", poolName)
+    PoolReweighterLoss.start(10)
+    PoolReweighterLoss.startTime(poolName)
+    PoolReweighterLoss.register(poolName, utilFunc)
     val model = GradientBoostedTrees.train(trainingData, boostingStrategy)
-
+    PoolReweighterLoss.kill()
     // Evaluate model on test instances and compute test error
     val labelAndPreds = testData.map { point =>
       val prediction = model.predict(point.features)

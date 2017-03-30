@@ -355,7 +355,7 @@ object LogisticRegressionWithSGD {
 class LogisticRegressionWithLBFGS
   extends GeneralizedLinearAlgorithm[LogisticRegressionModel] with Serializable {
 
-  this.setFeatureScaling(true)
+  this.setFeatureScaling(false)
 
   @Since("1.1.0")
   override val optimizer = new LBFGS(new LogisticGradient, new SquaredL2Updater)

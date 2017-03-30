@@ -20,11 +20,12 @@ package org.apache.spark.examples.mllib
 // $example on$
 
 import org.apache.spark.rdd.RDD
-import org.apache.spark.{PoolReweighter, SparkConf, SparkContext}
+import org.apache.spark.{PoolReweighterLoss, SparkConf, SparkContext}
 import org.apache.spark.mllib.classification.{LogisticRegressionModel, LogisticRegressionWithLBFGS, LogisticRegressionWithSGD}
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.util.MLUtils
+import org.apache.spark.storage.StorageLevel
 // $example off$
 
 object LogisticRegressionWithLBFGSExample {
@@ -53,27 +54,32 @@ object LogisticRegressionWithLBFGSExample {
 
     // $example on$
     // Load training data in LIBSVM format.
-    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label")
+    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/mnist8m.scale")
 
     // Split data into training (60%) and test (40%).
-    val splits = data.randomSplit(Array(0.99, 0.01), seed = 11L)
+    val splits = data.randomSplit(Array(0.95, 0.05), seed = 11L)
     val training = splits(0).cache()
     val validation = splits(1).cache()
+    val poolName = "logistic"
     training.count()
     validation.count()
 //    val test = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label.t")
 
-    sc.addSchedulablePool("logistic", 0, 1)
-    sc.setLocalProperty("spark.scheduler.pool", "logistic")
-    PoolReweighter.register("logistic", validation, valFunc, utilFunc)
-    PoolReweighter.start("logistic")
-    PoolReweighter.start()
+     sc.addSchedulablePool(poolName, 0, 32)
+     sc.setLocalProperty("spark.scheduler.pool", poolName)
+    // PoolReweighter.register("logistic", validation, valFunc, utilFunc)
+    // PoolReweighter.startTime("logistic")
+    // PoolReweighter.start(5)
     // Run training algorithm to build the model
-    val model = new LogisticRegressionWithSGD().run(training)
-//    val model = new LogisticRegressionWithLBFGS()
-//      .setNumClasses(2)
-//      .run(training)
-    PoolReweighter.kill()
+//    val model = new LogisticRegressionWithSGD().run(training)
+    PoolReweighterLoss.register(poolName, utilFunc)
+    PoolReweighterLoss.startTime(poolName)
+    PoolReweighterLoss.start(10)
+    val model = new LogisticRegressionWithLBFGS()
+        .setNumClasses(10)
+      .run(training)
+    PoolReweighterLoss.kill()
+    // PoolReweighter.kill()
     // Compute raw scores on the test set.
     val predictionAndLabels = validation.map { case LabeledPoint(label, features) =>
       val prediction = model.predict(features)

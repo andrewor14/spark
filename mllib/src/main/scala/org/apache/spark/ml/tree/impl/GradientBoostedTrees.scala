@@ -17,6 +17,7 @@
 
 package org.apache.spark.ml.tree.impl
 
+import org.apache.spark.PoolReweighterLoss
 import org.apache.spark.internal.Logging
 import org.apache.spark.ml.feature.LabeledPoint
 import org.apache.spark.ml.linalg.Vector
@@ -332,6 +333,7 @@ private[spark] object GradientBoostedTrees extends Logging {
       predError = updatePredictionError(
         input, predError, baseLearnerWeights(m), baseLearners(m), loss)
       predErrorCheckpointer.update(predError)
+      PoolReweighterLoss.updateLoss(predError.values.mean())
       logDebug("error of gbt = " + predError.values.mean())
 
       if (validate) {

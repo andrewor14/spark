@@ -23,7 +23,7 @@ import breeze.linalg.{DenseVector => BDV}
 import breeze.optimize.{CachedDiffFunction, DiffFunction, LBFGS => BreezeLBFGS, OWLQN => BreezeOWLQN}
 import org.apache.hadoop.fs.Path
 
-import org.apache.spark.{PoolReweighter, SparkException}
+import org.apache.spark.{PoolReweighterLoss, SparkException}
 import org.apache.spark.annotation.{Experimental, Since}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.internal.Logging
@@ -565,7 +565,7 @@ class LogisticRegression @Since("1.2.0") (
           state = states.next()
           val coeffs = Vectors.dense(state.x.toArray.clone())
           val model = new MLlibModel(coeffs, 0.0)
-          PoolReweighter.updateModel(model)
+          PoolReweighterLoss.updateLoss(state.value)
           arrayBuilder += state.adjustedValue
         }
         bcFeaturesStd.destroy(blocking = false)
