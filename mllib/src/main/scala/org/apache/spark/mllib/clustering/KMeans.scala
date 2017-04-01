@@ -312,6 +312,7 @@ class KMeans private (
       }
 
       // PoolReweighter.updateModel("kmeans", changedDist)
+      logInfo(s"LOGAN: changedDist: $changedDist")
       cost = costAccum.value
       iteration += 1
     }

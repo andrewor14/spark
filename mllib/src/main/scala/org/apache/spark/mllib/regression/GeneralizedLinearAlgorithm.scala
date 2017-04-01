@@ -219,6 +219,7 @@ abstract class GeneralizedLinearAlgorithm[M <: GeneralizedLinearModel]
      * have the intercept as part of weights to have consistent design.
      */
     if (numOfLinearPredictor == 1) {
+      logInfo(s"LOGAN: numFeatures: $numFeatures")
       Vectors.zeros(numFeatures)
     } else if (addIntercept) {
       Vectors.zeros((numFeatures + 1) * numOfLinearPredictor)

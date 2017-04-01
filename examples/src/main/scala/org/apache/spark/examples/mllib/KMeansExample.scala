@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-// scalastyle:off println
+// scalastyle:off
 package org.apache.spark.examples.mllib
 
+import org.apache.spark.mllib.util.MLUtils
+import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{SparkConf, SparkContext}
 // $example on$
 import org.apache.spark.mllib.clustering.{KMeans, KMeansModel}
@@ -33,26 +35,32 @@ object KMeansExample {
 
     // $example on$
     // Load and parse the data
-    val data = sc.textFile("data/mllib/tmp", 1000)
-    val parsedData = data.map(s => Vectors.dense(s.split(' ').map(_.toDouble))).cache()
-    parsedData.count()
+    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/kdd12")
+    // val parsedData = data.map(s => Vectors.dense(s.split(' ').map(_.toDouble))).cache()
+    // val splits = data.randomSplit(Array(0.8, 0.2), seed = 11L)
+    val train = data.map(s => s.features).persist(StorageLevel.MEMORY_AND_DISK)
+    // val test = splits(1).cache()
+    train.count()
+    // test.count()
 
     // Cluster the data into two classes using KMeans
-    val numClusters = 20
-    val numIterations = 1000
+    val numClusters = 2
+    val numIterations = 100
     val threads = (1 to 10).map(i => new Thread {
         override def run: Unit = {
-          sc.addSchedulablePool("kmeans" + i, 0, Integer.MAX_VALUE)
-          sc.setLocalProperty("spark.scheduler.pool", "kmeans" + i)
-          val clusters = KMeans.train(parsedData, numClusters, numIterations, 1,
+          // sc.addSchedulablePool("kmeans" + i, 0, Integer.MAX_VALUE)
+          // sc.setLocalProperty("spark.scheduler.pool", "kmeans" + i)
+          val clusters = KMeans.train(train, numClusters, numIterations, 1,
             KMeans.RANDOM, 1L)
           // Evaluate clustering by computing Within Set Sum of Squared Errors
-          val WSSSE = clusters.computeCost(parsedData)
+          val WSSSE = clusters.computeCost(train)
           println("Within Set Sum of Squared Errors = " + WSSSE)
         }
       }).toArray
-    threads.foreach{t => t.start(); Thread.sleep(100000)}
-    threads.foreach{t => t.join() }
+    // threads.foreach{t => t.start(); Thread.sleep(100000)}
+    // threads.foreach{t => t.join() }
+    threads(0).start()
+    threads(0).join()
     // Save and load model
     // clusters.save(sc, "target/org/apache/spark/KMeansExample/KMeansModel")
     // val sameModel = KMeansModel.load(sc, "target/org/apache/spark/KMeansExample/KMeansModel")
@@ -61,4 +69,4 @@ object KMeansExample {
     sc.stop()
   }
 }
-// scalastyle:on println
+// scalastyle:on

@@ -21,7 +21,7 @@ import scala.collection.mutable.ArrayBuffer
 
 import breeze.linalg.{norm, DenseVector => BDV}
 
-import org.apache.spark.PoolReweighter
+import org.apache.spark.PoolReweighterLoss
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
 import org.apache.spark.mllib.classification.SVMModel
@@ -264,12 +264,13 @@ object GradientDescent extends Logging {
         currentWeights = Some(weights)
         // scalastyle:off
 
-        if(currentWeights != None) {
-          // create temp model and validate
-          val model = new SVMModel(currentWeights.get, 0)
-          model.setThreshold(0)
-          PoolReweighter.updateModel(model)
-        }
+//        if(currentWeights != None) {
+//          // create temp model and validate
+//          val model = new SVMModel(currentWeights.get, 0)
+//          model.setThreshold(0)
+//          PoolReweighter.updateModel(model)
+//        }
+//        PoolReweighterLoss.updateLoss(lossSum / miniBatchSize + regVal)
         // scalastyle:on
         if (previousWeights != None && currentWeights != None) {
           converged = isConverged(previousWeights.get,

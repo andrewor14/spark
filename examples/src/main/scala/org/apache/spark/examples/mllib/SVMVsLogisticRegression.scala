@@ -22,29 +22,29 @@ import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.util.MLUtils
 import org.apache.spark.rdd.RDD
-import org.apache.spark.{PoolReweighter, SparkConf, SparkContext}
+import org.apache.spark.{PoolReweighterLoss, SparkConf, SparkContext}
 
 object SVMVsLogisticRegression {
 
-  def svmValFunc(validationSet: RDD[_], m: Object): Double = {
-    val model = m.asInstanceOf[SVMModel]
-    val predictionsAndLabels = validationSet.map { case LabeledPoint(label, features) =>
-      val pred = model.predict(features)
-      (pred, label)
-    }
-    val metrics = new MulticlassMetrics(predictionsAndLabels)
-    metrics.accuracy
-  }
-
-  def logRegValFunc(validationSet: RDD[_], m: Object): Double = {
-    val model = m.asInstanceOf[LogisticRegressionModel]
-    val predictionsAndLabels = validationSet.map { case LabeledPoint(label, features) =>
-      val pred = model.predict(features)
-      (pred, label)
-    }
-    val metrics = new MulticlassMetrics(predictionsAndLabels)
-    metrics.accuracy
-  }
+//  def svmValFunc(validationSet: RDD[_], m: Object): Double = {
+//    val model = m.asInstanceOf[SVMModel]
+//    val predictionsAndLabels = validationSet.map { case LabeledPoint(label, features) =>
+//      val pred = model.predict(features)
+//      (pred, label)
+//    }
+//    val metrics = new MulticlassMetrics(predictionsAndLabels)
+//    metrics.accuracy
+//  }
+//
+//  def logRegValFunc(validationSet: RDD[_], m: Object): Double = {
+//    val model = m.asInstanceOf[LogisticRegressionModel]
+//    val predictionsAndLabels = validationSet.map { case LabeledPoint(label, features) =>
+//      val pred = model.predict(features)
+//      (pred, label)
+//    }
+//    val metrics = new MulticlassMetrics(predictionsAndLabels)
+//    metrics.accuracy
+//  }
   // numCores is current number of cores
   def utilityFunc(time: Long, accuracy: Double): Double = {
     val quality_sens = 1.0
@@ -78,7 +78,8 @@ object SVMVsLogisticRegression {
         override def run: Unit = {
           sc.addSchedulablePool("svm" + i, 0, 16)
           sc.setLocalProperty("spark.scheduler.pool", "svm" + i)
-          PoolReweighter.register("svm" + i, validation, svmValFunc, utilityFunc)
+          // PoolReweighter.register("svm" + i, validation, svmValFunc, utilityFunc)
+          PoolReweighterLoss.register("svm" + i, utilityFunc)
           val model = SVMWithSGD.train(training, numIterations, 100, 0.00001, 1)
         }
       }
@@ -89,7 +90,8 @@ object SVMVsLogisticRegression {
         override def run: Unit = {
           sc.addSchedulablePool("logistic" + i, 0, 16)
           sc.setLocalProperty("spark.scheduler.pool", "logistic" + i)
-          PoolReweighter.register("logistic" + i, validation, logRegValFunc, utilityFunc)
+//          PoolReweighter.register("logistic" + i, validation, logRegValFunc, utilityFunc)
+          PoolReweighterLoss.register("logistic" + i, utilityFunc)
           val model = new LogisticRegressionWithLBFGS()
             .setNumClasses(2)
             .run(training)
@@ -99,19 +101,19 @@ object SVMVsLogisticRegression {
 
     (0 to numThreads - 1).foreach { i =>
       svmThreads(i).start()
-      PoolReweighter.start("svm" + i)
+      PoolReweighterLoss.startTime("svm" + i)
       Thread.sleep(sleepTime * 1000L)
       logRegThreads(i).start()
-      PoolReweighter.start("logistic" + i)
+      PoolReweighterLoss.startTime("logistic" + i)
       Thread.sleep(sleepTime * 1000L)
     }
 
 
-    PoolReweighter.start()
+    PoolReweighterLoss.start()
 
     svmThreads.foreach { t => t.join() }
     logRegThreads.foreach { t => t.join() }
-    PoolReweighter.kill()
+    PoolReweighterLoss.kill()
   }
 }
 // scalastyle:on

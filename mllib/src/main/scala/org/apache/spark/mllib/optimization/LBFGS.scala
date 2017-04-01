@@ -22,10 +22,11 @@ import scala.collection.mutable
 import breeze.linalg.{DenseVector => BDV}
 import breeze.optimize.{CachedDiffFunction, DiffFunction, LBFGS => BreezeLBFGS}
 
-import org.apache.spark.{PoolReweighter, SparkContext}
+import org.apache.spark.{PoolReweighterLoss, SparkContext}
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
 import org.apache.spark.mllib.classification.LogisticRegressionModel
+import org.apache.spark.mllib.feature.StandardScaler
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.linalg.BLAS.axpy
 import org.apache.spark.rdd.RDD
@@ -44,8 +45,8 @@ class LBFGS(private var gradient: Gradient, private var updater: Updater)
 
   private var numCorrections = 10
   private var convergenceTol = 1E-6
-  private var maxNumIterations = 100
-  private var regParam = 0.0
+  private var maxNumIterations = 1000
+  private var regParam = 0.0001
 
   /**
    * Set the number of corrections used in the LBFGS update. Default 10.
@@ -215,9 +216,11 @@ object LBFGS extends Logging {
     while (states.hasNext) {
       lossHistory += state.value
       // scalastyle:off
-      val weights = Vectors.fromBreeze(state.x)
-      val model = new LogisticRegressionModel(weights, 0, weights.size / (3-1), 3)
-      PoolReweighter.updateModel(model)
+//      var weights = Vectors.fromBreeze(state.x)
+//      val numLinearPredictor = 9
+//      val model = new LogisticRegressionModel(weights, 0, weights.size / numLinearPredictor, numLinearPredictor + 1)
+      PoolReweighterLoss.updateLoss(state.value)
+//      logInfo(s"LOGAN: loss: ${state.value}")
       // scalastyle:on
       state = states.next()
     }

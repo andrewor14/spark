@@ -31,16 +31,16 @@ object RandomForestClassificationExample {
     val sc = new SparkContext(conf)
     // $example on$
     // Load and parse the data file.
-    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/sample_libsvm_data.txt")
+    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/mnist8m.scale")
     // Split the data into training and test sets (30% held out for testing)
-    val splits = data.randomSplit(Array(0.7, 0.3))
-    val (trainingData, testData) = (splits(0), splits(1))
+    val splits = data.randomSplit(Array(0.99, 0.01))
+    val (trainingData, testData) = (splits(0).cache(), splits(1).cache())
 
     // Train a RandomForest model.
     // Empty categoricalFeaturesInfo indicates all features are continuous.
-    val numClasses = 2
+    val numClasses = 10
     val categoricalFeaturesInfo = Map[Int, Int]()
-    val numTrees = 3 // Use more in practice.
+    val numTrees = 100 // Use more in practice.
     val featureSubsetStrategy = "auto" // Let the algorithm choose.
     val impurity = "gini"
     val maxDepth = 4
