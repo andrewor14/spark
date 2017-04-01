@@ -335,6 +335,17 @@ class LDA private (
       val elapsedSeconds = (System.nanoTime() - start) / 1e9
       iterationTimes(iter) = elapsedSeconds
       iter += 1
+
+      // HYDEBUG
+      val model = state.getLDAModel(iterationTimes)
+      if (model.isInstanceOf[LocalLDAModel]) {
+        val localLDAModel = model.asInstanceOf[LocalLDAModel]
+        val avgLogLikelihood = localLDAModel.logLikelihood(documents) / 2246.0
+        // scalastyle:off println
+        println(s"HYDEBUG Training data average log likelihood: $avgLogLikelihood")
+        // println()
+        // scalastyle:on println
+      }
     }
     state.getLDAModel(iterationTimes)
   }

@@ -44,7 +44,7 @@ object LDAExample {
       .load("data/mllib/sample_lda_libsvm_data.txt")
 
     // Trains a LDA model.
-    val lda = new LDA().setK(10).setMaxIter(10)
+    val lda = new LDA().setK(100).setMaxIter(1000)
     val model = lda.fit(dataset)
 
     val ll = model.logLikelihood(dataset)
