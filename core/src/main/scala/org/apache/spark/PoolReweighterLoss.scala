@@ -49,11 +49,13 @@ object PoolReweighterLoss extends Logging {
     new ConcurrentHashMap[String, UtilityFunc]
   private[PoolReweighterLoss] val startTime = new ConcurrentHashMap[String, Long]
   private val batchWindows = new mutable.HashMap[String, ArrayBuffer[PRBatchWindow]]
+  val pool2numCores = new mutable.HashMap[String, Int]
   val listener = new PRJobListener
   var batchTime = 0
   @volatile var isRunning = false
 
   def updateLoss(loss: Double): Unit = {
+    logInfo(s"LOGAN: curr loss: $loss")
     val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
     val bws = listener.currentWindows(poolName)
     bws.loss = loss
@@ -93,6 +95,8 @@ object PoolReweighterLoss extends Logging {
                utilFunc: UtilityFunc): Unit = {
     registerUtilityFunction(poolName, utilFunc)
     SparkContext.getOrCreate.addSparkListener(listener)
+    val numCores = SparkContext.getOrCreate().defaultParallelism
+    pool2numCores.put(poolName, numCores / (pool2numCores.size + 1)) // give 1/n cores
   }
 
   def startTime(poolName: String): Unit = {
@@ -107,44 +111,58 @@ object PoolReweighterLoss extends Logging {
   private[PoolReweighterLoss] def batchUpdate(): Unit = {
     val numCores = SparkContext.getOrCreate().defaultParallelism
     def diff(t: (String, Double)) = t._2
-    val heap = new mutable.PriorityQueue[(String, Double)]()(Ordering.by(diff))
-    val pool2numCores = new ConcurrentHashMap[String, Int]
+    var posHeap = new mutable.PriorityQueue[(String, Double)]()(Ordering.by(diff))
+    var negHeap = new mutable.PriorityQueue[(String, Double)]()(Ordering.by(diff))
     val currTime = System.currentTimeMillis()
-    // everything from HEREEEEE
-    // first put all pools into the heap
-    for ((poolName: String, bws: ArrayBuffer[PRBatchWindow]) <- batchWindows) {
-
-//      logInfo(s"LOGAN: $poolName")
-      pool2numCores.put(poolName, 0)
-      if(bws != null && bws.nonEmpty) {
-        val utilFunc = utilityFuncs.get(poolName)
+    // first put all jobs into both heaps
+    for ((poolName: String, numCores: Int) <- pool2numCores) {
+      val utilFunc = utilityFuncs.get(poolName)
+      val wallTime = currTime - startTime.get(poolName)
+      val currCores = pool2numCores(poolName)
+      val predCurr = predLoss(poolName, currCores)
+      val predPlusOne = predLoss(poolName, currCores + 1)
+      val predMinusOne = predLoss(poolName, currCores - 1)
+      val predCurrUtil = utilFunc(wallTime, predCurr)
+      val posDiff = utilFunc(wallTime, predPlusOne) - predCurrUtil
+      val negDiff = utilFunc(wallTime, predMinusOne) - predCurrUtil
+      posHeap.enqueue((poolName, posDiff))
+      negHeap.enqueue((poolName, negDiff))
+    }
+    while (pool2numCores.values.sum != numCores || posHeap.head._2 + negHeap.head._2 > 0) {
+      if (pool2numCores.values.sum <= numCores) {
+        val posHead = posHeap.dequeue()
+        val poolName = posHead._1
         val wallTime = currTime - startTime.get(poolName)
-        val predicted = predLoss(poolName, 1)
-        val utility = utilFunc(wallTime, predicted)
-        heap.enqueue((poolName, utility))
-        logInfo(s"LOGAN: $poolName curr loss: ${bws.last.loss}, " +
-          s"predLoss: ${predLoss(poolName, 32)}")
+        val newPosNumCores = pool2numCores(poolName) + 1
+        pool2numCores.put(poolName, newPosNumCores)
+        negHeap = negHeap.filter(o => o._1 != poolName) // remove newly dequeue'd from neg heap
+        val utilFunc = utilityFuncs.get(poolName)
+        val predCurr = predLoss(poolName, newPosNumCores)
+        val predPlusOne = predLoss(poolName, newPosNumCores + 1)
+        val posDiff = utilFunc(wallTime, predPlusOne) - utilFunc(wallTime, predCurr) // re-enqueue
+        posHeap.enqueue((poolName, posDiff))
+      }
+
+      if(pool2numCores.values.sum > numCores) {
+        val negHead = negHeap.dequeue()
+        val poolName = negHead._1
+        val wallTime = currTime - startTime.get(poolName)
+        val newNegNumCores = pool2numCores(poolName) - 1
+        pool2numCores.put(poolName, newNegNumCores)
+        posHeap = posHeap.filter(o => o._1 != poolName) // remove newly dequeue'd from pos heap
+        val utilFunc = utilityFuncs.get(poolName)
+        val predCurr = predLoss(poolName, newNegNumCores)
+        val predMinusOne = predLoss(poolName, newNegNumCores - 1)
+        val negDiff = utilFunc(wallTime, predMinusOne) - utilFunc(wallTime, predCurr)
+        negHeap.enqueue((poolName, negDiff))
       }
     }
-//    if (heap.nonEmpty) {
-//      for (i <- 1 to numCores) {
-//        val top = heap.dequeue()
-//        val poolName = top._1
-//        val numCores = pool2numCores.get(poolName)
-//        pool2numCores.put(poolName, numCores + 1)
-//        val utilFunc = utilityFuncs.get(poolName)
-//        val wallTime = currTime - startTime.get(poolName)
-//        val predicted = predLoss(poolName, numCores + 1)
-//        val utility = utilFunc(wallTime, predicted)
-//        heap.enqueue((poolName, utility))
-//      }
-//      var weights = ""
-//      for ((poolName: String, v: Int) <- pool2numCores.asScala) {
-//        weights += poolName + "," + v + " "
-//      }
-//      logInfo(s"LOGAN: changing weights: $weights")
-//    }
-    // TO HERE NEEDS FIXING
+
+    // actually assign weights
+    val sc = SparkContext.getOrCreate()
+    for ((poolName: String, numCores: Int) <- pool2numCores) {
+      sc.setPoolWeight(poolName, numCores)
+    }
   }
 
   def predLoss(poolName: String, numCores: Int): Double = {
