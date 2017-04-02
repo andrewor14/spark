@@ -51,6 +51,7 @@ object PoolReweighterLoss extends Logging {
   private val batchWindows = new mutable.HashMap[String, ArrayBuffer[PRBatchWindow]]
   val listener = new PRJobListener
   var batchTime = 0
+  private var epoch = 0 // only for printing
   @volatile var isRunning = false
 
   def updateLoss(loss: Double): Unit = {
@@ -113,17 +114,11 @@ object PoolReweighterLoss extends Logging {
     // everything from HEREEEEE
     // first put all pools into the heap
     for ((poolName: String, bws: ArrayBuffer[PRBatchWindow]) <- batchWindows) {
-
-//      logInfo(s"LOGAN: $poolName")
       pool2numCores.put(poolName, 0)
       if(bws != null && bws.nonEmpty) {
-        val utilFunc = utilityFuncs.get(poolName)
-        val wallTime = currTime - startTime.get(poolName)
-        val predicted = predLoss(poolName, 1)
-        val utility = utilFunc(wallTime, predicted)
-        heap.enqueue((poolName, utility))
-        logInfo(s"LOGAN: $poolName curr loss: ${bws.last.loss}, " +
-          s"predLoss: ${predLoss(poolName, 32)}")
+        logInfo(s"ANDREW($epoch): $poolName actual loss = ${bws.last.loss}")
+        epoch += 1
+        logInfo(s"ANDREW($epoch): $poolName predicted loss = ${predLoss(poolName, 32)}")
       }
     }
 //    if (heap.nonEmpty) {
