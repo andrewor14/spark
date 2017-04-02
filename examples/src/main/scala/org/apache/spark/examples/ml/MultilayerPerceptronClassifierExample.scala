@@ -46,7 +46,7 @@ object MultilayerPerceptronClassifierExample {
     // $example on$
     // Load the data stored in LIBSVM format as a DataFrame.
     val data = spark.read.format("libsvm")
-      .load("data/mllib/epsilon_normalized_01label")
+      .load("/disk/local/disk1/andrew/data/epsilon_normalized_01label")
 
     // Split the data into train and test
     val splits = data.randomSplit(Array(0.9, 0.1), seed = 1234L)
