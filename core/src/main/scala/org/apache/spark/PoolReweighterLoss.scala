@@ -51,7 +51,6 @@ object PoolReweighterLoss extends Logging {
   private val batchWindows = new mutable.HashMap[String, ArrayBuffer[PRBatchWindow]]
   val listener = new PRJobListener
   var batchTime = 0
-  private var epoch = 0 // only for printing
   @volatile var isRunning = false
 
   def updateLoss(loss: Double): Unit = {
@@ -72,17 +71,36 @@ object PoolReweighterLoss extends Logging {
   }
   // set batch to every t seconds
   def start(t: Int = 20): Unit = {
+    val startTimez = System.currentTimeMillis()
     batchTime = t
     isRunning = true
+    def getTime: Long = (System.currentTimeMillis() - startTimez) / 1000
     val thread = new Thread {
       override def run(): Unit = {
         while (isRunning) {
           Thread.sleep(1000L * t)
-          batchUpdate()
+          for ((poolName: String, bws: ArrayBuffer[PRBatchWindow]) <- batchWindows) {
+            if (bws != null && bws.nonEmpty) {
+              logInfo(s"ANDREW($getTime): $poolName predicted loss = ${predLoss(poolName, 32)}")
+            }
+          }
+        }
+      }
+    }
+    val thread2 = new Thread {
+      override def run(): Unit = {
+        while (isRunning) {
+          Thread.sleep(1000L)
+          for ((poolName: String, bws: ArrayBuffer[PRBatchWindow]) <- batchWindows) {
+            if (bws != null && bws.nonEmpty) {
+              logInfo(s"ANDREW($getTime): $poolName actual loss = ${bws.last.loss}")
+            }
+          }
         }
       }
     }
     thread.start()
+    thread2.start()
   }
 
   def registerUtilityFunction(poolName: String, func: UtilityFunc): Unit = {
@@ -111,16 +129,6 @@ object PoolReweighterLoss extends Logging {
     val heap = new mutable.PriorityQueue[(String, Double)]()(Ordering.by(diff))
     val pool2numCores = new ConcurrentHashMap[String, Int]
     val currTime = System.currentTimeMillis()
-    // everything from HEREEEEE
-    // first put all pools into the heap
-    for ((poolName: String, bws: ArrayBuffer[PRBatchWindow]) <- batchWindows) {
-      pool2numCores.put(poolName, 0)
-      if(bws != null && bws.nonEmpty) {
-        logInfo(s"ANDREW($epoch): $poolName actual loss = ${bws.last.loss}")
-        epoch += 1
-        logInfo(s"ANDREW($epoch): $poolName predicted loss = ${predLoss(poolName, 32)}")
-      }
-    }
 //    if (heap.nonEmpty) {
 //      for (i <- 1 to numCores) {
 //        val top = heap.dequeue()
