@@ -151,7 +151,7 @@ object PoolReweighterLoss extends Logging {
 
     val bws = batchWindows(poolName)
     // Take the average of the N most recent deltas
-    val deltas = bws.map { bw => (bw.dLoss / bw.numCores) * numCores }.takeRight(5)
+    val deltas = bws.map { bw => (bw.dLoss / bw.numCores) * numCores }.takeRight(1)
     val averageDelta = deltas.sum / deltas.size
     bws.last.loss + averageDelta
   }

@@ -58,7 +58,7 @@ object MultilayerPerceptronClassifierExample {
     // and output of size 3 (classes)
     val poolName = "mlpc"
     PoolReweighterLoss.startTime(poolName)
-    PoolReweighterLoss.start(5)
+    PoolReweighterLoss.start(10)
     SparkContext.getOrCreate().addSchedulablePool(poolName, 0, 32)
     SparkContext.getOrCreate().setLocalProperty("spark.scheduler.pool", poolName)
     PoolReweighterLoss.register(poolName, utilFunc)
@@ -69,7 +69,7 @@ object MultilayerPerceptronClassifierExample {
       .setLayers(layers)
       .setBlockSize(128)
       .setSeed(1234L)
-      .setMaxIter(100)
+      .setMaxIter(200)
 
     // train the model
     val model = trainer.fit(train)
