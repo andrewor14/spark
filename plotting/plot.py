@@ -43,7 +43,13 @@ print "Average difference: %s" % (float(sum(differences)) / len(differences))
 
 # Plot it!
 x = range(len(actual_loss))
-plt.plot(x, actual_loss)
-plt.plot(x, predicted_loss)
+fig = plt.figure()
+ax = fig.add_subplot(1, 1, 1)
+ax.plot(x, actual_loss, label="actual")
+ax.plot(x, predicted_loss, label="predicted")
+ax.set_xlabel("Epoch")
+ax.set_ylabel("Loss")
+ax.set_title(log_file_name)
+plt.legend()
 plt.show()
 
