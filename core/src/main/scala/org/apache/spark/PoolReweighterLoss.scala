@@ -49,12 +49,13 @@ object PoolReweighterLoss extends Logging {
     new ConcurrentHashMap[String, UtilityFunc]
   private[PoolReweighterLoss] val startTime = new ConcurrentHashMap[String, Long]
   private val batchWindows = new mutable.HashMap[String, ArrayBuffer[PRBatchWindow]]
-  val listener = new PRJobListener
-  var batchTime = 0
-  @volatile var isRunning = false
+  private val pools = new mutable.HashSet[String]
+  private val listener = new PRJobListener
+  private var batchTime = 0
+  @volatile private var isRunning = false
 
   def updateLoss(loss: Double): Unit = {
-    val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
+    val poolName = SparkContext.getOrCreate().getLocalProperty("spark.scheduler.pool")
     val bw = listener.currentWindows(poolName)
     bw.loss = loss
     if(!batchWindows.contains(poolName)) {
@@ -67,9 +68,10 @@ object PoolReweighterLoss extends Logging {
     if(bws.size >= 2) {
       bws.last.dLoss = bws.last.loss - bws(bws.size - 2).loss
     }
-    bws.last.numCores = 16 // SparkContext.getOrCreate.getPoolWeight(poolName)
+    bws.last.numCores = SparkContext.getOrCreate().getPoolWeight(poolName)
     val iter = bws.size
-    val cores = scala.util.Random.nextInt(16)
+    val cores = bws.last.numCores
+    logInfo(s"Them num cores for them pool $poolName is $cores")
     logInfo(s"ANDREW($iter): $poolName actual loss = $loss")
     logInfo(s"ANDREW(${iter + 1}): $poolName predicted loss using $cores cores " +
       s"= ${predLoss(poolName, cores)}")
@@ -82,7 +84,26 @@ object PoolReweighterLoss extends Logging {
       override def run(): Unit = {
         while (isRunning) {
           Thread.sleep(1000L * t)
-          batchUpdate()
+          val sc = SparkContext.getOrCreate()
+          val totalCores = sc.defaultParallelism
+          if (pools.size == 1) {
+            // Pretend there are other applications running for now
+            val weight = scala.math.round(scala.util.Random.nextFloat() * totalCores)
+            sc.setPoolWeight(pools.head, weight)
+          } else if (pools.size > 1) {
+            // Give each pool random weights, normalized to total number of cores
+            // Note that this only makes in local cluster mode
+            val numCores = new ArrayBuffer[Int](pools.size)
+            var i = 0
+            while (numCores.sum < totalCores) {
+              if (scala.util.Random.nextFloat() > 0.5) {
+                numCores(i % totalCores) += 1
+              }
+              i += 1
+            }
+            assert(numCores.sum == totalCores)
+            pools.zip(numCores).foreach { case (pool, cores) => sc.setPoolWeight(pool, cores) }
+          }
         }
       }
     }
@@ -94,10 +115,12 @@ object PoolReweighterLoss extends Logging {
   }
 
   // register your rdd and how often you want to batch
-  def register(poolName: String,
-               utilFunc: UtilityFunc): Unit = {
+  def register(
+      poolName: String,
+      utilFunc: UtilityFunc): Unit = {
     registerUtilityFunction(poolName, utilFunc)
-    SparkContext.getOrCreate.addSparkListener(listener)
+    SparkContext.getOrCreate().addSparkListener(listener)
+    pools.add(poolName)
   }
 
   def startTime(poolName: String): Unit = {
@@ -108,8 +131,7 @@ object PoolReweighterLoss extends Logging {
     isRunning = false
   }
 
-
-  private[PoolReweighterLoss] def batchUpdate(): Unit = {
+  private def batchUpdate(): Unit = {
     val numCores = SparkContext.getOrCreate().defaultParallelism
     def diff(t: (String, Double)) = t._2
     val heap = new mutable.PriorityQueue[(String, Double)]()(Ordering.by(diff))
@@ -136,7 +158,7 @@ object PoolReweighterLoss extends Logging {
     // TO HERE NEEDS FIXING
   }
 
-  def predLoss(poolName: String, numCores: Int): Double = {
+  private def predLoss(poolName: String, numCores: Int): Double = {
 
     // val numMs = numCores * batchTime * 1000
     // val avgLen = listener.getAvgJobLen(poolName)
