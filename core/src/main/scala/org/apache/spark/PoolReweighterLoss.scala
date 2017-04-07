@@ -55,52 +55,38 @@ object PoolReweighterLoss extends Logging {
 
   def updateLoss(loss: Double): Unit = {
     val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
-    val bws = listener.currentWindows(poolName)
-    bws.loss = loss
+    val bw = listener.currentWindows(poolName)
+    bw.loss = loss
     if(!batchWindows.contains(poolName)) {
       batchWindows.put(poolName, new ArrayBuffer[PRBatchWindow])
     }
-    val bw = batchWindows(poolName)
-    bw.append(bws)
+    val bws = batchWindows(poolName)
+    bws.append(bw)
     listener.currentWindows.put(poolName, new PRBatchWindow)
     // dLoss
-    if(bw.size >= 2) {
-      bw.last.dLoss = bw.last.loss - bw(bw.size - 2).loss
+    if(bws.size >= 2) {
+      bws.last.dLoss = bws.last.loss - bws(bws.size - 2).loss
     }
-    bw.last.numCores = SparkContext.getOrCreate.getPoolWeight(poolName)
+    bws.last.numCores = 16 // SparkContext.getOrCreate.getPoolWeight(poolName)
+    val iter = bws.size
+    val cores = scala.util.Random.nextInt(16)
+    logInfo(s"ANDREW($iter): $poolName actual loss = $loss")
+    logInfo(s"ANDREW(${iter + 1}): $poolName predicted loss using $cores cores " +
+      s"= ${predLoss(poolName, cores)}")
   }
   // set batch to every t seconds
   def start(t: Int = 20): Unit = {
-    val startTimez = System.currentTimeMillis()
     batchTime = t
     isRunning = true
-    def getTime: Long = (System.currentTimeMillis() - startTimez) / 1000
     val thread = new Thread {
       override def run(): Unit = {
         while (isRunning) {
           Thread.sleep(1000L * t)
-          for ((poolName: String, bws: ArrayBuffer[PRBatchWindow]) <- batchWindows) {
-            if (bws != null && bws.nonEmpty) {
-              logInfo(s"ANDREW($getTime): $poolName predicted loss = ${predLoss(poolName, 32)}")
-            }
-          }
-        }
-      }
-    }
-    val thread2 = new Thread {
-      override def run(): Unit = {
-        while (isRunning) {
-          Thread.sleep(1000L)
-          for ((poolName: String, bws: ArrayBuffer[PRBatchWindow]) <- batchWindows) {
-            if (bws != null && bws.nonEmpty) {
-              logInfo(s"ANDREW($getTime): $poolName actual loss = ${bws.last.loss}")
-            }
-          }
+          batchUpdate()
         }
       }
     }
     thread.start()
-    thread2.start()
   }
 
   def registerUtilityFunction(poolName: String, func: UtilityFunc): Unit = {
