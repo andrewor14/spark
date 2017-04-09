@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
+import math
 import re
 import sys
 
@@ -18,15 +19,15 @@ actual_loss = []
 predicted_x = []
 predicted_loss = []
 with open(log_file_name) as f:
-  cool_lines = [line for line in f.readlines() if "ANDREW" in line]
+  cool_lines = [line for line in f.readlines() if "ANDREW" in line and "loss = " in line]
   for line in cool_lines:
-    loss = float(line.split()[-1])
-    time = int(re.match(".*ANDREW\((.*)\).*", line).groups()[0])
+    iteration = int(re.match(".*ANDREW\((.*)\):.*", line).groups()[0])
+    loss = float(re.match(".*\(.* loss = (.*)\).*", line).groups()[0])
     if "actual" in line:
-      actual_x += [time]
+      actual_x += [iteration]
       actual_loss += [loss]
     elif "predicted" in line:
-      predicted_x += [time]
+      predicted_x += [iteration]
       predicted_loss += [loss]
     else:
       print "Yikes, bad line:\n\t%s" % line
@@ -38,15 +39,15 @@ for i, pred_loss in enumerate(predicted_loss):
   if time in actual_x:
     j = actual_x.index(time)
     act_loss = actual_loss[j]
-    differences += [pred_loss - act_loss]
-print "Average difference: %s" % (float(sum(differences)) / len(differences))
+    differences += [math.pow(pred_loss - act_loss, 2)]
+print "L2 norm: %s" % sum(differences)
 
 # Plot it!
 fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1)
 ax.plot(actual_x, actual_loss, label="actual")
 ax.plot(predicted_x, predicted_loss, label="predicted")
-ax.set_xlabel("Time (s)")
+ax.set_xlabel("Iteration")
 ax.set_ylabel("Loss")
 ax.set_title(log_file_name)
 plt.legend()
