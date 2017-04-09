@@ -19,7 +19,7 @@
 package org.apache.spark.examples.ml
 
 // $example on$
-import org.apache.spark.{PoolReweighterLoss, SparkContext}
+import org.apache.spark.{PoolReweighterLoss, SparkConf, SparkContext}
 import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 // $example off$
@@ -39,8 +39,9 @@ object MultilayerPerceptronClassifierExample {
   }
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
-      .builder
+      .builder()
       .appName("MultilayerPerceptronClassifierExample")
+      .config("spark.scheduler.mode", "FAIR")
       .getOrCreate()
 
     // $example on$

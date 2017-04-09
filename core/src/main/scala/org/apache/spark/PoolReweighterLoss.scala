@@ -71,43 +71,71 @@ object PoolReweighterLoss extends Logging {
     bws.last.numCores = SparkContext.getOrCreate().getPoolWeight(poolName)
     val iter = bws.size
     val cores = bws.last.numCores
-    logInfo(s"Them num cores for them pool $poolName is $cores")
-    logInfo(s"ANDREW($iter): $poolName actual loss = $loss")
-    logInfo(s"ANDREW(${iter + 1}): $poolName predicted loss using $cores cores " +
-      s"= ${predLoss(poolName, cores)}")
+    logInfo(s"ANDREW($iter): $poolName (cores = $cores), (actual loss = $loss)")
   }
+
   // set batch to every t seconds
   def start(t: Int = 20): Unit = {
     batchTime = t
     isRunning = true
+    val startTimez = System.currentTimeMillis()
     val thread = new Thread {
       override def run(): Unit = {
         while (isRunning) {
           Thread.sleep(1000L * t)
           val sc = SparkContext.getOrCreate()
           val totalCores = sc.defaultParallelism
+          // Add a new dummy pool to hog some reseources. Do this only once.
           if (pools.size == 1) {
-            // Pretend there are other applications running for now
-            val weight = scala.math.round(scala.util.Random.nextFloat() * totalCores)
-            sc.setPoolWeight(pools.head, weight)
-          } else if (pools.size > 1) {
-            // Give each pool random weights, normalized to total number of cores
-            // Note that this only makes in local cluster mode
-            val numCores = new ArrayBuffer[Int](pools.size)
-            var i = 0
-            while (numCores.sum < totalCores) {
-              if (scala.util.Random.nextFloat() > 0.5) {
-                numCores(i % totalCores) += 1
-              }
-              i += 1
+            val dummyPoolName = "wheatthins"
+            sc.addSchedulablePool(dummyPoolName, 0, 1)
+            makeDummyThread(sc, dummyPoolName).start()
+            pools.add(dummyPoolName)
+          }
+          // Give each pool random weights, normalized to total number of cores
+          // Note that this only makes in local cluster mode
+          val numCores = new Array[Int](pools.size)
+          var i = 0
+          while (numCores.sum < totalCores) {
+            if (scala.util.Random.nextFloat() > 0.5) {
+              numCores(i % pools.size) += 1
             }
-            assert(numCores.sum == totalCores)
-            pools.zip(numCores).foreach { case (pool, cores) => sc.setPoolWeight(pool, cores) }
+            i += 1
+          }
+          assert(numCores.sum == totalCores)
+          // Log stuff, like cores assignment, loss prediction etc.
+          val elapsed = (System.currentTimeMillis() - startTimez) / 1000
+          logInfo(s"ANDREW: batch update! Time is now $elapsed.")
+          pools.zip(numCores).foreach { case (pool, cores) =>
+            logInfo(s"ANDREW: assigned $cores cores to pool $pool")
+            sc.setPoolWeight(pool, cores)
+          }
+          val poolName = sc.getLocalProperty("spark.scheduler.pool")
+          if (batchWindows.contains(poolName)) {
+            val iter = batchWindows(poolName).size
+            val cores = sc.getPoolWeight(poolName)
+            logInfo(s"ANDREW($iter): $poolName (cores = $cores), (predicted loss = " +
+              predLoss(poolName, cores))
           }
         }
       }
     }
     thread.start()
+  }
+
+  private def makeDummyThread(sc: SparkContext, dummyPoolName: String): Thread = {
+    new Thread {
+      override def run(): Unit = {
+        sc.setLocalProperty("spark.scheduler.pool", dummyPoolName)
+        logInfo(s"ANDREW: Starting dummy thread in pool $dummyPoolName")
+        while (true) {
+          sc.parallelize(1 to 50000000, 1000)
+            .map { i => (i, i) }
+            .reduceByKey { _ + _ }
+            .count()
+        }
+      }
+    }
   }
 
   def registerUtilityFunction(poolName: String, func: UtilityFunc): Unit = {

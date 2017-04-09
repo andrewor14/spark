@@ -50,5 +50,5 @@ ax.set_xlabel("Time (s)")
 ax.set_ylabel("Loss")
 ax.set_title(log_file_name)
 plt.legend()
-plt.show()
+plt.savefig(log_file_name.replace("log", "png"))
 
