@@ -85,7 +85,7 @@ object PoolReweighterLoss extends Logging {
           Thread.sleep(1000L * t)
           val sc = SparkContext.getOrCreate()
           val totalCores = sc.defaultParallelism
-          // Add a new dummy pool to hog some reseources. Do this only once.
+          // Add a new dummy pool to hog some resources. Do this only once.
           if (pools.size == 1) {
             val dummyPoolName = "wheatthins"
             sc.addSchedulablePool(dummyPoolName, 0, 1)
@@ -94,13 +94,16 @@ object PoolReweighterLoss extends Logging {
           }
           // Give each pool random weights, normalized to total number of cores
           // Note that this only makes in local cluster mode
-          val numCores = new Array[Int](pools.size)
-          var i = 0
-          while (numCores.sum < totalCores) {
-            if (scala.util.Random.nextFloat() > 0.5) {
-              numCores(i % pools.size) += 1
+          val weights = (1 to pools.size).map { _ => scala.util.Random.nextFloat() }
+          val numCores = weights.map { w =>
+            scala.math.round((w / weights.sum) * totalCores)
+          }.toArray
+          // This might be true because of rounding issues
+          if (numCores.sum < totalCores) {
+            val remainingCores = totalCores - numCores.sum
+            (1 to remainingCores).foreach { _ =>
+              numCores(scala.util.Random.nextInt(pools.size)) += 1
             }
-            i += 1
           }
           assert(numCores.sum == totalCores)
           // Log stuff, like cores assignment, loss prediction etc.
