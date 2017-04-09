@@ -79,6 +79,7 @@ object PoolReweighterLoss extends Logging {
     batchTime = t
     isRunning = true
     val startTimez = System.currentTimeMillis()
+    val dummyPoolName = "wheatthins"
     val thread = new Thread {
       override def run(): Unit = {
         while (isRunning) {
@@ -87,7 +88,6 @@ object PoolReweighterLoss extends Logging {
           val totalCores = sc.defaultParallelism
           // Add a new dummy pool to hog some resources. Do this only once.
           if (pools.size == 1) {
-            val dummyPoolName = "wheatthins"
             sc.addSchedulablePool(dummyPoolName, 0, 1)
             makeDummyThread(sc, dummyPoolName).start()
             pools.add(dummyPoolName)
@@ -113,12 +113,13 @@ object PoolReweighterLoss extends Logging {
             logInfo(s"ANDREW: assigned $cores cores to pool $pool")
             sc.setPoolWeight(pool, cores)
           }
-          val poolName = sc.getLocalProperty("spark.scheduler.pool")
-          if (batchWindows.contains(poolName)) {
-            val iter = batchWindows(poolName).size
-            val cores = sc.getPoolWeight(poolName)
-            logInfo(s"ANDREW($iter): $poolName (cores = $cores), (predicted loss = " +
-              predLoss(poolName, cores))
+          pools.filter(_ != dummyPoolName).foreach { poolName =>
+            if (batchWindows.contains(poolName)) {
+              val iter = batchWindows(poolName).size
+              val cores = sc.getPoolWeight(poolName)
+              logInfo(s"ANDREW(${iter + 1}): $poolName (cores = $cores), (predicted loss = " +
+                s"${predLoss(poolName, cores)})")
+            }
           }
         }
       }
