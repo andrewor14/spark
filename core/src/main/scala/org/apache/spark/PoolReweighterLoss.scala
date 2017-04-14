@@ -198,14 +198,29 @@ object PoolReweighterLoss extends Logging {
     // val numJobs = numMs / avgLen
 
     val bws = batchWindows(poolName)
-    val deltas = bws.map { bw => (bw.dLoss / bw.numCores) * numCores }.takeRight(50)
-    // Take the exponentially weighted moving average of the N most recent deltas
-    val alpha = 0.2
-    var averageDelta = deltas.head
-    deltas.tail.foreach { d =>
-      averageDelta = alpha * averageDelta + (1 - alpha) * d
-    }
-    bws.last.loss + averageDelta
+    val conf = SparkContext.getOrCreate().getConf
+    val windowSize = conf.getInt("spark.approximation.predLoss.windowSize", 1)
+    val strategy = conf.get("spark.approximation.predLoss.strategy", "avg").toLowerCase
+    val ewmaAlpha = conf.getDouble("spark.approximation.predLoss.ewmaAlpha", 0.5)
+    val lossPerCore = bws.map { bw => bw.loss / bw.numCores }.takeRight(windowSize)
+    val deltas = lossPerCore.zip(lossPerCore.tail).map { case (first, second) => second - first }
+    val predictedDelta: Double =
+      if (strategy == "avg") {
+        deltas.sum / deltas.size
+      } else if (strategy == "ewma") {
+        // Take the exponentially weighted moving average of the N most recent deltas
+        var averageDelta = deltas.head
+        deltas.tail.foreach { d =>
+          averageDelta = ewmaAlpha * averageDelta + (1 - ewmaAlpha) * d
+        }
+        averageDelta
+      } else {
+        throw new IllegalArgumentException(s"Unknown pred loss strategy: $strategy")
+      }
+    // The deltas should not be positive!
+    assert(deltas.forall(_ <= 0), s"delta losses expected to be negative: ${deltas.mkString(", ")}")
+    assert(predictedDelta <= 0, s"predicted delta loss expected to be negative $predictedDelta")
+    bws.last.loss + predictedDelta
   }
 }
 
