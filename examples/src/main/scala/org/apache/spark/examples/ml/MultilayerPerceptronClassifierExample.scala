@@ -19,7 +19,7 @@
 package org.apache.spark.examples.ml
 
 // $example on$
-import org.apache.spark.{PoolReweighterLoss, SparkConf, SparkContext}
+import org.apache.spark.{PoolReweighterLoss, SparkContext}
 import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 // $example off$
