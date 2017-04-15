@@ -22,8 +22,14 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
+import org.apache.commons.math3.analysis.ParametricUnivariateFunction
+import org.apache.commons.math3.fitting._
+import org.apache.commons.math3.fitting.leastsquares._
+import org.apache.commons.math3.linear.DiagonalMatrix
+
 import org.apache.spark.internal.Logging
 import org.apache.spark.scheduler._
+
 
 class PRJob(id: Long, pn: String, sis: Seq[Int]) {
   var jobId : Long = id
@@ -283,5 +289,60 @@ class PRJobListener extends SparkListener with Logging {
     for((jobId: Long, j: PRJob) <- currentJobs) {
       if (j.stageIds.contains(stageId)) j.duration += duration
     }
+  }
+}
+
+/**
+ * Function that represents 1/(a(x**2) + bx + c).
+ */
+private class MyFunc extends ParametricUnivariateFunction {
+  private def denom(x: Double, a: Double, b: Double, c: Double): Double = {
+    a * math.pow(x, 2) + b * x + c
+  }
+  override def value(x: Double, params: Double*): Double = {
+    val (a, b, c) = (params(0), params(1), params(2))
+    1 / denom(x, a, b, c)
+  }
+  override def gradient(x: Double, params: Double*): Array[Double] = {
+    val (a, b, c) = (params(0), params(1), params(2))
+    val denomSquared = math.pow(denom(x, a, b, c), 2)
+    Array[Double](
+      -1 * math.pow(x, 2) / denomSquared,
+      -1 * x / denomSquared,
+      -1 / denomSquared
+    )
+  }
+}
+
+/**
+ * Curve fitter that fits 1/(a(x**2) + bx + c) to a series of points.
+ */
+private class MyFuncFitter extends AbstractCurveFitter {
+  protected override def getProblem(
+      points: java.util.Collection[WeightedObservedPoint]): LeastSquaresProblem = {
+    val len = points.size()
+    val target = new Array[Double](len)
+    val weights = new Array[Double](len)
+    val initialGuess = Array[Double](1.0, 1.0, 1.0)
+
+    var i = 0
+    val pointIter = points.iterator()
+    while (pointIter.hasNext) {
+      val point = pointIter.next()
+      target(i) = point.getY
+      weights(i) = point.getWeight
+      i += 1
+    }
+
+    val model = new AbstractCurveFitter.TheoreticalValuesFunction(new MyFunc(), points)
+
+    new LeastSquaresBuilder()
+      .maxEvaluations(Integer.MAX_VALUE)
+      .maxIterations(Integer.MAX_VALUE)
+      .start(initialGuess)
+      .target(target)
+      .weight(new DiagonalMatrix(weights))
+      .model(model.getModelFunction, model.getModelFunctionJacobian)
+      .build()
   }
 }
