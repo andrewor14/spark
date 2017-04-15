@@ -133,7 +133,7 @@ object PoolReweighterLoss extends Logging {
         sc.setLocalProperty("spark.scheduler.pool", dummyPoolName)
         logInfo(s"ANDREW: Starting dummy thread in pool $dummyPoolName")
         while (true) {
-          sc.parallelize(1 to 50000000, 1000)
+          sc.parallelize(1 to 10000000, 1000)
             .map { i => (i, i) }
             .reduceByKey { _ + _ }
             .count()
