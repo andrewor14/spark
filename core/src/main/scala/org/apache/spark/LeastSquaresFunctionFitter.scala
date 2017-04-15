@@ -25,6 +25,11 @@ import org.apache.commons.math3.fitting.leastsquares.{LeastSquaresBuilder, Least
 import org.apache.commons.math3.linear.DiagonalMatrix
 
 
+/*
+ * All gradients are computed using the amazing partial derivative calculator here:
+ * https://www.symbolab.com/solver/partial-derivative-calculator
+ */
+
 /**
  * Function that represents 1/(ax + b).
  */
@@ -61,6 +66,28 @@ class OneOverXSquaredFunction extends ParametricUnivariateFunction {
 }
 
 /**
+ * Function that represents 1/(a(x**k) + b).
+ */
+class OneOverXToTheKFunction extends ParametricUnivariateFunction {
+  private def denom(x: Double, a: Double, b: Double, k: Double): Double = {
+    a * math.pow(x, k) + b
+  }
+  override def value(x: Double, params: Double*): Double = {
+    val (a, b, k) = (params(0), params(1), params(2))
+    1 / denom(x, a, b, k)
+  }
+  override def gradient(x: Double, params: Double*): Array[Double] = {
+    val (a, b, k) = (params(0), params(1), params(2))
+    val denomSquared = math.pow(denom(x, a, b, k), 2)
+    Array[Double](
+      -1 * math.pow(x, k) / denomSquared,
+      -1 * a * math.pow(x, k) * math.log(x) / denomSquared,
+      -1 / denomSquared
+    )
+  }
+}
+
+/**
  * Curve fitter that fits 1/(ax + b) to a series of points.
  */
 class OneOverXFunctionFitter extends LeastSquaresFunctionFitter[OneOverXFunction]
@@ -69,6 +96,11 @@ class OneOverXFunctionFitter extends LeastSquaresFunctionFitter[OneOverXFunction
  * Curve fitter that fits 1/(a(x**2) + bx + c) to a series of points.
  */
 class OneOverXSquaredFunctionFitter extends LeastSquaresFunctionFitter[OneOverXSquaredFunction]
+
+/**
+ * Curve fitter that fits 1/(a(x**k) + b) to a series of points.
+ */
+class OneOverXToTheKFunctionFitter extends LeastSquaresFunctionFitter[OneOverXToTheKFunction]
 
 /**
  * Generic curve fitter that minimizes least squares, AKA a bunch of boiler plate crap.
