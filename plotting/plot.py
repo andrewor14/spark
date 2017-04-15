@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import math
+import numpy as np
 import os
 import re
 import sys
@@ -56,13 +57,17 @@ def do_the_thing(log_file_path):
   
   # What's the difference between the actual loss and the predicted loss?
   l2_differences = []
+  percentile_cutoff = 99
   for i, pred_loss in enumerate(predicted_y):
     time = predicted_x[i]
     if time in actual_x:
       j = actual_x.index(time)
       act_loss = actual_y[j]
       l2_differences += [math.pow(pred_loss - act_loss, 2)]
-  print "L2 norm for %s: %s" % (log_file_path, sum(l2_differences))
+  cutoff = np.percentile(l2_differences, percentile_cutoff)
+  l2_differences = [d for d in l2_differences if d <= cutoff]
+  l2_norm = sum(l2_differences)
+  print "L2 norm for %s: %s" % (log_file_path, l2_norm)
   
   # Sort the points
   actual_points = [(actual_x[i], actual_y[i]) for i in range(len(actual_x))]
@@ -82,6 +87,7 @@ def do_the_thing(log_file_path):
   ax.set_xlabel("Iteration")
   ax.set_ylabel("Loss")
   ax.set_title(log_file_path)
+  ax.text(10, 0.8, "L2 norm: %s" % l2_norm)
   plt.legend()
   plt.savefig(log_file_path.replace("log", "png"))
 
