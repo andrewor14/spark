@@ -19,73 +19,10 @@ package org.apache.spark
 
 import scala.reflect.{classTag, ClassTag}
 
-import org.apache.commons.math3.analysis.ParametricUnivariateFunction
 import org.apache.commons.math3.fitting.{AbstractCurveFitter, WeightedObservedPoint}
 import org.apache.commons.math3.fitting.leastsquares.{LeastSquaresBuilder, LeastSquaresProblem}
 import org.apache.commons.math3.linear.DiagonalMatrix
 
-
-/*
- * All gradients are computed using the amazing partial derivative calculator here:
- * https://www.symbolab.com/solver/partial-derivative-calculator
- */
-
-/**
- * Function that represents 1/(ax + b).
- */
-class OneOverXFunction extends ParametricUnivariateFunction {
-  private def denom(x: Double, a: Double, b: Double): Double = a * x + b
-  override def value(x: Double, params: Double*): Double = 1 / denom(x, params(0), params(1))
-  override def gradient(x: Double, params: Double*): Array[Double] = {
-    val (a, b) = (params(0), params(1))
-    val denomSquared = math.pow(denom(x, a, b), 2)
-    Array[Double](-1 * x / denomSquared, -1 / denomSquared)
-  }
-}
-
-/**
- * Function that represents 1/(a(x**2) + bx + c).
- */
-class OneOverXSquaredFunction extends ParametricUnivariateFunction {
-  private def denom(x: Double, a: Double, b: Double, c: Double): Double = {
-    a * math.pow(x, 2) + b * x + c
-  }
-  override def value(x: Double, params: Double*): Double = {
-    val (a, b, c) = (params(0), params(1), params(2))
-    1 / denom(x, a, b, c)
-  }
-  override def gradient(x: Double, params: Double*): Array[Double] = {
-    val (a, b, c) = (params(0), params(1), params(2))
-    val denomSquared = math.pow(denom(x, a, b, c), 2)
-    Array[Double](
-      -1 * math.pow(x, 2) / denomSquared,
-      -1 * x / denomSquared,
-      -1 / denomSquared
-    )
-  }
-}
-
-/**
- * Function that represents 1/(a(x**k) + b).
- */
-class OneOverXToTheKFunction extends ParametricUnivariateFunction {
-  private def denom(x: Double, a: Double, b: Double, k: Double): Double = {
-    a * math.pow(x, k) + b
-  }
-  override def value(x: Double, params: Double*): Double = {
-    val (a, b, k) = (params(0), params(1), params(2))
-    1 / denom(x, a, b, k)
-  }
-  override def gradient(x: Double, params: Double*): Array[Double] = {
-    val (a, b, k) = (params(0), params(1), params(2))
-    val denomSquared = math.pow(denom(x, a, b, k), 2)
-    Array[Double](
-      -1 * math.pow(x, k) / denomSquared,
-      -1 * a * math.pow(x, k) * math.log(x) / denomSquared,
-      -1 / denomSquared
-    )
-  }
-}
 
 /**
  * Curve fitter that fits 1/(ax + b) to a series of points.
@@ -102,17 +39,58 @@ class OneOverXSquaredFunctionFitter extends LeastSquaresFunctionFitter[OneOverXS
  */
 class OneOverXToTheKFunctionFitter extends LeastSquaresFunctionFitter[OneOverXToTheKFunction]
 
+
 /**
- * Generic curve fitter that minimizes least squares, AKA a bunch of boiler plate crap.
+ * Generic curve fitter that minimizes least squares.
  */
-abstract class LeastSquaresFunctionFitter[T <: ParametricUnivariateFunction: ClassTag]
+abstract class LeastSquaresFunctionFitter[T <: GenericFittingFunction: ClassTag]
   extends AbstractCurveFitter {
+
+  private var fittedParams: Array[Double] = _
+  private val func: T = classTag[T].runtimeClass.getConstructor().newInstance().asInstanceOf[T]
+
+  /**
+   * Return the fitted parameters, assuming [[fit]] has already been called.
+   */
+  def getFittedParams: Array[Double] = {
+    if (fittedParams != null) {
+      fittedParams
+    } else {
+      throw new IllegalStateException("parameters have not been fitted yet; call `fit` first")
+    }
+  }
+
+  /**
+   * Compute the value of the fitted function at `x`, assuming [[fit]] has already been called.
+   */
+  def compute(x: Double): Double = {
+    func.value(x, getFittedParams: _*)
+  }
+
+  /**
+   * Fit this function fitter to the given points.
+   *
+   * The caller may optionally specify a decay in (0, 1] to give exponentially less
+   * weight to early data points.
+   */
+  def fit(x: Array[Double], y: Array[Double], decay: Double = 0.95): Unit = {
+    assert(x.length == y.length, s"x and y have different sizes: ${x.length} != ${y.length}")
+    assert(decay > 0 && decay <= 1, s"decay factor must be in range (0, 1]: $decay")
+    val points = new java.util.ArrayList[WeightedObservedPoint]
+    x.zip(y).zipWithIndex.foreach { case ((t, u), i) =>
+      points.add(new WeightedObservedPoint(math.pow(decay, x.length - i), t, u))
+    }
+    fittedParams = fit(points)
+  }
+
+  // Boiler plate crap
   protected override def getProblem(
       points: java.util.Collection[WeightedObservedPoint]): LeastSquaresProblem = {
     val len = points.size()
     val target = new Array[Double](len)
     val weights = new Array[Double](len)
     val initialGuess = Array[Double](1.0, 1.0, 1.0)
+    val model = new AbstractCurveFitter.TheoreticalValuesFunction(func, points)
 
     var i = 0
     val pointIter = points.iterator()
@@ -123,9 +101,6 @@ abstract class LeastSquaresFunctionFitter[T <: ParametricUnivariateFunction: Cla
       i += 1
     }
 
-    val func = classTag[T].runtimeClass.getConstructor().newInstance().asInstanceOf[T]
-    val model = new AbstractCurveFitter.TheoreticalValuesFunction(func, points)
-
     new LeastSquaresBuilder()
       .maxEvaluations(Integer.MAX_VALUE)
       .maxIterations(Integer.MAX_VALUE)
@@ -134,28 +109,6 @@ abstract class LeastSquaresFunctionFitter[T <: ParametricUnivariateFunction: Cla
       .weight(new DiagonalMatrix(weights))
       .model(model.getModelFunction, model.getModelFunctionJacobian)
       .build()
-  }
-}
-
-object LeastSquaresFunctionFitter {
-
-  /**
-   * Fit a curve whose shape is defined by type parameter [[T]] to the given points.
-   *
-   * @tparam T type of the fitted [[ParametricUnivariateFunction]]
-   * @return coefficients of fitted curve
-   */
-  def fit[T <: LeastSquaresFunctionFitter[_]: ClassTag](
-      x: Array[Double],
-      y: Array[Double]): Array[Double] = {
-    assert(x.length == y.length, s"x and y have different sizes: ${x.length} != ${y.length}")
-    val decayFactor = 0.95
-    val points = new java.util.ArrayList[WeightedObservedPoint]
-    val fitter = classTag[T].runtimeClass.getConstructor().newInstance().asInstanceOf[T]
-    x.zip(y).zipWithIndex.foreach { case ((t, u), i) =>
-      points.add(new WeightedObservedPoint(math.pow(decayFactor, x.length - i), t, u))
-    }
-    fitter.fit(points)
   }
 
 }
