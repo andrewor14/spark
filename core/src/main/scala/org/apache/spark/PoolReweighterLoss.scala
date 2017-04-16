@@ -22,13 +22,9 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-import org.apache.commons.math3.analysis.ParametricUnivariateFunction
-import org.apache.commons.math3.fitting._
-import org.apache.commons.math3.fitting.leastsquares._
-import org.apache.commons.math3.linear.DiagonalMatrix
-
 import org.apache.spark.internal.Logging
 import org.apache.spark.scheduler._
+import org.apache.spark.util.Utils
 
 
 class PRJob(id: Long, pn: String, sis: Seq[Int]) {
@@ -46,8 +42,15 @@ class PRBatchWindow {
   var numCores: Int = _
 }
 
+object LossPredictionStrategies {
+  val AVG = "avg" // raw average
+  val EWMA = "ewma" // exponentially weighted moving average
+  val CF = "cf" // curve fitting
+}
+
 // Main API
 object PoolReweighterLoss extends Logging {
+  import LossPredictionStrategies._
 
   type UtilityFunc = (Long, Double) => Double
 
@@ -59,6 +62,7 @@ object PoolReweighterLoss extends Logging {
   private val listener = new PRJobListener
   private var batchTime = 0
   @volatile private var isRunning = false
+  private val MAX_NUM_LOSSES = 1000
 
   def updateLoss(loss: Double): Unit = {
     val poolName = SparkContext.getOrCreate().getLocalProperty("spark.scheduler.pool")
@@ -197,41 +201,46 @@ object PoolReweighterLoss extends Logging {
   }
 
   private def predLoss(poolName: String, numCores: Int): Double = {
-
-    // val numMs = numCores * batchTime * 1000
-    // val avgLen = listener.getAvgJobLen(poolName)
-    // number of jobs that can be completed this round with numCores
-    // val numJobs = numMs / avgLen
-
     val bws = batchWindows(poolName)
     val conf = SparkContext.getOrCreate().getConf
-    val windowSize = conf.getInt("spark.approximation.predLoss.windowSize", 1)
-    val strategy = conf.get("spark.approximation.predLoss.strategy", "avg").toLowerCase
-    val ewmaAlpha = conf.getDouble("spark.approximation.predLoss.ewmaAlpha", 0.5)
-    val lossPerCore = bws.map { bw => bw.loss / bw.numCores }.takeRight(windowSize)
+    val confPrefix = "spark.approximation.predLoss"
+    val strategy = conf.get(s"$confPrefix.strategy", AVG).toLowerCase
+    val lossPerCore = bws.takeRight(MAX_NUM_LOSSES).map { bw => bw.loss / bw.numCores }
     val deltas = lossPerCore.zip(lossPerCore.tail).map { case (first, second) => second - first }
-    val predictedDelta: Double =
-      if (strategy == "avg") {
-        if (deltas.nonEmpty) deltas.sum / deltas.size else 0
-      } else if (strategy == "ewma") {
-        // Take the exponentially weighted moving average of the N most recent deltas
-        var averageDelta = deltas.head
+    val positiveDeltas = deltas.filter(_ > 0)
+    if (positiveDeltas.nonEmpty) {
+      logWarning(s"Some delta losses were positive: ${positiveDeltas.mkString(", ")}")
+    }
+    strategy match {
+      case AVG =>
+        // Just take the average of of the N most recent deltas
+        val windowSize = conf.getInt(s"$confPrefix.$AVG.windowSize", 1)
+        val trimmedDeltas = deltas.takeRight(windowSize)
+        val avgDelta = if (trimmedDeltas.nonEmpty) trimmedDeltas.sum / trimmedDeltas.size else 0
+        bws.last.loss + avgDelta
+      case EWMA =>
+        // Take the exponentially weighted moving average of all the deltas
+        val alpha = conf.getDouble(s"$confPrefix.$EWMA.alpha", 0.9)
+        var avgDelta = deltas.head
         deltas.tail.foreach { d =>
-          averageDelta = ewmaAlpha * averageDelta + (1 - ewmaAlpha) * d
+          avgDelta = alpha * avgDelta + (1 - alpha) * d
         }
-        averageDelta
-      } else {
-        throw new IllegalArgumentException(s"Unknown pred loss strategy: $strategy")
-      }
-    // The deltas should not be positive!
-    if (!deltas.forall(_ <= 0)) {
-      logWarning(s"Delta losses expected to be negative: ${deltas.mkString(", ")}")
+        bws.last.loss + avgDelta
+      case CF =>
+        // Use a fitted curve to predict the value of the next data point
+        val decay = conf.getDouble(s"$confPrefix.$CF.decay", 0.95)
+        val fitterName = conf.get(s"$confPrefix.$CF.fitterName", "OneOverXSquaredFunctionFitter")
+        val fitter = Utils.classForName("org.apache.spark." + fitterName)
+          .getConstructor().newInstance().asInstanceOf[LeastSquaresFunctionFitter[_]]
+        val x = lossPerCore.indices.map(_.toDouble).toArray
+        val y = lossPerCore.toArray
+        fitter.fit(x, y, decay)
+        fitter.compute(x.last + 1)
+      case unknown =>
+        throw new IllegalArgumentException(s"Unknown loss prediction strategy: $unknown")
     }
-    if (predictedDelta > 0) {
-      logWarning(s"Predicted delta loss expected to be negative: $predictedDelta")
-    }
-    bws.last.loss + predictedDelta
   }
+
 }
 
 class PRJobListener extends SparkListener with Logging {
