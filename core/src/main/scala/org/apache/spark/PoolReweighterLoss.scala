@@ -206,6 +206,9 @@ object PoolReweighterLoss extends Logging {
     val confPrefix = "spark.approximation.predLoss"
     val strategy = conf.get(s"$confPrefix.strategy", AVG).toLowerCase
     val lossPerCore = bws.takeRight(MAX_NUM_LOSSES).map { bw => bw.loss / bw.numCores }
+    if (lossPerCore.length <= 1) {
+      return 0
+    }
     val deltas = lossPerCore.zip(lossPerCore.tail).map { case (first, second) => second - first }
     val positiveDeltas = deltas.filter(_ > 0)
     if (positiveDeltas.nonEmpty) {
