@@ -107,16 +107,16 @@ abstract class GenericFittingFunction(val numParameters: Int)
   extends ParametricUnivariateFunction {
 
   private def validateNumParams(params: Seq[Double]): Unit = {
-    assert(params.length != numParameters,
+    assert(params.length == numParameters,
       s"expected $numParameters parameters, got ${params.length}: ${params.mkString(", ")}")
   }
 
-  final override def value(x: Double, params: Double*): Double = {
+  override def value(x: Double, params: Double*): Double = {
     validateNumParams(params)
     computeValue(x, params)
   }
 
-  final override def gradient(x: Double, params: Double*): Array[Double] = {
+  override def gradient(x: Double, params: Double*): Array[Double] = {
     validateNumParams(params)
     computeGradient(x, params)
   }
