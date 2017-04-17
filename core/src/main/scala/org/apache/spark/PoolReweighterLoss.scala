@@ -238,7 +238,7 @@ object PoolReweighterLoss extends Logging {
         val x = lossPerCore.indices.map(_.toDouble).toArray
         val y = lossPerCore.toArray
         fitter.fit(x, y, decay)
-        fitter.compute(x.last + 1)
+        fitter.compute(x.last + 1) * numCores
       case unknown =>
         throw new IllegalArgumentException(s"Unknown loss prediction strategy: $unknown")
     }
