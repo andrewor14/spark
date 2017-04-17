@@ -19,7 +19,7 @@ function run_spark() {
 }
 
 # AVG
-for window_size in 1 10 50; do
+for window_size in 1 10; do
   extra_conf="--conf $conf_prefix.strategy=avg --conf $conf_prefix.avg.windowSize=$window_size"
   log_file_path=/tmp/spark-logs/mlpc_avg_"$window_size".log
   echo "Running avg with window size $window_size, logging to $log_file_path"
@@ -27,7 +27,7 @@ for window_size in 1 10 50; do
 done
 
 # EWMA
-for alpha in 0.9; do
+for alpha in 0.8; do
   extra_conf="--conf $conf_prefix.strategy=ewma --conf $conf_prefix.ewma.alpha=$alpha"
   log_file_path=/tmp/spark-logs/mlpc_ewma_"$alpha".log
   echo "Running ewma with alpha $alpha, logging to $log_file_path"
@@ -35,7 +35,7 @@ for alpha in 0.9; do
 done
 
 # CF
-for decay in 0.95; do
+for decay in 0.95 1; do
   extra_conf="--conf $conf_prefix.strategy=cf --conf $conf_prefix.cf.decay=$decay"
   log_file_path=/tmp/spark-logs/mlpc_cf_"$decay".log
   echo "Running cf with decay $decay, logging to $log_file_path"
