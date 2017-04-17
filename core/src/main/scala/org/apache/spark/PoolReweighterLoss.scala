@@ -62,7 +62,9 @@ object PoolReweighterLoss extends Logging {
   private val listener = new PRJobListener
   private var batchTime = 0
   @volatile private var isRunning = false
+
   private val MAX_NUM_LOSSES = 1000
+  private val CONF_PREFIX = "spark.approximation.predLoss"
 
   def updateLoss(loss: Double): Unit = {
     val poolName = SparkContext.getOrCreate().getLocalProperty("spark.scheduler.pool")
@@ -127,8 +129,12 @@ object PoolReweighterLoss extends Logging {
             if (batchWindows.contains(poolName)) {
               val iter = batchWindows(poolName).size
               val cores = sc.getPoolWeight(poolName)
-              logInfo(s"ANDREW(${iter + 1}): $poolName (cores = $cores), (predicted loss = " +
-                s"${predLoss(poolName, cores)})")
+              val numItersToPredict = sc.conf.getInt(s"$CONF_PREFIX.numIterations", 5)
+              val predictedLosses = predLoss(poolName, numItersToPredict)
+              predictedLosses.zipWithIndex.foreach { case (loss, i) =>
+                logInfo(
+                  s"ANDREW(${iter + i}): $poolName (cores = $cores), (predicted loss = $loss)")
+              }
             }
           }
         }
@@ -173,44 +179,15 @@ object PoolReweighterLoss extends Logging {
     isRunning = false
   }
 
-  private def batchUpdate(): Unit = {
-    val numCores = SparkContext.getOrCreate().defaultParallelism
-    def diff(t: (String, Double)) = t._2
-    val heap = new mutable.PriorityQueue[(String, Double)]()(Ordering.by(diff))
-    val pool2numCores = new ConcurrentHashMap[String, Int]
-    val currTime = System.currentTimeMillis()
-//    if (heap.nonEmpty) {
-//      for (i <- 1 to numCores) {
-//        val top = heap.dequeue()
-//        val poolName = top._1
-//        val numCores = pool2numCores.get(poolName)
-//        pool2numCores.put(poolName, numCores + 1)
-//        val utilFunc = utilityFuncs.get(poolName)
-//        val wallTime = currTime - startTime.get(poolName)
-//        val predicted = predLoss(poolName, numCores + 1)
-//        val utility = utilFunc(wallTime, predicted)
-//        heap.enqueue((poolName, utility))
-//      }
-//      var weights = ""
-//      for ((poolName: String, v: Int) <- pool2numCores.asScala) {
-//        weights += poolName + "," + v + " "
-//      }
-//      logInfo(s"LOGAN: changing weights: $weights")
-//    }
-    // TO HERE NEEDS FIXING
-  }
-
-  private def predLoss(poolName: String, numCores: Int): Double = {
+  private def predLoss(poolName: String, numItersToPredict: Int): Array[Double] = {
     val bws = batchWindows(poolName)
     val conf = SparkContext.getOrCreate().getConf
-    val confPrefix = "spark.approximation.predLoss"
-    val strategy = conf.get(s"$confPrefix.strategy", AVG).toLowerCase
+    val strategy = conf.get(s"$CONF_PREFIX.strategy", AVG).toLowerCase
     val losses = bws.takeRight(MAX_NUM_LOSSES).map { bw => bw.loss }
-    val lossPerCore = bws.takeRight(MAX_NUM_LOSSES).map { bw => bw.loss / bw.numCores }
     if (losses.length <= 1) {
-      return 0
+      return Array.empty[Double]
     }
-    val deltas = lossPerCore.zip(lossPerCore.tail).map { case (first, second) => second - first }
+    val deltas = losses.zip(losses.tail).map { case (first, second) => second - first }
     val positiveDeltas = deltas.filter(_ > 0)
     if (positiveDeltas.nonEmpty) {
       logWarning(s"Some delta losses were positive: ${positiveDeltas.mkString(", ")}")
@@ -218,28 +195,28 @@ object PoolReweighterLoss extends Logging {
     strategy match {
       case AVG =>
         // Just take the average of of the N most recent deltas
-        val windowSize = conf.getInt(s"$confPrefix.$AVG.windowSize", 1)
+        val windowSize = conf.getInt(s"$CONF_PREFIX.$AVG.windowSize", 1)
         val trimmedDeltas = deltas.takeRight(windowSize)
         val avgDelta = if (trimmedDeltas.nonEmpty) trimmedDeltas.sum / trimmedDeltas.size else 0
-        bws.last.loss + avgDelta
+        (1 to numItersToPredict).map { i => bws.last.loss + i * avgDelta }.toArray
       case EWMA =>
         // Take the exponentially weighted moving average of all the deltas
-        val alpha = conf.getDouble(s"$confPrefix.$EWMA.alpha", 0.9)
+        val alpha = conf.getDouble(s"$CONF_PREFIX.$EWMA.alpha", 0.9)
         var avgDelta = deltas.head
         deltas.tail.foreach { d =>
           avgDelta = alpha * avgDelta + (1 - alpha) * d
         }
-        bws.last.loss + avgDelta
+        (1 to numItersToPredict).map { i => bws.last.loss + i * avgDelta }.toArray
       case CF =>
         // Use a fitted curve to predict the value of the next data point
-        val decay = conf.getDouble(s"$confPrefix.$CF.decay", 0.95)
-        val fitterName = conf.get(s"$confPrefix.$CF.fitterName", "OneOverXSquaredFunctionFitter")
+        val decay = conf.getDouble(s"$CONF_PREFIX.$CF.decay", 0.95)
+        val fitterName = conf.get(s"$CONF_PREFIX.$CF.fitterName", "OneOverXSquaredFunctionFitter")
         val fitter = Utils.classForName("org.apache.spark." + fitterName)
           .getConstructor().newInstance().asInstanceOf[LeastSquaresFunctionFitter[_]]
         val x = losses.indices.map(_.toDouble).toArray
         val y = losses.toArray
         fitter.fit(x, y, decay)
-        fitter.compute(x.last + 1)
+        (1 to numItersToPredict).map { i => fitter.compute(x.last + i)}.toArray
       case unknown =>
         throw new IllegalArgumentException(s"Unknown loss prediction strategy: $unknown")
     }
