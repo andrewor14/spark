@@ -205,8 +205,9 @@ object PoolReweighterLoss extends Logging {
     val conf = SparkContext.getOrCreate().getConf
     val confPrefix = "spark.approximation.predLoss"
     val strategy = conf.get(s"$confPrefix.strategy", AVG).toLowerCase
+    val losses = bws.takeRight(MAX_NUM_LOSSES).map { bw => bw.loss }
     val lossPerCore = bws.takeRight(MAX_NUM_LOSSES).map { bw => bw.loss / bw.numCores }
-    if (lossPerCore.length <= 1) {
+    if (losses.length <= 1) {
       return 0
     }
     val deltas = lossPerCore.zip(lossPerCore.tail).map { case (first, second) => second - first }
@@ -235,10 +236,10 @@ object PoolReweighterLoss extends Logging {
         val fitterName = conf.get(s"$confPrefix.$CF.fitterName", "OneOverXSquaredFunctionFitter")
         val fitter = Utils.classForName("org.apache.spark." + fitterName)
           .getConstructor().newInstance().asInstanceOf[LeastSquaresFunctionFitter[_]]
-        val x = lossPerCore.indices.map(_.toDouble).toArray
-        val y = lossPerCore.toArray
+        val x = losses.indices.map(_.toDouble).toArray
+        val y = losses.toArray
         fitter.fit(x, y, decay)
-        fitter.compute(x.last + 1) * numCores
+        fitter.compute(x.last + 1)
       case unknown =>
         throw new IllegalArgumentException(s"Unknown loss prediction strategy: $unknown")
     }
