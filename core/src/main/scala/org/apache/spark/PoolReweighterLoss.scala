@@ -62,6 +62,7 @@ object PoolReweighterLoss extends Logging {
   private val listener = new PRJobListener
   private var batchTime = 0
   @volatile private var isRunning = false
+  private var launchedDummyThread = false
 
   private val CONF_PREFIX = "spark.approximation.predLoss"
   private val MIN_POINTS_FOR_PREDICTION = 5
@@ -95,14 +96,14 @@ object PoolReweighterLoss extends Logging {
     val thread = new Thread {
       override def run(): Unit = {
         while (isRunning) {
-          Thread.sleep(1000L * t)
           val sc = SparkContext.getOrCreate()
           val totalCores = sc.defaultParallelism
           // Add a new dummy pool to hog some resources. Do this only once.
-          if (pools.size == 1) {
+          if (!launchedDummyThread) {
             sc.addSchedulablePool(dummyPoolName, 0, 1)
             makeDummyThread(sc, dummyPoolName).start()
             pools.add(dummyPoolName)
+            launchedDummyThread = true
           }
           // Give each pool random weights, normalized to total number of cores
           // Note that this only makes in local cluster mode
@@ -141,6 +142,7 @@ object PoolReweighterLoss extends Logging {
               }
             }
           }
+          Thread.sleep(1000L * t)
         }
       }
     }
