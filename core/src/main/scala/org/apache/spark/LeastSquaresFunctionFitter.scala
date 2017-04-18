@@ -89,7 +89,7 @@ abstract class LeastSquaresFunctionFitter[T <: GenericFittingFunction: ClassTag]
     val len = points.size()
     val target = new Array[Double](len)
     val weights = new Array[Double](len)
-    val initialGuess = Array[Double](1.0, 1.0, 1.0)
+    val initialGuess = (1 to func.numParameters).map { _ => 1.0 }.toArray
     val model = new AbstractCurveFitter.TheoreticalValuesFunction(func, points)
 
     var i = 0
