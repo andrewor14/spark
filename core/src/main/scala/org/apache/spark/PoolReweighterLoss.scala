@@ -64,6 +64,7 @@ object PoolReweighterLoss extends Logging {
   @volatile private var isRunning = false
 
   private val CONF_PREFIX = "spark.approximation.predLoss"
+  private val MIN_POINTS_FOR_PREDICTION = 5
 
   def updateLoss(loss: Double): Unit = listener.synchronized {
     val poolName = SparkContext.getOrCreate().getLocalProperty("spark.scheduler.pool")
@@ -190,7 +191,7 @@ object PoolReweighterLoss extends Logging {
     val lossWithIndex =
       bws.zipWithIndex.map { case (bw, i) => (i, bw.loss) }.takeRight(windowSize).toArray
     val (lossIndices, losses) = lossWithIndex.unzip
-    if (losses.length <= 1) {
+    if (losses.length <= MIN_POINTS_FOR_PREDICTION) {
       return Array.empty[Double]
     }
     val deltas = losses.zip(losses.tail).map { case (first, second) => second - first }
@@ -204,7 +205,7 @@ object PoolReweighterLoss extends Logging {
         (1 to numItersToPredict).map { i => bws.last.loss + i * avgDelta }.toArray
       case EWMA =>
         // Take the exponentially weighted moving average of all the deltas
-        val alpha = conf.getDouble(s"$CONF_PREFIX.$EWMA.alpha", 0.9)
+        val alpha = conf.getDouble(s"$CONF_PREFIX.$EWMA.alpha", 0.75)
         var avgDelta = deltas.head
         deltas.tail.foreach { d =>
           avgDelta = alpha * avgDelta + (1 - alpha) * d
@@ -212,7 +213,7 @@ object PoolReweighterLoss extends Logging {
         (1 to numItersToPredict).map { i => bws.last.loss + i * avgDelta }.toArray
       case CF =>
         // Use a fitted curve to predict the value of the next data point
-        val decay = conf.getDouble(s"$CONF_PREFIX.$CF.decay", 0.95)
+        val decay = conf.getDouble(s"$CONF_PREFIX.$CF.decay", 0.75)
         val fitterName = conf.get(s"$CONF_PREFIX.$CF.fitterName", "OneOverXSquaredFunctionFitter")
         val fitter = Utils.classForName("org.apache.spark." + fitterName)
           .getConstructor().newInstance().asInstanceOf[LeastSquaresFunctionFitter[_]]
