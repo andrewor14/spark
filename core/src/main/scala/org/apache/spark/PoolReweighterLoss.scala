@@ -129,7 +129,7 @@ object PoolReweighterLoss extends Logging {
 
           pools.filter(_ != dummyPoolName).foreach { poolName =>
             if (batchWindows.contains(poolName)) {
-              val iter = batchWindows(poolName).size
+              val iter = batchWindows(poolName).size + 1
               val cores = sc.getPoolWeight(poolName)
               val numItersToPredict = sc.conf.getInt(s"$CONF_PREFIX.numIterations", 5)
               val predictedLosses = predLoss(poolName, numItersToPredict)
