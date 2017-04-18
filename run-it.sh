@@ -20,7 +20,7 @@ function run_spark() {
 
 # AVG
 for window_size in 1 10; do
-  extra_conf="--conf $conf_prefix.strategy=avg --conf $conf_prefix.avg.windowSize=$window_size"
+  extra_conf="--conf $conf_prefix.strategy=avg --conf $conf_prefix.windowSize=$window_size"
   log_file_path=/tmp/spark-logs/mlpc_avg_"$window_size".log
   echo "Running avg with window size $window_size, logging to $log_file_path"
   run_spark "$extra_conf" "$log_file_path"

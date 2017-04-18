@@ -63,7 +63,6 @@ object PoolReweighterLoss extends Logging {
   private var batchTime = 0
   @volatile private var isRunning = false
 
-  private val MAX_NUM_LOSSES = 1000
   private val CONF_PREFIX = "spark.approximation.predLoss"
 
   def updateLoss(loss: Double): Unit = listener.synchronized {
@@ -133,8 +132,10 @@ object PoolReweighterLoss extends Logging {
                 val numItersToPredict = sc.conf.getInt(s"$CONF_PREFIX.numIterations", 5)
                 val predictedLosses = predLoss(poolName, numItersToPredict)
                 predictedLosses.zipWithIndex.foreach { case (loss, i) =>
-                  logInfo(
-                    s"ANDREW(${iter + i}): $poolName (cores = $cores), (predicted loss = $loss)")
+                  logInfo(s"ANDREW(${iter + i}): $poolName " +
+                    s"(cores = $cores), " +
+                    s"(predict iter = $iter), " +
+                    s"(predicted loss = $loss)")
                 }
               }
             }
@@ -185,7 +186,10 @@ object PoolReweighterLoss extends Logging {
     val bws = batchWindows(poolName)
     val conf = SparkContext.getOrCreate().getConf
     val strategy = conf.get(s"$CONF_PREFIX.strategy", AVG).toLowerCase
-    val losses = bws.takeRight(MAX_NUM_LOSSES).map { bw => bw.loss }
+    val windowSize = conf.getInt(s"$CONF_PREFIX.windowSize", 100)
+    val lossWithIndex =
+      bws.zipWithIndex.map { case (bw, i) => (i, bw.loss) }.takeRight(windowSize).toArray
+    val (lossIndices, losses) = lossWithIndex.unzip
     if (losses.length <= 1) {
       return Array.empty[Double]
     }
@@ -196,10 +200,7 @@ object PoolReweighterLoss extends Logging {
     }
     val predictedLosses = strategy match {
       case AVG =>
-        // Just take the average of of the N most recent deltas
-        val windowSize = conf.getInt(s"$CONF_PREFIX.$AVG.windowSize", 1)
-        val trimmedDeltas = deltas.takeRight(windowSize)
-        val avgDelta = if (trimmedDeltas.nonEmpty) trimmedDeltas.sum / trimmedDeltas.size else 0
+        val avgDelta = if (deltas.nonEmpty) deltas.sum / deltas.length else 0
         (1 to numItersToPredict).map { i => bws.last.loss + i * avgDelta }.toArray
       case EWMA =>
         // Take the exponentially weighted moving average of all the deltas
@@ -215,10 +216,20 @@ object PoolReweighterLoss extends Logging {
         val fitterName = conf.get(s"$CONF_PREFIX.$CF.fitterName", "OneOverXSquaredFunctionFitter")
         val fitter = Utils.classForName("org.apache.spark." + fitterName)
           .getConstructor().newInstance().asInstanceOf[LeastSquaresFunctionFitter[_]]
-        val x = losses.indices.map(_.toDouble).toArray
-        val y = losses.toArray
+        val x = lossIndices.map(_.toDouble)
+        val y = losses
+        val currentIter = x.last + 1
         fitter.fit(x, y, decay)
-        (1 to numItersToPredict).map { i => fitter.compute(x.last + i)}.toArray
+        logInfo("\n\n\n==========================================")
+        logInfo(s"ANDREW predicting in iteration $currentIter")
+        logInfo(s"My x's are: ${x.mkString(", ")}.")
+        logInfo(s"My y's are: ${y.mkString(", ")}.")
+        logInfo(s"My params are ${fitter.getFittedParams.mkString(" ")}")
+        logInfo("My predictions for iterations " +
+          s"${(1 to numItersToPredict).map(_ + currentIter).mkString(", ")} are: " +
+          s"${(1 to numItersToPredict).map { i => fitter.compute(currentIter + i)}.mkString(", ")}")
+        logInfo("==========================================")
+        (1 to numItersToPredict).map { i => fitter.compute(currentIter + i)}.toArray
       case unknown =>
         throw new IllegalArgumentException(s"Unknown loss prediction strategy: $unknown")
     }
