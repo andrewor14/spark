@@ -50,7 +50,7 @@ object MultilayerPerceptronClassifierExample {
       .load("/disk/local/disk1/andrew/data/epsilon_normalized_01label")
 
     // Split the data into train and test
-    val splits = data.randomSplit(Array(0.25, 0.05, 0.7), seed = 1234L)
+    val splits = data.randomSplit(Array(0.5, 0.1, 0.4), seed = 1234L)
     val train = splits(0)
     val test = splits(1)
 
