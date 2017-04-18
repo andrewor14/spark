@@ -66,7 +66,7 @@ object PoolReweighterLoss extends Logging {
   private val MAX_NUM_LOSSES = 1000
   private val CONF_PREFIX = "spark.approximation.predLoss"
 
-  def updateLoss(loss: Double): Unit = {
+  def updateLoss(loss: Double): Unit = listener.synchronized {
     val poolName = SparkContext.getOrCreate().getLocalProperty("spark.scheduler.pool")
     val bw = listener.currentWindows(poolName)
     bw.loss = loss
@@ -125,15 +125,17 @@ object PoolReweighterLoss extends Logging {
             logInfo(s"ANDREW: assigned $cores cores to pool $pool")
             sc.setPoolWeight(pool, cores)
           }
-          pools.filter(_ != dummyPoolName).foreach { poolName =>
-            if (batchWindows.contains(poolName)) {
-              val iter = batchWindows(poolName).size
-              val cores = sc.getPoolWeight(poolName)
-              val numItersToPredict = sc.conf.getInt(s"$CONF_PREFIX.numIterations", 5)
-              val predictedLosses = predLoss(poolName, numItersToPredict)
-              predictedLosses.zipWithIndex.foreach { case (loss, i) =>
-                logInfo(
-                  s"ANDREW(${iter + i}): $poolName (cores = $cores), (predicted loss = $loss)")
+          listener.synchronized {
+            pools.filter(_ != dummyPoolName).foreach { poolName =>
+              if (batchWindows.contains(poolName)) {
+                val iter = batchWindows(poolName).size
+                val cores = sc.getPoolWeight(poolName)
+                val numItersToPredict = sc.conf.getInt(s"$CONF_PREFIX.numIterations", 5)
+                val predictedLosses = predLoss(poolName, numItersToPredict)
+                predictedLosses.zipWithIndex.foreach { case (loss, i) =>
+                  logInfo(
+                    s"ANDREW(${iter + i}): $poolName (cores = $cores), (predicted loss = $loss)")
+                }
               }
             }
           }
@@ -192,7 +194,7 @@ object PoolReweighterLoss extends Logging {
     if (positiveDeltas.nonEmpty) {
       logWarning(s"Some delta losses were positive: ${positiveDeltas.mkString(", ")}")
     }
-    strategy match {
+    val predictedLosses = strategy match {
       case AVG =>
         // Just take the average of of the N most recent deltas
         val windowSize = conf.getInt(s"$CONF_PREFIX.$AVG.windowSize", 1)
@@ -220,6 +222,7 @@ object PoolReweighterLoss extends Logging {
       case unknown =>
         throw new IllegalArgumentException(s"Unknown loss prediction strategy: $unknown")
     }
+    predictedLosses.map { x => if (x < 0) 0 else x }
   }
 
 }
