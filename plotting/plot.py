@@ -25,35 +25,37 @@ def main():
 
 def do_the_thing(log_file_path):
   # Parse actual and predicted losses from log
-  actual_loss_data = {} # (iteration, cores) -> loss
-  predicted_loss_data = {} # (iteration, cores) -> loss
+  actual_loss_data = {} # iteration -> loss
+  predicted_loss_data = {} # iteration -> loss
   with open(log_file_path) as f:
     cool_lines = [line for line in f.readlines() if "ANDREW" in line and "loss = " in line]
     for line in cool_lines:
       iteration = int(re.match(".*ANDREW\((.*)\):.*", line).groups()[0])
-      cores = float(re.match(".*\(cores = (\d*)\).*", line).groups()[0])
       loss = float(re.match(".*\(.* loss = (.*)\).*", line).groups()[0])
       if "actual" in line:
-        actual_loss_data[(iteration, cores)] = loss
+        # Take the first prediction for this iteration
+        if iteration not in actual_loss_data:
+          actual_loss_data[iteration] = loss
       elif "predicted" in line:
-        predicted_loss_data[(iteration, cores)] = loss
+        # Take the first prediction for this iteration
+        if iteration not in predicted_loss_data and iteration > 10:
+          predicted_loss_data[iteration] = loss
       else:
         print "Yikes, bad line:\n\t%s" % line
   
-  # Only keep the predicted losses whose number of cores correspond to that of the actual losses
+  # Only keep the predicted losses iteration number corresponds to that of the actual losses
   actual_x = []
   actual_y = []
   predicted_x = []
   predicted_y = []
-  for (iteration, cores), loss in actual_loss_data.items():
+  for iteration, loss in actual_loss_data.items():
     actual_x += [iteration]
     actual_y += [loss]
-    if (iteration, cores) in predicted_loss_data.keys():
+    if iteration in predicted_loss_data.keys():
       predicted_x += [iteration]
-      predicted_y += [predicted_loss_data[(iteration, cores)]]
+      predicted_y += [predicted_loss_data[iteration]]
     elif verbose:
-      print "Yikes, no corresponding predicted loss for iteration %s and %s cores" %\
-        (iteration, cores)
+      print "Yikes, no corresponding predicted loss for iteration %s" % iteration
   
   # What's the difference between the actual loss and the predicted loss?
   l2_differences = []
