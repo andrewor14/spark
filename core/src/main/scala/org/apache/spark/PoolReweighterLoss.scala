@@ -67,7 +67,7 @@ object PoolReweighterLoss extends Logging {
   private val CONF_PREFIX = "spark.approximation.predLoss"
   private val MIN_POINTS_FOR_PREDICTION = 5
 
-  def updateLoss(loss: Double): Unit = listener.synchronized {
+  def updateLoss(loss: Double): Unit = {
     val poolName = SparkContext.getOrCreate().getLocalProperty("spark.scheduler.pool")
     val bw = listener.currentWindows(poolName)
     bw.loss = loss
@@ -126,19 +126,18 @@ object PoolReweighterLoss extends Logging {
             logInfo(s"ANDREW: assigned $cores cores to pool $pool")
             sc.setPoolWeight(pool, cores)
           }
-          listener.synchronized {
-            pools.filter(_ != dummyPoolName).foreach { poolName =>
-              if (batchWindows.contains(poolName)) {
-                val iter = batchWindows(poolName).size
-                val cores = sc.getPoolWeight(poolName)
-                val numItersToPredict = sc.conf.getInt(s"$CONF_PREFIX.numIterations", 5)
-                val predictedLosses = predLoss(poolName, numItersToPredict)
-                predictedLosses.zipWithIndex.foreach { case (loss, i) =>
-                  logInfo(s"ANDREW(${iter + i}): $poolName " +
-                    s"(cores = $cores), " +
-                    s"(predict iter = $iter), " +
-                    s"(predicted loss = $loss)")
-                }
+
+          pools.filter(_ != dummyPoolName).foreach { poolName =>
+            if (batchWindows.contains(poolName)) {
+              val iter = batchWindows(poolName).size
+              val cores = sc.getPoolWeight(poolName)
+              val numItersToPredict = sc.conf.getInt(s"$CONF_PREFIX.numIterations", 5)
+              val predictedLosses = predLoss(poolName, numItersToPredict)
+              predictedLosses.zipWithIndex.foreach { case (loss, i) =>
+                logInfo(s"ANDREW(${iter + i}): $poolName " +
+                  s"(cores = $cores), " +
+                  s"(predict iter = $iter), " +
+                  s"(predicted loss = $loss)")
               }
             }
           }
