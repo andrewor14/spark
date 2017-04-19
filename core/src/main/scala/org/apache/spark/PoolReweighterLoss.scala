@@ -105,9 +105,10 @@ object PoolReweighterLoss extends Logging {
             pools.add(dummyPoolName)
             launchedDummyThread = true
           }
+          val rand = new scala.util.Random(15)
           // Give each pool random weights, normalized to total number of cores
           // Note that this only makes in local cluster mode
-          val weights = (1 to pools.size).map { _ => scala.util.Random.nextFloat() }
+          val weights = (1 to pools.size).map { _ => rand.nextFloat() }
           val numCores = weights.map { w =>
             scala.math.round((w / weights.sum) * totalCores)
           }.toArray
@@ -115,7 +116,7 @@ object PoolReweighterLoss extends Logging {
           if (numCores.sum < totalCores) {
             val remainingCores = totalCores - numCores.sum
             (1 to remainingCores).foreach { _ =>
-              numCores(scala.util.Random.nextInt(pools.size)) += 1
+              numCores(rand.nextInt(pools.size)) += 1
             }
           }
           assert(numCores.sum == totalCores)
