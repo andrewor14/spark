@@ -133,7 +133,7 @@ object PoolReweighterLoss extends Logging {
               val iter = batchWindows(poolName).size + 1
               val cores = sc.getPoolWeight(poolName)
               val numItersToPredict = sc.conf.getInt(s"$CONF_PREFIX.numIterations", 5)
-              val predictedLosses = predLoss(poolName, numItersToPredict)
+              val predictedLosses = predLoss(poolName, iter, numItersToPredict)
               predictedLosses.zipWithIndex.foreach { case (loss, i) =>
                 logInfo(s"ANDREW(${iter + i}): $poolName " +
                   s"(cores = $cores), " +
@@ -185,12 +185,18 @@ object PoolReweighterLoss extends Logging {
     isRunning = false
   }
 
-  private def predLoss(poolName: String, numItersToPredict: Int): Array[Double] = {
+  private def predLoss(
+      poolName: String,
+      currentIter: Int,
+      numItersToPredict: Int): Array[Double] = {
     val losses = batchWindows(poolName).map(_.loss).toArray
-    predLoss(losses, numItersToPredict)
+    predLoss(losses, currentIter, numItersToPredict)
   }
 
-  def predLoss(allLosses: Array[Double], numItersToPredict: Int): Array[Double] = {
+  def predLoss(
+      allLosses: Array[Double],
+      currentIter: Int,
+      numItersToPredict: Int): Array[Double] = {
     val conf = SparkContext.getOrCreate().getConf
     val strategy = conf.get(s"$CONF_PREFIX.strategy", AVG).toLowerCase
     val windowSize = conf.getInt(s"$CONF_PREFIX.windowSize", 100)
@@ -224,7 +230,6 @@ object PoolReweighterLoss extends Logging {
           .getConstructor().newInstance().asInstanceOf[LeastSquaresFunctionFitter[_]]
         val x = lossIndices.map(_.toDouble)
         val y = losses
-        val currentIter = allLosses.indices.last + 1
         fitter.fit(x, y, decay)
         logInfo("\n\n\n==========================================")
         logInfo(s"ANDREW predicting in iteration $currentIter")

@@ -39,6 +39,12 @@ class OneOverXSquaredFunctionFitter extends LeastSquaresFunctionFitter[OneOverXS
  */
 class OneOverXToTheKFunctionFitter extends LeastSquaresFunctionFitter[OneOverXToTheKFunction]
 
+/**
+ * Curve fitter that fits exp(-ax) + b to a series of points.
+ */
+class OneOverExponentialFunctionFitter
+  extends LeastSquaresFunctionFitter[OneOverExponentialFunction]
+
 
 /**
  * Generic curve fitter that minimizes least squares.

@@ -49,7 +49,7 @@ object BestCurveFitterEver {
         pw.write(s"ANDREW($iter): (actual loss = $actualLoss)\n")
         if (i > 2) {
           val thisWindow = y.take(i + 1).takeRight(MAX_LOSSES_PER_WINDOW)
-          val losses = PoolReweighterLoss.predLoss(thisWindow, numItersToPredict)
+          val losses = PoolReweighterLoss.predLoss(thisWindow, iter, numItersToPredict)
           losses.zipWithIndex.foreach { case (loss, j) =>
             pw.write(s"ANDREW(${iter + j + 1}): (predict iter = $iter) (predicted loss = $loss)\n")
           }

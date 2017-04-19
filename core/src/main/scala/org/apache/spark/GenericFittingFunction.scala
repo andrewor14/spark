@@ -98,6 +98,23 @@ class OneOverXToTheKFunction extends GenericFittingFunction(2) {
 
 
 /**
+ * Function that represents exp(-ax) + b.
+ */
+class OneOverExponentialFunction extends GenericFittingFunction(2) {
+
+  protected override def computeValue(x: Double, params: Seq[Double]): Double = {
+    val (a, b) = (params(0), params(1))
+    math.exp(-1 * a * x) + b
+  }
+
+  protected override def computeGradient(x: Double, params: Seq[Double]): Array[Double] = {
+    val (a, b) = (params(0), params(1))
+    Array[Double](-1 * x * math.exp(-1 * a * x), 1)
+  }
+}
+
+
+/**
  * Abstract fitting function that validates number of parameters before computing
  * the value or the gradient of the function.
  */
