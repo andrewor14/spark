@@ -26,73 +26,71 @@ import org.apache.commons.math3.analysis.ParametricUnivariateFunction
  */
 
 /**
- * Function that represents 1/(ax + b).
+ * Function that represents 1/(ax + b). Note that b is fixed.
  */
-class OneOverXFunction extends GenericFittingFunction(2) {
+class OneOverXFunction extends GenericFittingFunction(1) {
+  private val b = 1
 
-  private def denom(x: Double, a: Double, b: Double): Double = a * x + b
+  private def denom(x: Double, a: Double): Double = a * x + b
 
   protected override def computeValue(x: Double, params: Seq[Double]): Double = {
-    1 / denom(x, params(0), params(1))
+    1 / denom(x, params(0))
+  }
+
+  protected override def computeGradient(x: Double, params: Seq[Double]): Array[Double] = {
+    val a = params(0)
+    val denomSquared = math.pow(denom(x, a), 2)
+    Array[Double](-1 * x / denomSquared)
+  }
+
+}
+
+
+/**
+ * Function that represents 1/(a(x**2) + bx + c). Note that c is fixed.
+ */
+class OneOverXSquaredFunction extends GenericFittingFunction(2) {
+  private val c = 1
+
+  private def denom(x: Double, a: Double, b: Double): Double = {
+    a * math.pow(x, 2) + b * x + c
+  }
+
+  protected override def computeValue(x: Double, params: Seq[Double]): Double = {
+    val (a, b) = (params(0), params(1))
+    1 / denom(x, a, b)
   }
 
   protected override def computeGradient(x: Double, params: Seq[Double]): Array[Double] = {
     val (a, b) = (params(0), params(1))
     val denomSquared = math.pow(denom(x, a, b), 2)
-    Array[Double](-1 * x / denomSquared, -1 / denomSquared)
+    Array[Double](-1 * math.pow(x, 2) / denomSquared, -1 * x / denomSquared)
   }
 
 }
 
 
 /**
- * Function that represents 1/(a(x**2) + bx + c).
+ * Function that represents 1/(a(x**k) + b). Note that b is fixed.
  */
-class OneOverXSquaredFunction extends GenericFittingFunction(3) {
+class OneOverXToTheKFunction extends GenericFittingFunction(2) {
+  private val b = 1
 
-  private def denom(x: Double, a: Double, b: Double, c: Double): Double = {
-    a * math.pow(x, 2) + b * x + c
-  }
-
-  protected override def computeValue(x: Double, params: Seq[Double]): Double = {
-    val (a, b, c) = (params(0), params(1), params(2))
-    1 / denom(x, a, b, c)
-  }
-
-  protected override def computeGradient(x: Double, params: Seq[Double]): Array[Double] = {
-    val (a, b, c) = (params(0), params(1), params(2))
-    val denomSquared = math.pow(denom(x, a, b, c), 2)
-    Array[Double](
-      -1 * math.pow(x, 2) / denomSquared,
-      -1 * x / denomSquared,
-      -1 / denomSquared
-    )
-  }
-
-}
-
-
-/**
- * Function that represents 1/(a(x**k) + b).
- */
-class OneOverXToTheKFunction extends GenericFittingFunction(3) {
-
-  private def denom(x: Double, a: Double, b: Double, k: Double): Double = {
+  private def denom(x: Double, a: Double, k: Double): Double = {
     a * math.pow(x, k) + b
   }
 
   protected override def computeValue(x: Double, params: Seq[Double]): Double = {
-    val (a, b, k) = (params(0), params(1), params(2))
-    1 / denom(x, a, b, k)
+    val (a, k) = (params(0), params(1))
+    1 / denom(x, a, k)
   }
 
   protected override def computeGradient(x: Double, params: Seq[Double]): Array[Double] = {
-    val (a, b, k) = (params(0), params(1), params(2))
-    val denomSquared = math.pow(denom(x, a, b, k), 2)
+    val (a, k) = (params(0), params(1))
+    val denomSquared = math.pow(denom(x, a, k), 2)
     Array[Double](
       -1 * math.pow(x, k) / denomSquared,
-      -1 * a * math.pow(x, k) * math.log(x) / denomSquared,
-      -1 / denomSquared
+      -1 * a * math.pow(x, k) * math.log(x) / denomSquared
     )
   }
 
