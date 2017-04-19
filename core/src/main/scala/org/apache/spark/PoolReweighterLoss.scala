@@ -64,7 +64,7 @@ object PoolReweighterLoss extends Logging {
   @volatile private var isRunning = false
   private var launchedDummyThread = false
 
-  private val CONF_PREFIX = "spark.approximation.predLoss"
+  val CONF_PREFIX = "spark.approximation.predLoss"
   private val MIN_POINTS_FOR_PREDICTION = 5
 
   def updateLoss(loss: Double): Unit = {
@@ -186,13 +186,16 @@ object PoolReweighterLoss extends Logging {
   }
 
   private def predLoss(poolName: String, numItersToPredict: Int): Array[Double] = {
-    val bws = batchWindows(poolName)
+    val losses = batchWindows(poolName).map(_.loss).toArray
+    predLoss(losses, numItersToPredict)
+  }
+
+  def predLoss(allLosses: Array[Double], numItersToPredict: Int): Array[Double] = {
     val conf = SparkContext.getOrCreate().getConf
     val strategy = conf.get(s"$CONF_PREFIX.strategy", AVG).toLowerCase
     val windowSize = conf.getInt(s"$CONF_PREFIX.windowSize", 100)
-    val lossWithIndex =
-      bws.zipWithIndex.map { case (bw, i) => (i, bw.loss) }.takeRight(windowSize).toArray
-    val (lossIndices, losses) = lossWithIndex.unzip
+    val losses = allLosses.takeRight(windowSize)
+    val lossIndices = allLosses.indices.takeRight(windowSize).toArray
     if (losses.length <= MIN_POINTS_FOR_PREDICTION) {
       return Array.empty[Double]
     }
@@ -204,7 +207,7 @@ object PoolReweighterLoss extends Logging {
     val predictedLosses = strategy match {
       case AVG =>
         val avgDelta = if (deltas.nonEmpty) deltas.sum / deltas.length else 0
-        (1 to numItersToPredict).map { i => bws.last.loss + i * avgDelta }.toArray
+        (1 to numItersToPredict).map { i => losses.last + i * avgDelta }.toArray
       case EWMA =>
         // Take the exponentially weighted moving average of all the deltas
         val alpha = conf.getDouble(s"$CONF_PREFIX.$EWMA.alpha", 0.75)
@@ -212,7 +215,7 @@ object PoolReweighterLoss extends Logging {
         deltas.tail.foreach { d =>
           avgDelta = alpha * avgDelta + (1 - alpha) * d
         }
-        (1 to numItersToPredict).map { i => bws.last.loss + i * avgDelta }.toArray
+        (1 to numItersToPredict).map { i => losses.last + i * avgDelta }.toArray
       case CF =>
         // Use a fitted curve to predict the value of the next data point
         val decay = conf.getDouble(s"$CONF_PREFIX.$CF.decay", 0.75)
@@ -221,7 +224,7 @@ object PoolReweighterLoss extends Logging {
           .getConstructor().newInstance().asInstanceOf[LeastSquaresFunctionFitter[_]]
         val x = lossIndices.map(_.toDouble)
         val y = losses
-        val currentIter = x.last + 1
+        val currentIter = allLosses.indices.last + 1
         fitter.fit(x, y, decay)
         logInfo("\n\n\n==========================================")
         logInfo(s"ANDREW predicting in iteration $currentIter")
