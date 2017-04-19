@@ -24,24 +24,9 @@ import org.apache.commons.math3.fitting.leastsquares.{LeastSquaresBuilder, Least
 import org.apache.commons.math3.linear.DiagonalMatrix
 
 
-/**
- * Curve fitter that fits 1/(ax + b) to a series of points.
- */
 class OneOverXFunctionFitter extends LeastSquaresFunctionFitter[OneOverXFunction]
-
-/**
- * Curve fitter that fits 1/(a(x**2) + bx + c) to a series of points.
- */
 class OneOverXSquaredFunctionFitter extends LeastSquaresFunctionFitter[OneOverXSquaredFunction]
-
-/**
- * Curve fitter that fits 1/(a(x**k) + b) to a series of points.
- */
 class OneOverXToTheKFunctionFitter extends LeastSquaresFunctionFitter[OneOverXToTheKFunction]
-
-/**
- * Curve fitter that fits exp(-ax) + b to a series of points.
- */
 class OneOverExponentialFunctionFitter
   extends LeastSquaresFunctionFitter[OneOverExponentialFunction]
 
