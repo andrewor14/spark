@@ -20,17 +20,20 @@ def get_data(path):
 
 def main():
   args = sys.argv
-  if len(args) != 2:
+  if len(args) != 5:
     print "Expected base dir."
     sys.exit(1)
   base_dir = args[1]
+  naive_path = join(base_dir, args[2])
+  one_over_x_squared_path = join(base_dir, args[3])
+  one_over_x_squared_weighted_path = join(base_dir, args[4])
   indices = np.arange(3)
   width = 0.2
   fig, ax = plt.subplots()
   empty = [0, 0, 0]
-  naive = get_data(join(base_dir, "sim_mlpc_avg_1.log"))
-  one_over_x_squared = get_data(join(base_dir, "sim_mlpc_cf_OneOverXSquaredFunctionFitter_1.log"))
-  one_over_x_squared_weighted = get_data(join(base_dir, "sim_mlpc_cf_OneOverXSquaredFunctionFitter_0.5.log"))
+  naive = get_data(naive_path)
+  one_over_x_squared = get_data(one_over_x_squared_path)
+  one_over_x_squared_weighted = get_data(one_over_x_squared_weighted_path)
   rects0 = ax.bar(indices, empty, width)
   rects1 = ax.bar(indices + width, naive, width, color="r")
   rects2 = ax.bar(indices + 2 * width, one_over_x_squared, width, color="m")
