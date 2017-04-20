@@ -18,19 +18,28 @@ def main():
   if len(args) == 2:
     log_file_path = args[1]
     if os.path.isfile(log_file_path):
-      do_the_thing(log_file_path)
+      out_file_path = log_file_path.replace("log", "png")
+      do_the_thing(out_file_path, log_file_path)
     elif os.path.isdir(log_file_path):
-      for f in os.listdir(log_file_path):
+      base_dir = log_file_path
+      for f in os.listdir(base_dir):
         if f.endswith(".log"):
-          do_the_thing(f)
+          log_file_path = os.path.join(base_dir, f)
+          out_file_path = log_file_path.replace("log", "png")
+          do_the_thing(out_file_path, log_file_path)
   # User supplied more than one log file. Plot them all on the same graph.
+  # Note that first argument is the output file path.
   elif len(args) > 2:
-    do_the_thing(*args[1:])
+    base_dir = args[1]
+    log_file_paths = [os.path.join(base_dir, f) for f in args[2:]]
+    out_file_path = os.path.join(base_dir, "prediction.png")
+    do_the_thing(out_file_path, *log_file_paths)
   else:
     print "Expected log file."
     sys.exit(1)
 
-def do_the_thing(*log_file_paths):
+def do_the_thing(out_file_path, *log_file_paths):
+  assert len(log_file_paths) > 0
   actual_x = []
   actual_y = []
   fig = plt.figure()
@@ -59,18 +68,17 @@ def do_the_thing(*log_file_paths):
   plt.legend(prop={'size':12})
   if len(log_file_paths) == 1:
     ax.set_title(log_file_paths[0], y = 1.04)
-    plt.savefig(log_file_paths[0].replace("log", "png"))
   else:
     ax.set_title(\
       "MLPC loss prediction (%s iterations in advance)" % predicted_n_iterations_ago,\
       y = 1.04)
-    plt.savefig("prediction.png")
+  plt.savefig(out_file_path)
 
 def translate_name(name):
   if "avg_1" in name:
     return "naive"
   elif "cf" in name:
-    decay = float(re.match("sim_mlpc_cf_.*_(.*).log", name).groups()[0])
+    decay = float(re.match(".*sim_mlpc_cf_.*_(.*).log", name).groups()[0])
     maybe_weighted = " weighted" if decay < 1 else ""
     return "1 / x^2" + maybe_weighted
   else:

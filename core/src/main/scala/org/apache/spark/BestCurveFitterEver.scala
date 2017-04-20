@@ -23,24 +23,20 @@ import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 
 object BestCurveFitterEver {
-  private var x: Array[Double] = _
   private var y: Array[Double] = _
   private val MAX_LOSSES_PER_WINDOW = 100
 
   def readData(inPath: String): Unit = {
     val lines = Source.fromFile(inPath).getLines()
-    val xx = new ArrayBuffer[Double]
     val yy = new ArrayBuffer[Double]
     lines.foreach { l =>
-      xx += l.split(" ")(0).toDouble
-      yy += l.split(" ")(1).toDouble
+      yy += l.trim().toDouble
     }
-    x = xx.toArray
     y = yy.toArray
   }
 
   def doTheThing(outPath: String, numItersToPredict: Int = 5): Unit = {
-    assert(x != null && y != null, "no data yet, sorry")
+    assert(y != null, "no data yet, sorry")
     val pw = new PrintWriter(new File(outPath))
     try {
       y.indices.foreach { i =>

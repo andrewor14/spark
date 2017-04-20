@@ -199,12 +199,12 @@ object PoolReweighterLoss extends Logging {
       numItersToPredict: Int): Array[Double] = {
     val conf = SparkContext.getOrCreate().getConf
     val strategy = conf.get(s"$CONF_PREFIX.strategy", AVG).toLowerCase
-    val windowSize = conf.getInt(s"$CONF_PREFIX.windowSize", 100)
-    val losses = allLosses.takeRight(windowSize)
-    val lossIndices = allLosses.indices.takeRight(windowSize).toArray
-    if (losses.length <= MIN_POINTS_FOR_PREDICTION) {
+    val windowSize = math.max(conf.getInt(s"$CONF_PREFIX.windowSize", 100), 2)
+    if (allLosses.length <= MIN_POINTS_FOR_PREDICTION) {
       return Array.empty[Double]
     }
+    val losses = allLosses.takeRight(windowSize)
+    val lossIndices = allLosses.indices.takeRight(windowSize).toArray
     val deltas = losses.zip(losses.tail).map { case (first, second) => second - first }
     val positiveDeltas = deltas.filter(_ > 0)
     if (positiveDeltas.nonEmpty) {
