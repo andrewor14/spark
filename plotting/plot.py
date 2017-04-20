@@ -9,41 +9,76 @@ import sys
 
 
 verbose = False
+min_iteration_for_prediction = 2
+predicted_n_iterations_ago = 10
 
 def main():
   args = sys.argv
-  if len(args) != 2:
+  # User supplied exactly 1 log file / directory
+  if len(args) == 2:
+    log_file_path = args[1]
+    if os.path.isfile(log_file_path):
+      do_the_thing(log_file_path)
+    elif os.path.isdir(log_file_path):
+      for f in os.listdir(log_file_path):
+        if f.endswith(".log"):
+          do_the_thing(f)
+  # User supplied more than one log file. Plot them all on the same graph.
+  elif len(args) > 2:
+    do_the_thing(*args[1:])
+  else:
     print "Expected log file."
     sys.exit(1)
-  log_file_path = args[1]
-  if os.path.isfile(log_file_path):
-    do_the_thing(log_file_path)
-  elif os.path.isdir(log_file_path):
-    for f in os.listdir(log_file_path):
-      if f.endswith(".log"):
-        do_the_thing(f)
 
-def do_the_thing(log_file_path):
-  (actual_x, actual_y, predicted_x, predicted_y) = parse_losses(log_file_path)
-  l2_norm = calculate_l2_norm(actual_x, actual_y, predicted_x, predicted_y)
-  print "L2 norm for %s: %s" % (log_file_path, l2_norm)
-
-  # Plot it!
+def do_the_thing(*log_file_paths):
+  actual_x = []
+  actual_y = []
   fig = plt.figure()
   ax = fig.add_subplot(1, 1, 1)
-  ax.plot(actual_x, actual_y, label="actual")
-  ax.plot(predicted_x, predicted_y, label="predicted")
   ax.set_xlabel("Iteration")
   ax.set_ylabel("Loss")
-  ax.set_title(log_file_path)
-  ax.text(10, 0.8, "L2 norm: %s" % l2_norm)
-  plt.legend()
-  plt.savefig(log_file_path.replace("log", "png"))
+  ax.set_color_cycle(['b', 'g', 'c', 'r'])
+
+  # Plot the actual and predicted losses
+  for path in log_file_paths:
+    (my_actual_x, my_actual_y, predicted_x, predicted_y) = parse_losses(path)
+    if not actual_x and not actual_y:
+      actual_x = my_actual_x
+      actual_y = my_actual_y
+      ax.plot(actual_x, actual_y, label="actual", linewidth=3.0)
+    else:
+      assert actual_x == my_actual_x
+      assert actual_y == my_actual_y,\
+        "first actual_y = %s,\nmy_actual_y = %s" % (actual_y, my_actual_y)
+    l2_norm = calculate_l2_norm(actual_x, actual_y, predicted_x, predicted_y)
+    name = translate_name(path)
+    ax.plot(predicted_x, predicted_y, label="%s, L2 norm = %.3f" % (name, l2_norm))
+    print "L2 norm for %s: %s" % (path, l2_norm)
+
+  plt.legend(prop={'size':12})
+  if len(log_file_paths) == 1:
+    ax.set_title(log_file_paths[0], y = 1.04)
+    plt.savefig(log_file_paths[0].replace("log", "png"))
+  else:
+    ax.set_title(\
+      "MLPC loss prediction (%s iterations in advance)" % predicted_n_iterations_ago,\
+      y = 1.04)
+    plt.savefig("prediction.png")
+
+def translate_name(name):
+  if "avg_1" in name:
+    return "naive"
+  elif "cf" in name:
+    decay = float(re.match("sim_mlpc_cf_.*_(.*).log", name).groups()[0])
+    maybe_weighted = " weighted" if decay < 1 else ""
+    return "1 / x^2" + maybe_weighted
+  else:
+    return name
 
 def parse_losses(log_file_path):
-   # Parse actual and predicted losses from log
+  # Parse actual and predicted losses from log
   actual_loss_data = {} # iteration -> loss
-  predicted_loss_data = {} # iteration -> loss
+  predicted_loss_data = {} # iteration -> list of losses, ordered by time first seen
   with open(log_file_path) as f:
     cool_lines = [line for line in f.readlines() if "ANDREW" in line and "loss = " in line]
     for line in cool_lines:
@@ -55,8 +90,10 @@ def parse_losses(log_file_path):
           actual_loss_data[iteration] = loss
       elif "predicted" in line:
         # Take the first prediction for this iteration
-        if iteration not in predicted_loss_data and iteration > 10:
-          predicted_loss_data[iteration] = loss
+        if iteration >= min_iteration_for_prediction:
+          if iteration not in predicted_loss_data:
+            predicted_loss_data[iteration] = []
+          predicted_loss_data[iteration] += [loss]
       else:
         print "Yikes, bad line:\n\t%s" % line
 
@@ -71,7 +108,9 @@ def parse_losses(log_file_path):
     actual_y += [loss]
     if iteration in predicted_loss_data.keys():
       predicted_x += [iteration]
-      predicted_y += [predicted_loss_data[iteration]]
+      predicted_losses = list(reversed(predicted_loss_data[iteration]))
+      index = min(predicted_n_iterations_ago - 1, len(predicted_losses) - 1)
+      predicted_y += [predicted_losses[index]]
     elif verbose:
       print "Yikes, no corresponding predicted loss for iteration %s" % iteration
 

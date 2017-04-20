@@ -69,7 +69,7 @@ object BestCurveFitterEver {
     val sc = SparkContext.getOrCreate()
     val numItersToPredict = sc.conf.getInt(s"${PoolReweighterLoss.CONF_PREFIX}.numIterations", 5)
     readData(inputPath)
-    doTheThing(outputPath)
+    doTheThing(outputPath, numItersToPredict)
   }
 
 }

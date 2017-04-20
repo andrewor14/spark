@@ -19,5 +19,5 @@ elif [ "$strategy" == "ewma" ]; then
   log_file_name=sim_mlpc_"$strategy"_"$alpha"
 fi
 
-bin/spark-submit --conf spark.approximation.predLoss.strategy="$strategy" $extra_conf --class org.apache.spark.BestCurveFitterEver my.jar plotting/actual_losses.txt plotting/"$log_file_name".log &> plotting/"$log_file_name".loglog
+bin/spark-submit --conf spark.approximation.predLoss.strategy="$strategy" --conf spark.approximation.predLoss.numIterations=10 $extra_conf --class org.apache.spark.BestCurveFitterEver my.jar plotting/actual_losses.txt plotting/"$log_file_name".log &> plotting/"$log_file_name".loglog
 
