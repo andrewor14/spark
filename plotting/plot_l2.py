@@ -37,7 +37,7 @@ def main():
   rects3 = ax.bar(indices + 3 * width, one_over_x_squared_weighted, width, color="b")
   ax.set_ylabel("Prediction error L2 norm")
   ax.set_xlabel("Number of iterations predicted in advance")
-  ax.set_title("MLPC loss prediction error", y = 1.04)
+  ax.set_title("%s loss prediction error" % base_dir.split("/")[-1], y = 1.04)
   ax.set_xticks(indices + width * 2.5)
   ax.set_xticklabels(("1", "5", "10"))
   ax.legend(\

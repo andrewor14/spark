@@ -18,30 +18,26 @@ def main():
   if len(args) == 2:
     log_file_path = args[1]
     if os.path.isfile(log_file_path):
-      out_file_path = log_file_path.replace("log", "png")
-      do_the_thing(out_file_path, log_file_path)
+      do_the_thing(".", log_file_path)
     elif os.path.isdir(log_file_path):
       base_dir = log_file_path
       for f in os.listdir(base_dir):
         if f.endswith(".log"):
-          log_file_path = os.path.join(base_dir, f)
-          out_file_path = log_file_path.replace("log", "png")
-          do_the_thing(out_file_path, log_file_path)
+          do_the_thing(base_dir, f)
   # User supplied more than one log file. Plot them all on the same graph.
   # Note that first argument is the output file path.
   elif len(args) > 2:
-    base_dir = args[1]
-    log_file_paths = [os.path.join(base_dir, f) for f in args[2:]]
-    out_file_path = os.path.join(base_dir, "prediction.png")
-    do_the_thing(out_file_path, *log_file_paths)
+    do_the_thing(args[1], *args[2:])
   else:
     print "Expected log file."
     sys.exit(1)
 
-def do_the_thing(out_file_path, *log_file_paths):
+def do_the_thing(base_dir, *log_file_paths):
   assert len(log_file_paths) > 0
+  log_file_paths = [os.path.join(base_dir, f) for f in log_file_paths]
   actual_x = []
   actual_y = []
+  out_file_path = None
   fig = plt.figure()
   ax = fig.add_subplot(1, 1, 1)
   ax.set_xlabel("Iteration")
@@ -67,11 +63,13 @@ def do_the_thing(out_file_path, *log_file_paths):
 
   plt.legend(prop={'size':12})
   if len(log_file_paths) == 1:
+    out_file_path = os.path.join(base_dir, log_file_paths[0].replace("log", "png"))
     ax.set_title(log_file_paths[0], y = 1.04)
   else:
-    ax.set_title(\
-      "MLPC loss prediction (%s iterations in advance)" % predicted_n_iterations_ago,\
-      y = 1.04)
+    out_file_path = os.path.join(base_dir, "prediction.png")
+    experiment_name = base_dir.split("/")[-1]
+    ax.set_title("%s loss prediction (%s iterations in advance)" %\
+      (experiment_name, predicted_n_iterations_ago), y = 1.04)
   plt.savefig(out_file_path)
 
 def translate_name(name):
