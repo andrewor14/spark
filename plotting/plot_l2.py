@@ -25,19 +25,19 @@ def main():
     sys.exit(1)
   base_dir = args[1]
   naive_path = join(base_dir, args[2])
-  one_over_x_squared_path = join(base_dir, args[3])
-  one_over_x_squared_weighted_path = join(base_dir, args[4])
+  curve_fitting_path = join(base_dir, args[3])
+  curve_fitting_weighted_path = join(base_dir, args[4])
   indices = np.arange(3)
   width = 0.2
   fig, ax = plt.subplots()
   empty = [0, 0, 0]
   naive = get_data(naive_path)
-  one_over_x_squared = get_data(one_over_x_squared_path)
-  one_over_x_squared_weighted = get_data(one_over_x_squared_weighted_path)
+  curve_fitting = get_data(curve_fitting_path)
+  curve_fitting_weighted = get_data(curve_fitting_weighted_path)
   rects0 = ax.bar(indices, empty, width)
   rects1 = ax.bar(indices + width, naive, width, color="r")
-  rects2 = ax.bar(indices + 2 * width, one_over_x_squared, width, color="m")
-  rects3 = ax.bar(indices + 3 * width, one_over_x_squared_weighted, width, color="b")
+  rects2 = ax.bar(indices + 2 * width, curve_fitting, width, color="m")
+  rects3 = ax.bar(indices + 3 * width, curve_fitting_weighted, width, color="b")
   ax.set_ylabel("Prediction error L2 norm")
   ax.set_xlabel("Number of iterations predicted in advance")
   ax.set_title("%s loss prediction error" % base_dir.split("/")[-1], y = 1.04)
@@ -45,10 +45,11 @@ def main():
   ax.set_xticklabels(("1", "5", "10"))
   ax.legend(\
     (rects1[0], rects2[0], rects3[0]),\
-    ("naive", "1 / x^2", "1 / x^2 weighted"),\
+    ("naive", translate_legend(curve_fitting_path), translate_legend(curve_fitting_weighted_path)),\
     prop = {"size": 12},\
     loc = "upper left")
-  plt.savefig(join(base_dir, "prediction_error.png"))
+  suffix = out_file_suffix(curve_fitting_path)
+  plt.savefig(join(base_dir, "prediction_error%s.png" % suffix))
 
 if __name__ == "__main__":
   main()

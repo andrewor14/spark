@@ -57,7 +57,7 @@ def do_the_thing(base_dir, *log_file_paths):
       assert actual_y == my_actual_y,\
         "first actual_y = %s,\nmy_actual_y = %s" % (actual_y, my_actual_y)
     l2_norm = calculate_l2_norm(actual_x, actual_y, predicted_x, predicted_y)
-    name = translate_name(path)
+    name = translate_legend(path)
     ax.plot(predicted_x, predicted_y, label="%s, L2 norm = %.3f" % (name, l2_norm))
     print "L2 norm for %s: %s" % (path, l2_norm)
 
@@ -66,21 +66,32 @@ def do_the_thing(base_dir, *log_file_paths):
     out_file_path = os.path.join(base_dir, log_file_paths[0].replace("log", "png"))
     ax.set_title(log_file_paths[0], y = 1.04)
   else:
-    out_file_path = os.path.join(base_dir, "prediction.png")
+    suffix = out_file_suffix(log_file_paths[-1])
+    out_file_path = os.path.join(base_dir, "prediction%s.png" % suffix)
     experiment_name = base_dir.split("/")[-1]
     ax.set_title("%s loss prediction (%s iterations in advance)" %\
       (experiment_name, predicted_n_iterations_ago), y = 1.04)
   plt.savefig(out_file_path)
 
-def translate_name(name):
+def translate_legend(name):
   if "avg_1" in name:
     return "naive"
   elif "cf" in name:
+    func = "curve fitting"
+    if "OneOverXFunctionFitter" in name: func = "1 / x"
+    if "OneOverXSquaredFunctionFitter" in name: func = "1 / x^2"
+    if "OneOverExponentialFunctionFitter" in name: func = "exp(-x)"
     decay = float(re.match(".*sim_mlpc_cf_.*_(.*).log", name).groups()[0])
     maybe_weighted = " weighted" if decay < 1 else ""
-    return "1 / x^2" + maybe_weighted
+    return func + maybe_weighted
   else:
     return name
+
+def out_file_suffix(name):
+  if "OneOverXFunctionFitter" in name: return "_one_over_x"
+  if "OneOverXSquaredFunctionFitter" in name: return "_one_over_x_squared"
+  if "OneOverExponentialFunctionFitter" in name: return "_one_over_exponential"
+  return ""
 
 def parse_losses(log_file_path, predicted_n_iterations_ago):
   # Parse actual and predicted losses from log
