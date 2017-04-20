@@ -1,161 +1,161 @@
 Using Spark's default log4j profile: org/apache/spark/log4j-defaults.properties
-17/04/20 03:56:31 INFO SparkContext: Running Spark version 2.1.0
-17/04/20 03:56:31 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
-17/04/20 03:56:31 WARN Utils: Your hostname, sns61 resolves to a loopback address: 127.0.1.1; using 128.112.7.138 instead (on interface eth0)
-17/04/20 03:56:31 WARN Utils: Set SPARK_LOCAL_IP if you need to bind to another address
-17/04/20 03:56:31 INFO SecurityManager: Changing view acls to: andrewor
-17/04/20 03:56:31 INFO SecurityManager: Changing modify acls to: andrewor
-17/04/20 03:56:31 INFO SecurityManager: Changing view acls groups to: 
-17/04/20 03:56:31 INFO SecurityManager: Changing modify acls groups to: 
-17/04/20 03:56:31 INFO SecurityManager: SecurityManager: authentication disabled; ui acls disabled; users  with view permissions: Set(andrewor); groups with view permissions: Set(); users  with modify permissions: Set(andrewor); groups with modify permissions: Set()
-17/04/20 03:56:31 INFO Utils: Successfully started service 'sparkDriver' on port 33706.
-17/04/20 03:56:31 INFO SparkEnv: Registering MapOutputTracker
-17/04/20 03:56:31 INFO SparkEnv: Registering BlockManagerMaster
-17/04/20 03:56:31 INFO BlockManagerMasterEndpoint: Using org.apache.spark.storage.DefaultTopologyMapper for getting topology information
-17/04/20 03:56:31 INFO BlockManagerMasterEndpoint: BlockManagerMasterEndpoint up
-17/04/20 03:56:31 INFO DiskBlockManager: Created local directory at /tmp/blockmgr-c25deebb-10e2-403b-975c-d54de5b0065e
-17/04/20 03:56:31 INFO MemoryStore: MemoryStore started with capacity 399.6 MB
-17/04/20 03:56:31 INFO SparkEnv: Registering OutputCommitCoordinator
-17/04/20 03:56:31 INFO log: Logging initialized @1345ms
-17/04/20 03:56:32 INFO Server: jetty-9.2.16.v20160414
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@72ea6193{/jobs,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@31aa3ca5{/jobs/json,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@45905bff{/jobs/job,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@2a2c13a8{/jobs/job/json,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@b6b1987{/stages,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@6b44435b{/stages/json,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@2ccca26f{/stages/stage,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@66b7550d{/stages/stage/json,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3543df7d{/stages/pool,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@7c541c15{/stages/pool/json,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3542162a{/storage,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@698122b2{/storage/json,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@4212a0c8{/storage/rdd,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@1e7aa82b{/storage/rdd/json,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3b2c0e88{/environment,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@5bd82fed{/environment/json,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@c1bd0be{/executors,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@476b0ae6{/executors/json,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@1c6804cd{/executors/threadDump,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@655f7ea{/executors/threadDump/json,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@549949be{/static,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@4b3a45f1{/,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@17a87e37{/api,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3eeb318f{/jobs/job/kill,null,AVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@20a14b55{/stages/stage/kill,null,AVAILABLE}
-17/04/20 03:56:32 INFO ServerConnector: Started ServerConnector@1698fc68{HTTP/1.1}{0.0.0.0:4040}
-17/04/20 03:56:32 INFO Server: Started @1467ms
-17/04/20 03:56:32 INFO Utils: Successfully started service 'SparkUI' on port 4040.
-17/04/20 03:56:32 INFO SparkUI: Bound SparkUI to 0.0.0.0, and started at http://128.112.7.138:4040
-17/04/20 03:56:32 INFO SparkContext: Added JAR file:/disk/local/disk1/andrew/spark/my.jar at spark://128.112.7.138:33706/jars/my.jar with timestamp 1492674992145
-17/04/20 03:56:32 INFO Executor: Starting executor ID driver on host localhost
-17/04/20 03:56:32 INFO Utils: Successfully started service 'org.apache.spark.network.netty.NettyBlockTransferService' on port 34296.
-17/04/20 03:56:32 INFO NettyBlockTransferService: Server created on 128.112.7.138:34296
-17/04/20 03:56:32 INFO BlockManager: Using org.apache.spark.storage.RandomBlockReplicationPolicy for block replication policy
-17/04/20 03:56:32 INFO BlockManagerMaster: Registering BlockManager BlockManagerId(driver, 128.112.7.138, 34296, None)
-17/04/20 03:56:32 INFO BlockManagerMasterEndpoint: Registering block manager 128.112.7.138:34296 with 399.6 MB RAM, BlockManagerId(driver, 128.112.7.138, 34296, None)
-17/04/20 03:56:32 INFO BlockManagerMaster: Registered BlockManager BlockManagerId(driver, 128.112.7.138, 34296, None)
-17/04/20 03:56:32 INFO BlockManager: Initialized BlockManager: BlockManagerId(driver, 128.112.7.138, 34296, None)
-17/04/20 03:56:32 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@352c308{/metrics/json,null,AVAILABLE}
-17/04/20 03:56:32 INFO EventLoggingListener: Logging events to file:/tmp/spark-events/local-1492674992174
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 4.5731503632850945E-5
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 2.24602990783751E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 2.2829546651337296E-5
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 9.881194273475558E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 5.3347175708040595E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 8.501549018546939E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 6.039666914148256E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 7.442806236213073E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 5.879293894395232E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 3.18965976475738E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 3.659555659396574E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 3.599183401092887E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 2.723572833929211E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 5.62875356990844E-7
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 3.5525117709767073E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 6.264854164328426E-7
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.7379534256178886E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.3628850865643471E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 2.703825884964317E-6
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 6.031950761098415E-7
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 9.215109457727522E-7
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.1273004929535091E-7
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 6.516456778626889E-7
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 2.4955079425126314E-7
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 3.7971040001139045E-7
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 7.928611012175679E-8
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.5372643247246742E-7
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.8950231606140733E-8
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.4317265595309436E-7
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 6.039044819772243E-8
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 4.96511347591877E-8
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 2.597516868263483E-8
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.0721123544499278E-8
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.9779690774157643E-8
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 3.812237991951406E-8
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.5363184502348304E-8
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.212538336403668E-8
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 3.0231603886932135E-9
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 8.694769348949194E-9
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 2.190063241869211E-9
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 9.840732673183084E-9
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 3.5142875276505947E-9
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.7589627532288432E-8
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 2.0081643015146255E-9
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 4.747562343254685E-9
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 4.511093720793724E-10
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 2.521119313314557E-9
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.9972503650933504E-9
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 8.512870408594608E-10
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.229636836796999E-9
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 4.729372449219227E-10
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 4.0745362639427185E-10
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.8189894035458565E-10
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 4.001776687800884E-11
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 2.1100277081131935E-10
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.673470251262188E-10
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.8189894035458565E-11
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.6007106751203537E-10
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 8.36735125631094E-11
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 2.9103830456733704E-10
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 4.729372449219227E-11
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 5.4569682106375694E-11
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 1.0913936421275139E-11
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 5.4569682106375694E-11
-17/04/20 03:56:32 WARN PoolReweighterLoss: Some delta losses were positive: 7.275957614183426E-12
-17/04/20 03:56:32 INFO SparkContext: Invoking stop() from shutdown hook
-17/04/20 03:56:32 INFO ServerConnector: Stopped ServerConnector@1698fc68{HTTP/1.1}{0.0.0.0:4040}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@20a14b55{/stages/stage/kill,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3eeb318f{/jobs/job/kill,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@17a87e37{/api,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@4b3a45f1{/,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@549949be{/static,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@655f7ea{/executors/threadDump/json,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@1c6804cd{/executors/threadDump,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@476b0ae6{/executors/json,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@c1bd0be{/executors,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@5bd82fed{/environment/json,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3b2c0e88{/environment,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@1e7aa82b{/storage/rdd/json,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@4212a0c8{/storage/rdd,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@698122b2{/storage/json,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3542162a{/storage,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@7c541c15{/stages/pool/json,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3543df7d{/stages/pool,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@66b7550d{/stages/stage/json,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@2ccca26f{/stages/stage,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@6b44435b{/stages/json,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@b6b1987{/stages,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@2a2c13a8{/jobs/job/json,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@45905bff{/jobs/job,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@31aa3ca5{/jobs/json,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@72ea6193{/jobs,null,UNAVAILABLE}
-17/04/20 03:56:32 INFO SparkUI: Stopped Spark web UI at http://128.112.7.138:4040
-17/04/20 03:56:32 INFO MapOutputTrackerMasterEndpoint: MapOutputTrackerMasterEndpoint stopped!
-17/04/20 03:56:32 INFO MemoryStore: MemoryStore cleared
-17/04/20 03:56:32 INFO BlockManager: BlockManager stopped
-17/04/20 03:56:32 INFO BlockManagerMaster: BlockManagerMaster stopped
-17/04/20 03:56:32 INFO OutputCommitCoordinator$OutputCommitCoordinatorEndpoint: OutputCommitCoordinator stopped!
-17/04/20 03:56:32 INFO SparkContext: Successfully stopped SparkContext
-17/04/20 03:56:32 INFO ShutdownHookManager: Shutdown hook called
-17/04/20 03:56:32 INFO ShutdownHookManager: Deleting directory /tmp/spark-eb8d7abe-f1ec-4308-981d-6264d7ee26ef
+17/04/20 12:22:15 INFO SparkContext: Running Spark version 2.1.0
+17/04/20 12:22:15 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+17/04/20 12:22:15 WARN Utils: Your hostname, sns61 resolves to a loopback address: 127.0.1.1; using 128.112.7.138 instead (on interface eth0)
+17/04/20 12:22:15 WARN Utils: Set SPARK_LOCAL_IP if you need to bind to another address
+17/04/20 12:22:15 INFO SecurityManager: Changing view acls to: andrewor
+17/04/20 12:22:15 INFO SecurityManager: Changing modify acls to: andrewor
+17/04/20 12:22:15 INFO SecurityManager: Changing view acls groups to: 
+17/04/20 12:22:15 INFO SecurityManager: Changing modify acls groups to: 
+17/04/20 12:22:15 INFO SecurityManager: SecurityManager: authentication disabled; ui acls disabled; users  with view permissions: Set(andrewor); groups with view permissions: Set(); users  with modify permissions: Set(andrewor); groups with modify permissions: Set()
+17/04/20 12:22:16 INFO Utils: Successfully started service 'sparkDriver' on port 60421.
+17/04/20 12:22:16 INFO SparkEnv: Registering MapOutputTracker
+17/04/20 12:22:16 INFO SparkEnv: Registering BlockManagerMaster
+17/04/20 12:22:16 INFO BlockManagerMasterEndpoint: Using org.apache.spark.storage.DefaultTopologyMapper for getting topology information
+17/04/20 12:22:16 INFO BlockManagerMasterEndpoint: BlockManagerMasterEndpoint up
+17/04/20 12:22:16 INFO DiskBlockManager: Created local directory at /tmp/blockmgr-1eaf01a3-3982-4609-8d13-4cf0e9bac543
+17/04/20 12:22:16 INFO MemoryStore: MemoryStore started with capacity 399.6 MB
+17/04/20 12:22:16 INFO SparkEnv: Registering OutputCommitCoordinator
+17/04/20 12:22:16 INFO log: Logging initialized @1325ms
+17/04/20 12:22:16 INFO Server: jetty-9.2.16.v20160414
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@72ea6193{/jobs,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@31aa3ca5{/jobs/json,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@45905bff{/jobs/job,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@2a2c13a8{/jobs/job/json,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@b6b1987{/stages,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@6b44435b{/stages/json,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@2ccca26f{/stages/stage,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@66b7550d{/stages/stage/json,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3543df7d{/stages/pool,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@7c541c15{/stages/pool/json,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3542162a{/storage,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@698122b2{/storage/json,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@4212a0c8{/storage/rdd,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@1e7aa82b{/storage/rdd/json,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3b2c0e88{/environment,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@5bd82fed{/environment/json,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@c1bd0be{/executors,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@476b0ae6{/executors/json,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@1c6804cd{/executors/threadDump,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@655f7ea{/executors/threadDump/json,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@549949be{/static,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@4b3a45f1{/,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@17a87e37{/api,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3eeb318f{/jobs/job/kill,null,AVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@20a14b55{/stages/stage/kill,null,AVAILABLE}
+17/04/20 12:22:16 INFO ServerConnector: Started ServerConnector@1698fc68{HTTP/1.1}{0.0.0.0:4040}
+17/04/20 12:22:16 INFO Server: Started @1440ms
+17/04/20 12:22:16 INFO Utils: Successfully started service 'SparkUI' on port 4040.
+17/04/20 12:22:16 INFO SparkUI: Bound SparkUI to 0.0.0.0, and started at http://128.112.7.138:4040
+17/04/20 12:22:16 INFO SparkContext: Added JAR file:/disk/local/disk1/andrew/spark/my.jar at spark://128.112.7.138:60421/jars/my.jar with timestamp 1492705336398
+17/04/20 12:22:16 INFO Executor: Starting executor ID driver on host localhost
+17/04/20 12:22:16 INFO Utils: Successfully started service 'org.apache.spark.network.netty.NettyBlockTransferService' on port 39163.
+17/04/20 12:22:16 INFO NettyBlockTransferService: Server created on 128.112.7.138:39163
+17/04/20 12:22:16 INFO BlockManager: Using org.apache.spark.storage.RandomBlockReplicationPolicy for block replication policy
+17/04/20 12:22:16 INFO BlockManagerMaster: Registering BlockManager BlockManagerId(driver, 128.112.7.138, 39163, None)
+17/04/20 12:22:16 INFO BlockManagerMasterEndpoint: Registering block manager 128.112.7.138:39163 with 399.6 MB RAM, BlockManagerId(driver, 128.112.7.138, 39163, None)
+17/04/20 12:22:16 INFO BlockManagerMaster: Registered BlockManager BlockManagerId(driver, 128.112.7.138, 39163, None)
+17/04/20 12:22:16 INFO BlockManager: Initialized BlockManager: BlockManagerId(driver, 128.112.7.138, 39163, None)
+17/04/20 12:22:16 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@352c308{/metrics/json,null,AVAILABLE}
+17/04/20 12:22:16 INFO EventLoggingListener: Logging events to file:/tmp/spark-events/local-1492705336425
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 4.5731503632850945E-5
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 2.24602990783751E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 2.2829546651337296E-5
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 9.881194273475558E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 5.3347175708040595E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 8.501549018546939E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 6.039666914148256E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 7.442806236213073E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 5.879293894395232E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 3.18965976475738E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 3.659555659396574E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 3.599183401092887E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 2.723572833929211E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 5.62875356990844E-7
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 3.5525117709767073E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 6.264854164328426E-7
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.7379534256178886E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.3628850865643471E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 2.703825884964317E-6
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 6.031950761098415E-7
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 9.215109457727522E-7
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.1273004929535091E-7
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 6.516456778626889E-7
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 2.4955079425126314E-7
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 3.7971040001139045E-7
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 7.928611012175679E-8
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.5372643247246742E-7
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.8950231606140733E-8
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.4317265595309436E-7
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 6.039044819772243E-8
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 4.96511347591877E-8
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 2.597516868263483E-8
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.0721123544499278E-8
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.9779690774157643E-8
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 3.812237991951406E-8
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.5363184502348304E-8
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.212538336403668E-8
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 3.0231603886932135E-9
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 8.694769348949194E-9
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 2.190063241869211E-9
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 9.840732673183084E-9
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 3.5142875276505947E-9
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.7589627532288432E-8
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 2.0081643015146255E-9
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 4.747562343254685E-9
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 4.511093720793724E-10
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 2.521119313314557E-9
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.9972503650933504E-9
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 8.512870408594608E-10
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.229636836796999E-9
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 4.729372449219227E-10
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 4.0745362639427185E-10
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.8189894035458565E-10
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 4.001776687800884E-11
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 2.1100277081131935E-10
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.673470251262188E-10
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.8189894035458565E-11
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.6007106751203537E-10
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 8.36735125631094E-11
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 2.9103830456733704E-10
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 4.729372449219227E-11
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 5.4569682106375694E-11
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 1.0913936421275139E-11
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 5.4569682106375694E-11
+17/04/20 12:22:16 WARN PoolReweighterLoss: Some delta losses were positive: 7.275957614183426E-12
+17/04/20 12:22:16 INFO SparkContext: Invoking stop() from shutdown hook
+17/04/20 12:22:16 INFO ServerConnector: Stopped ServerConnector@1698fc68{HTTP/1.1}{0.0.0.0:4040}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@20a14b55{/stages/stage/kill,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3eeb318f{/jobs/job/kill,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@17a87e37{/api,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@4b3a45f1{/,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@549949be{/static,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@655f7ea{/executors/threadDump/json,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@1c6804cd{/executors/threadDump,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@476b0ae6{/executors/json,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@c1bd0be{/executors,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@5bd82fed{/environment/json,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3b2c0e88{/environment,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@1e7aa82b{/storage/rdd/json,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@4212a0c8{/storage/rdd,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@698122b2{/storage/json,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3542162a{/storage,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@7c541c15{/stages/pool/json,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3543df7d{/stages/pool,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@66b7550d{/stages/stage/json,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@2ccca26f{/stages/stage,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@6b44435b{/stages/json,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@b6b1987{/stages,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@2a2c13a8{/jobs/job/json,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@45905bff{/jobs/job,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@31aa3ca5{/jobs/json,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@72ea6193{/jobs,null,UNAVAILABLE}
+17/04/20 12:22:16 INFO SparkUI: Stopped Spark web UI at http://128.112.7.138:4040
+17/04/20 12:22:16 INFO MapOutputTrackerMasterEndpoint: MapOutputTrackerMasterEndpoint stopped!
+17/04/20 12:22:16 INFO MemoryStore: MemoryStore cleared
+17/04/20 12:22:16 INFO BlockManager: BlockManager stopped
+17/04/20 12:22:16 INFO BlockManagerMaster: BlockManagerMaster stopped
+17/04/20 12:22:16 INFO OutputCommitCoordinator$OutputCommitCoordinatorEndpoint: OutputCommitCoordinator stopped!
+17/04/20 12:22:16 INFO SparkContext: Successfully stopped SparkContext
+17/04/20 12:22:16 INFO ShutdownHookManager: Shutdown hook called
+17/04/20 12:22:16 INFO ShutdownHookManager: Deleting directory /tmp/spark-27d57040-6e77-4c65-9c1c-7b6762f5aca4
