@@ -41,7 +41,8 @@ def do_the_thing(*log_file_paths):
 
   # Plot the actual and predicted losses
   for path in log_file_paths:
-    (my_actual_x, my_actual_y, predicted_x, predicted_y) = parse_losses(path)
+    (my_actual_x, my_actual_y, predicted_x, predicted_y) =\
+      parse_losses(path, predicted_n_iterations_ago)
     if not actual_x and not actual_y:
       actual_x = my_actual_x
       actual_y = my_actual_y
@@ -75,7 +76,7 @@ def translate_name(name):
   else:
     return name
 
-def parse_losses(log_file_path):
+def parse_losses(log_file_path, predicted_n_iterations_ago):
   # Parse actual and predicted losses from log
   actual_loss_data = {} # iteration -> loss
   predicted_loss_data = {} # iteration -> list of losses, ordered by time first seen
