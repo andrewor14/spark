@@ -5,8 +5,8 @@ import numpy as np
 import sys
 
 naive = [0.0104850561518, 0.230559622847, 0.867949986696]
-one_over_x_squared_weighted = [2.30675169237, 0.169151590578, 0.57741398472]
-one_over_x_squared = [0.0260023147945, 2.73528843391, 3.29251997264]
+one_over_x_squared_weighted = [0.0260023147945, 0.169151590578, 0.57741398472]
+one_over_x_squared = [2.30675169237, 2.73528843391, 3.29251997264]
 
 def main():
   indices = np.arange(3)
