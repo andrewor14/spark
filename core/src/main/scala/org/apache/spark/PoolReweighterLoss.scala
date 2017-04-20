@@ -235,7 +235,7 @@ object PoolReweighterLoss extends Logging {
         logInfo(s"ANDREW predicting in iteration $currentIter")
         logInfo(s"My x's are: ${x.mkString(", ")}.")
         logInfo(s"My y's are: ${y.mkString(", ")}.")
-        logInfo(s"My params are ${fitter.getFittedParams.mkString(" ")}")
+        logInfo(s"My params are ${fitter.getFittedParams.mkString(", ")}")
         logInfo("My predictions for iterations " +
           s"${(1 to numItersToPredict).map(_ + currentIter).mkString(", ")} are: " +
           s"${(1 to numItersToPredict).map { i => fitter.compute(currentIter + i)}.mkString(", ")}")
