@@ -1,0 +1,96 @@
+Using Spark's default log4j profile: org/apache/spark/log4j-defaults.properties
+17/04/20 06:22:27 INFO SparkContext: Running Spark version 2.1.0
+17/04/20 06:22:27 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+17/04/20 06:22:27 WARN Utils: Your hostname, sns61 resolves to a loopback address: 127.0.1.1; using 128.112.7.138 instead (on interface eth0)
+17/04/20 06:22:27 WARN Utils: Set SPARK_LOCAL_IP if you need to bind to another address
+17/04/20 06:22:27 INFO SecurityManager: Changing view acls to: andrewor
+17/04/20 06:22:27 INFO SecurityManager: Changing modify acls to: andrewor
+17/04/20 06:22:27 INFO SecurityManager: Changing view acls groups to: 
+17/04/20 06:22:27 INFO SecurityManager: Changing modify acls groups to: 
+17/04/20 06:22:27 INFO SecurityManager: SecurityManager: authentication disabled; ui acls disabled; users  with view permissions: Set(andrewor); groups with view permissions: Set(); users  with modify permissions: Set(andrewor); groups with modify permissions: Set()
+17/04/20 06:22:27 INFO Utils: Successfully started service 'sparkDriver' on port 41339.
+17/04/20 06:22:27 INFO SparkEnv: Registering MapOutputTracker
+17/04/20 06:22:27 INFO SparkEnv: Registering BlockManagerMaster
+17/04/20 06:22:27 INFO BlockManagerMasterEndpoint: Using org.apache.spark.storage.DefaultTopologyMapper for getting topology information
+17/04/20 06:22:27 INFO BlockManagerMasterEndpoint: BlockManagerMasterEndpoint up
+17/04/20 06:22:27 INFO DiskBlockManager: Created local directory at /tmp/blockmgr-c2c639a0-7ebc-47d0-a26d-fb062bf2689e
+17/04/20 06:22:27 INFO MemoryStore: MemoryStore started with capacity 399.6 MB
+17/04/20 06:22:27 INFO SparkEnv: Registering OutputCommitCoordinator
+17/04/20 06:22:27 INFO log: Logging initialized @1332ms
+17/04/20 06:22:28 INFO Server: jetty-9.2.16.v20160414
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@72ea6193{/jobs,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@31aa3ca5{/jobs/json,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@45905bff{/jobs/job,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@2a2c13a8{/jobs/job/json,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@b6b1987{/stages,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@6b44435b{/stages/json,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@2ccca26f{/stages/stage,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@66b7550d{/stages/stage/json,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3543df7d{/stages/pool,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@7c541c15{/stages/pool/json,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3542162a{/storage,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@698122b2{/storage/json,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@4212a0c8{/storage/rdd,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@1e7aa82b{/storage/rdd/json,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3b2c0e88{/environment,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@5bd82fed{/environment/json,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@c1bd0be{/executors,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@476b0ae6{/executors/json,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@1c6804cd{/executors/threadDump,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@655f7ea{/executors/threadDump/json,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@549949be{/static,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@4b3a45f1{/,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@17a87e37{/api,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3eeb318f{/jobs/job/kill,null,AVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@20a14b55{/stages/stage/kill,null,AVAILABLE}
+17/04/20 06:22:28 INFO ServerConnector: Started ServerConnector@1698fc68{HTTP/1.1}{0.0.0.0:4040}
+17/04/20 06:22:28 INFO Server: Started @1456ms
+17/04/20 06:22:28 INFO Utils: Successfully started service 'SparkUI' on port 4040.
+17/04/20 06:22:28 INFO SparkUI: Bound SparkUI to 0.0.0.0, and started at http://128.112.7.138:4040
+17/04/20 06:22:28 INFO SparkContext: Added JAR file:/disk/local/disk1/andrew/spark/my.jar at spark://128.112.7.138:41339/jars/my.jar with timestamp 1492683748141
+17/04/20 06:22:28 INFO Executor: Starting executor ID driver on host localhost
+17/04/20 06:22:28 INFO Utils: Successfully started service 'org.apache.spark.network.netty.NettyBlockTransferService' on port 33223.
+17/04/20 06:22:28 INFO NettyBlockTransferService: Server created on 128.112.7.138:33223
+17/04/20 06:22:28 INFO BlockManager: Using org.apache.spark.storage.RandomBlockReplicationPolicy for block replication policy
+17/04/20 06:22:28 INFO BlockManagerMaster: Registering BlockManager BlockManagerId(driver, 128.112.7.138, 33223, None)
+17/04/20 06:22:28 INFO BlockManagerMasterEndpoint: Registering block manager 128.112.7.138:33223 with 399.6 MB RAM, BlockManagerId(driver, 128.112.7.138, 33223, None)
+17/04/20 06:22:28 INFO BlockManagerMaster: Registered BlockManager BlockManagerId(driver, 128.112.7.138, 33223, None)
+17/04/20 06:22:28 INFO BlockManager: Initialized BlockManager: BlockManagerId(driver, 128.112.7.138, 33223, None)
+17/04/20 06:22:28 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@352c308{/metrics/json,null,AVAILABLE}
+17/04/20 06:22:28 INFO EventLoggingListener: Logging events to file:/tmp/spark-events/local-1492683748168
+17/04/20 06:22:28 INFO SparkContext: Invoking stop() from shutdown hook
+17/04/20 06:22:28 INFO ServerConnector: Stopped ServerConnector@1698fc68{HTTP/1.1}{0.0.0.0:4040}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@20a14b55{/stages/stage/kill,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3eeb318f{/jobs/job/kill,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@17a87e37{/api,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@4b3a45f1{/,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@549949be{/static,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@655f7ea{/executors/threadDump/json,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@1c6804cd{/executors/threadDump,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@476b0ae6{/executors/json,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@c1bd0be{/executors,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@5bd82fed{/environment/json,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3b2c0e88{/environment,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@1e7aa82b{/storage/rdd/json,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@4212a0c8{/storage/rdd,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@698122b2{/storage/json,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3542162a{/storage,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@7c541c15{/stages/pool/json,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3543df7d{/stages/pool,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@66b7550d{/stages/stage/json,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@2ccca26f{/stages/stage,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@6b44435b{/stages/json,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@b6b1987{/stages,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@2a2c13a8{/jobs/job/json,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@45905bff{/jobs/job,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@31aa3ca5{/jobs/json,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@72ea6193{/jobs,null,UNAVAILABLE}
+17/04/20 06:22:28 INFO SparkUI: Stopped Spark web UI at http://128.112.7.138:4040
+17/04/20 06:22:28 INFO MapOutputTrackerMasterEndpoint: MapOutputTrackerMasterEndpoint stopped!
+17/04/20 06:22:28 INFO MemoryStore: MemoryStore cleared
+17/04/20 06:22:28 INFO BlockManager: BlockManager stopped
+17/04/20 06:22:28 INFO BlockManagerMaster: BlockManagerMaster stopped
+17/04/20 06:22:28 INFO OutputCommitCoordinator$OutputCommitCoordinatorEndpoint: OutputCommitCoordinator stopped!
+17/04/20 06:22:28 INFO SparkContext: Successfully stopped SparkContext
+17/04/20 06:22:28 INFO ShutdownHookManager: Shutdown hook called
+17/04/20 06:22:28 INFO ShutdownHookManager: Deleting directory /tmp/spark-07e8c6ba-061e-495b-a937-ba4993081c48

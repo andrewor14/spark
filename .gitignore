@@ -89,8 +89,8 @@ spark-warehouse/
 .Rproj.user
 output.png
 
-sim_mlpc_*.log
-sim_mlpc_*.loglog
-sim_mlpc_*.png
+#sim_mlpc_*.log
+#sim_mlpc_*.loglog
+#sim_mlpc_*.png
 
 

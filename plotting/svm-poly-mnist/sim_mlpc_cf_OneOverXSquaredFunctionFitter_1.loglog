@@ -1,0 +1,1036 @@
+Using Spark's default log4j profile: org/apache/spark/log4j-defaults.properties
+17/04/20 06:22:29 INFO SparkContext: Running Spark version 2.1.0
+17/04/20 06:22:29 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+17/04/20 06:22:29 WARN Utils: Your hostname, sns61 resolves to a loopback address: 127.0.1.1; using 128.112.7.138 instead (on interface eth0)
+17/04/20 06:22:29 WARN Utils: Set SPARK_LOCAL_IP if you need to bind to another address
+17/04/20 06:22:29 INFO SecurityManager: Changing view acls to: andrewor
+17/04/20 06:22:29 INFO SecurityManager: Changing modify acls to: andrewor
+17/04/20 06:22:29 INFO SecurityManager: Changing view acls groups to: 
+17/04/20 06:22:29 INFO SecurityManager: Changing modify acls groups to: 
+17/04/20 06:22:29 INFO SecurityManager: SecurityManager: authentication disabled; ui acls disabled; users  with view permissions: Set(andrewor); groups with view permissions: Set(); users  with modify permissions: Set(andrewor); groups with modify permissions: Set()
+17/04/20 06:22:29 INFO Utils: Successfully started service 'sparkDriver' on port 46502.
+17/04/20 06:22:29 INFO SparkEnv: Registering MapOutputTracker
+17/04/20 06:22:29 INFO SparkEnv: Registering BlockManagerMaster
+17/04/20 06:22:29 INFO BlockManagerMasterEndpoint: Using org.apache.spark.storage.DefaultTopologyMapper for getting topology information
+17/04/20 06:22:29 INFO BlockManagerMasterEndpoint: BlockManagerMasterEndpoint up
+17/04/20 06:22:29 INFO DiskBlockManager: Created local directory at /tmp/blockmgr-205910ae-c474-4cbc-a1a2-0f5c8e9fd00b
+17/04/20 06:22:30 INFO MemoryStore: MemoryStore started with capacity 399.6 MB
+17/04/20 06:22:30 INFO SparkEnv: Registering OutputCommitCoordinator
+17/04/20 06:22:30 INFO log: Logging initialized @1316ms
+17/04/20 06:22:30 INFO Server: jetty-9.2.16.v20160414
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@72ea6193{/jobs,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@31aa3ca5{/jobs/json,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@45905bff{/jobs/job,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@2a2c13a8{/jobs/job/json,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@b6b1987{/stages,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@6b44435b{/stages/json,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@2ccca26f{/stages/stage,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@66b7550d{/stages/stage/json,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3543df7d{/stages/pool,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@7c541c15{/stages/pool/json,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3542162a{/storage,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@698122b2{/storage/json,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@4212a0c8{/storage/rdd,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@1e7aa82b{/storage/rdd/json,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3b2c0e88{/environment,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@5bd82fed{/environment/json,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@c1bd0be{/executors,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@476b0ae6{/executors/json,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@1c6804cd{/executors/threadDump,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@655f7ea{/executors/threadDump/json,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@549949be{/static,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@4b3a45f1{/,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@17a87e37{/api,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@3eeb318f{/jobs/job/kill,null,AVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@20a14b55{/stages/stage/kill,null,AVAILABLE}
+17/04/20 06:22:30 INFO ServerConnector: Started ServerConnector@1698fc68{HTTP/1.1}{0.0.0.0:4040}
+17/04/20 06:22:30 INFO Server: Started @1436ms
+17/04/20 06:22:30 INFO Utils: Successfully started service 'SparkUI' on port 4040.
+17/04/20 06:22:30 INFO SparkUI: Bound SparkUI to 0.0.0.0, and started at http://128.112.7.138:4040
+17/04/20 06:22:30 INFO SparkContext: Added JAR file:/disk/local/disk1/andrew/spark/my.jar at spark://128.112.7.138:46502/jars/my.jar with timestamp 1492683750306
+17/04/20 06:22:30 INFO Executor: Starting executor ID driver on host localhost
+17/04/20 06:22:30 INFO Utils: Successfully started service 'org.apache.spark.network.netty.NettyBlockTransferService' on port 34666.
+17/04/20 06:22:30 INFO NettyBlockTransferService: Server created on 128.112.7.138:34666
+17/04/20 06:22:30 INFO BlockManager: Using org.apache.spark.storage.RandomBlockReplicationPolicy for block replication policy
+17/04/20 06:22:30 INFO BlockManagerMaster: Registering BlockManager BlockManagerId(driver, 128.112.7.138, 34666, None)
+17/04/20 06:22:30 INFO BlockManagerMasterEndpoint: Registering block manager 128.112.7.138:34666 with 399.6 MB RAM, BlockManagerId(driver, 128.112.7.138, 34666, None)
+17/04/20 06:22:30 INFO BlockManagerMaster: Registered BlockManager BlockManagerId(driver, 128.112.7.138, 34666, None)
+17/04/20 06:22:30 INFO BlockManager: Initialized BlockManager: BlockManagerId(driver, 128.112.7.138, 34666, None)
+17/04/20 06:22:30 INFO ContextHandler: Started o.e.j.s.ServletContextHandler@352c308{/metrics/json,null,AVAILABLE}
+17/04/20 06:22:30 INFO EventLoggingListener: Logging events to file:/tmp/spark-events/local-1492683750334
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 6
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 0.0, 1.0, 2.0, 3.0, 4.0, 5.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.36351458305E15, 1.07735714264E15, 8.60069770701E14, 6.92869986355E14, 5.596084049E14, 4.47286656709E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -855.3859777332802 -952.7722181310363 -116.36543249180357 66.75750493350026
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 are: 66.75748439948606, 66.75748892921003, 66.75749210930124, 66.75749442738777, 66.757496169148, 66.7574975109846, 66.75749856661355, 66.75749941201924, 66.75750009954174, 66.75750066618781
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 7
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.36351458305E15, 1.07735714264E15, 8.60069770701E14, 6.92869986355E14, 5.596084049E14, 4.47286656709E14, 3.57220144804E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -921.2872723758302 -1021.1916039557071 -124.06186024130587 65.34177727632753
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 are: 65.34176240776122, 65.34176536292208, 65.3417675168694, 65.34176913518814, 65.34177038185501, 65.34177136256562, 65.34177214793962, 65.34177278661828, 65.34177331299108, 65.3417737519288
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 8
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.36351458305E15, 1.07735714264E15, 8.60069770701E14, 6.92869986355E14, 5.596084049E14, 4.47286656709E14, 3.57220144804E14, 2.9037357439E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -985.0424972363844 -1087.7457041834577 -131.78236281584208 64.01035187752396
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 are: 64.01034073048669, 64.01034274622874, 64.01034426063096, 64.01034542719489, 64.010346344857, 64.0103470797168, 64.01034767729978, 64.01034816979109, 64.0103485804664, 64.01034892649604
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 9
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.36351458305E15, 1.07735714264E15, 8.60069770701E14, 6.92869986355E14, 5.596084049E14, 4.47286656709E14, 3.57220144804E14, 2.9037357439E14, 2.42511411298E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -1046.674517881694 -1152.4059111166155 -139.4044990203229 62.76526043722413
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 are: 62.76525184105692, 62.76525326688853, 62.76525436518814, 62.765255229126105, 62.76525592094664, 62.76525648351822, 62.76525694714647, 62.76525733374714, 62.7652576594869, 62.765257936502785
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 10
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.36351458305E15, 1.07735714264E15, 8.60069770701E14, 6.92869986355E14, 5.596084049E14, 4.47286656709E14, 3.57220144804E14, 2.9037357439E14, 2.42511411298E14, 2.08866164944E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -1106.21058356947 -1215.0650214855889 -146.85660047609562 61.61372513515252
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 are: 61.613718349237075, 61.61371938875135, 61.61372020642902, 61.613720861192384, 61.61372139362073, 61.613721832400536, 61.61372219827616, 61.61372250654981, 61.61372276870932, 61.61372299351484
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 11
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.07735714264E15, 8.60069770701E14, 6.92869986355E14, 5.596084049E14, 4.47286656709E14, 3.57220144804E14, 2.9037357439E14, 2.42511411298E14, 2.08866164944E14, 1.85245963056E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -1161.3864063148642 -1273.1369252155991 -1164.6506218925006 52.199258865657406
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 are: 52.19925342146392, 52.19925419253602, 52.19925481084121, 52.19925531418867, 52.199255729384085, 52.19925607585753, 52.19925636796971, 52.19925661651922, 52.19925682975198, 52.1992570140522
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 12
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 8.60069770701E14, 6.92869986355E14, 5.596084049E14, 4.47286656709E14, 3.57220144804E14, 2.9037357439E14, 2.42511411298E14, 2.08866164944E14, 1.85245963056E14, 1.67628639682E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -1584.9096126663042 -3401.498602939387 -6482.261283089097 51.14474618289901
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 are: 51.14474304368886, 51.14474344126155, 51.144743768078214, 51.14474403993365, 51.144744268461416, 51.14474446237996, 51.144744628325164, 51.14474477141875, 51.14474489566392, 51.14474500422567
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 13
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 6.92869986355E14, 5.596084049E14, 4.47286656709E14, 3.57220144804E14, 2.9037357439E14, 2.42511411298E14, 2.08866164944E14, 1.85245963056E14, 1.67628639682E14, 1.5338630818E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -2269.965951266631 -7518.508600306017 -22241.97117647 50.28167195934851
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 are: 50.281670212362464, 50.28167041079023, 50.28167057746384, 50.28167071877189, 50.28167083958297, 50.281670943657446, 50.28167103393543, 50.281671112741535, 50.28167118193255, 50.28167124300569
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 14
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 5.596084049E14, 4.47286656709E14, 3.57220144804E14, 2.9037357439E14, 2.42511411298E14, 2.08866164944E14, 1.85245963056E14, 1.67628639682E14, 1.5338630818E14, 1.41669428465E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -3106.4389227776555 -14004.753715756342 -56706.1950475555 50.09982733137506
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 are: 50.09982629588494, 50.09982640203348, 50.09982649283429, 50.099826571079504, 50.09982663896024, 50.099826698213946, 50.09982675023163, 50.09982679613691, 50.09982683684499, 50.099826873107034
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 15
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.47286656709E14, 3.57220144804E14, 2.9037357439E14, 2.42511411298E14, 2.08866164944E14, 1.85245963056E14, 1.67628639682E14, 1.5338630818E14, 1.41669428465E14, 1.32175577029E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -4070.246059889756 -23145.54784827505 -119083.96571022796 50.56416060385383
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 are: 50.564159950854744, 50.564160011738224, 50.56416006461433, 50.5641601108078, 50.56416015138425, 50.56416018720782, 50.5641602189846, 50.56416024729569, 50.56416027262258, 50.56416029536671
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 16
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.57220144804E14, 2.9037357439E14, 2.42511411298E14, 2.08866164944E14, 1.85245963056E14, 1.67628639682E14, 1.5338630818E14, 1.41669428465E14, 1.32175577029E14, 1.24540619997E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -5152.74084291537 -35214.403417162815 -219419.83237285013 51.30848924396772
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 are: 51.308488810543196, 51.308488847577586, 51.3084888801505, 51.30848890893737, 51.308488934492935, 51.30848895727567, 51.30848897766685, 51.30848899598532, 51.30848901249926, 51.30848902743535
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 17
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 2.9037357439E14, 2.42511411298E14, 2.08866164944E14, 1.85245963056E14, 1.67628639682E14, 1.5338630818E14, 1.41669428465E14, 1.32175577029E14, 1.24540619997E14, 1.18350631007E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -6347.358248005414 -50531.973912901376 -369407.89394858433 51.99490771020369
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 are: 51.994907410401034, 51.994907434030154, 51.99490745503595, 51.9949074737839, 51.994907490579514, 51.99490750567944, 51.99490751930037, 51.99490753162608, 51.99490754281315, 51.99490755299559
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 18
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 2.42511411298E14, 2.08866164944E14, 1.85245963056E14, 1.67628639682E14, 1.5338630818E14, 1.41669428465E14, 1.32175577029E14, 1.24540619997E14, 1.18350631007E14, 1.13193710538E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -7648.944064367594 -69450.42594569485 -582774.8431222901 52.48205597534541
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 19, 20, 21, 22, 23, 24, 25, 26, 27, 28 are: 52.48205576091887, 52.482055776592034, 52.482055790653355, 52.48205580331049, 52.48205581473963, 52.48205582509096, 52.48205583449291, 52.48205584305579, 52.482055850874666, 52.482055858031785
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 19
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 2.08866164944E14, 1.85245963056E14, 1.67628639682E14, 1.5338630818E14, 1.41669428465E14, 1.32175577029E14, 1.24540619997E14, 1.18350631007E14, 1.13193710538E14, 1.08765164064E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -9053.533869859222 -92328.4035731364 -875275.2572979636 52.75493035675832
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 20, 21, 22, 23, 24, 25, 26, 27, 28, 29 are: 52.754930199110596, 52.75493020984598, 52.7549302195542, 52.75493022835809, 52.754930236363315, 52.75493024366102, 52.754930250330084, 52.75493025643899, 52.754930262047374, 52.75493026720732
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 20
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.85245963056E14, 1.67628639682E14, 1.5338630818E14, 1.41669428465E14, 1.32175577029E14, 1.24540619997E14, 1.18350631007E14, 1.13193710538E14, 1.08765164064E14, 1.04867609472E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -10558.968003396392 -119495.14714543855 -1263937.392456559 52.872522004448385
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 are: 52.872521885822174, 52.872521893378874, 52.872521900260224, 52.8725219065415, 52.872521912288185, 52.8725219175574, 52.87252192239908, 52.87252192685702, 52.8725219309697, 52.87252193477102
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 21
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.67628639682E14, 1.5338630818E14, 1.41669428465E14, 1.32175577029E14, 1.24540619997E14, 1.18350631007E14, 1.13193710538E14, 1.08765164064E14, 1.04867609472E14, 1.01359720967E14.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -12165.305715085455 -151232.01998369631 -1765997.3294559503 52.91777089578178
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 are: 52.9177708047163, 52.91777081016373, 52.917770815154704, 52.91777081973681, 52.91777082395186, 52.9177708278367, 52.917770831423816, 52.91777083474196, 52.91777083781659, 52.91777084067033
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 22
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.5338630818E14, 1.41669428465E14, 1.32175577029E14, 1.24540619997E14, 1.18350631007E14, 1.13193710538E14, 1.08765164064E14, 1.04867609472E14, 1.01359720967E14, 9.81554982969E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -13873.007895303976 -187819.71373124578 -2399557.765762398 52.932424040930286
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 are: 52.93242396979759, 52.93242397380756, 52.93242397750137, 52.93242398090997, 52.93242398406077, 52.93242398697815, 52.93242398968379, 52.932423992197, 52.932423994535036, 52.93242399671331
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 23
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.41669428465E14, 1.32175577029E14, 1.24540619997E14, 1.18350631007E14, 1.13193710538E14, 1.08765164064E14, 1.04867609472E14, 1.01359720967E14, 9.81554982969E13, 9.51983534236E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -15681.481042572317 -229578.51491434933 -3184997.964827545 52.91456758322482
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 24, 25, 26, 27, 28, 29, 30, 31, 32, 33 are: 52.91456752681502, 52.91456752982138, 52.91456753260401, 52.91456753518351, 52.91456753757831, 52.9145675398049, 52.91456754187806, 52.91456754381104, 52.914567545615775, 52.91456754730299
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 24
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.32175577029E14, 1.24540619997E14, 1.18350631007E14, 1.13193710538E14, 1.08765164064E14, 1.04867609472E14, 1.01359720967E14, 9.81554982969E13, 9.51983534236E13, 9.24462625686E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -17589.739360408268 -276843.12541860394 -4144709.431811463 52.85944901807147
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 25, 26, 27, 28, 29, 30, 31, 32, 33, 34 are: 52.85944897273927, 52.85944897502979, 52.85944897715895, 52.85944897914078, 52.85944898098792, 52.859448982711754, 52.85944898432256, 52.859448985829616, 52.8594489872413, 52.85944898856521
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 25
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.24540619997E14, 1.18350631007E14, 1.13193710538E14, 1.08765164064E14, 1.04867609472E14, 1.01359720967E14, 9.81554982969E13, 9.51983534236E13, 9.24462625686E13, 8.98697134844E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -19597.11169095132 -329935.1910291582 -5302248.463151254 52.77333245259002
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 26, 27, 28, 29, 30, 31, 32, 33, 34, 35 are: 52.77333241572802, 52.77333241749835, 52.773332419150314, 52.773332420693656, 52.77333242213722, 52.773332423489, 52.773332424756276, 52.77333242594564, 52.77333242706308, 52.773332428114074
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 26
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.18350631007E14, 1.13193710538E14, 1.08765164064E14, 1.04867609472E14, 1.01359720967E14, 9.81554982969E13, 9.51983534236E13, 9.24462625686E13, 8.98697134844E13, 8.74483505093E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -21703.354645551542 -389158.2986962819 -6681919.992025536 52.668197532847934
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 27, 28, 29, 30, 31, 32, 33, 34, 35, 36 are: 52.668197502554946, 52.668197503941, 52.6681975052389, 52.66819750645553, 52.668197507597164, 52.66819750866953, 52.668197509677846, 52.66819751062689, 52.668197511521, 52.66819751236417
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 27
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.13193710538E14, 1.08765164064E14, 1.04867609472E14, 1.01359720967E14, 9.81554982969E13, 9.51983534236E13, 9.24462625686E13, 8.98697134844E13, 8.74483505093E13, 8.51628143409E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -23908.554419146116 -454802.7556748007 -8308690.626287601 52.55593565410024
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 28, 29, 30, 31, 32, 33, 34, 35, 36, 37 are: 52.5559356289667, 52.5559356300647, 52.55593563109612, 52.555935632065896, 52.55593563297857, 52.55593563383829, 52.555935634648876, 52.55593563541381, 52.5559356361363, 52.55593563681929
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 28
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.08765164064E14, 1.04867609472E14, 1.01359720967E14, 9.81554982969E13, 9.51983534236E13, 9.24462625686E13, 8.98697134844E13, 8.74483505093E13, 8.51628143409E13, 8.29990382632E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -26212.880241561787 -527156.3225076183 -1.0208490817056602E7 52.44445239806287
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 29, 30, 31, 32, 33, 34, 35, 36, 37, 38 are: 52.44445237702842, 52.44445237790758, 52.444452378735804, 52.4444523795167, 52.44445238025359, 52.444452380949514, 52.44445238160731, 52.44445238222957, 52.44445238281867, 52.44445238337682
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 29
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.04867609472E14, 1.01359720967E14, 9.81554982969E13, 9.51983534236E13, 9.24462625686E13, 8.98697134844E13, 8.74483505093E13, 8.51628143409E13, 8.29990382632E13, 8.09441500786E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -28616.49058545201 -606508.4176848227 -1.240838313104386E7 52.33805166149084
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 are: 52.33805164374728, 52.33805164445813, 52.33805164512957, 52.33805164576423, 52.33805164636461, 52.33805164693297, 52.338051647471424, 52.33805164798192, 52.33805164846626, 52.33805164892611
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 30
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 1.01359720967E14, 9.81554982969E13, 9.51983534236E13, 9.24462625686E13, 8.98697134844E13, 8.74483505093E13, 8.51628143409E13, 8.29990382632E13, 8.09441500786E13, 7.89905423417E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -31119.5356511667 -693149.568452994 -1.4936554553076802E7 52.23896652830112
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 31, 32, 33, 34, 35, 36, 37, 38, 39, 40 are: 52.238966513225, 52.238966513804954, 52.238966514354054, 52.238966514874306, 52.23896651536756, 52.238966515835536, 52.23896651627983, 52.23896651670192, 52.23896651710319, 52.238966517484904
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 31
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 9.81554982969E13, 9.51983534236E13, 9.24462625686E13, 8.98697134844E13, 8.74483505093E13, 8.51628143409E13, 8.29990382632E13, 8.09441500786E13, 7.89905423417E13, 7.71286381832E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -33722.11639250104 -787373.4438022069 -1.7822447329613954E7 52.147788863782345
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 32, 33, 34, 35, 36, 37, 38, 39, 40, 41 are: 52.147788850887416, 52.14778885136448, 52.147788851817175, 52.147788852247004, 52.14778885265538, 52.14778885304361, 52.14778885341292, 52.147788853764446, 52.147788854099254, 52.147788854418316
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 32
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 9.51983534236E13, 9.24462625686E13, 8.98697134844E13, 8.74483505093E13, 8.51628143409E13, 8.29990382632E13, 8.09441500786E13, 7.89905423417E13, 7.71286381832E13, 7.53507413348E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -36424.308252198556 -889475.40787886 -2.109672121226959E7 52.06439527275405
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 33, 34, 35, 36, 37, 38, 39, 40, 41, 42 are: 52.064395261657175, 52.06439526205261, 52.064395262428604, 52.06439526278632, 52.06439526312683, 52.06439526345116, 52.06439526376024, 52.064395264054966, 52.06439526433615, 52.06439526460456
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 33
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 9.24462625686E13, 8.98697134844E13, 8.74483505093E13, 8.51628143409E13, 8.29990382632E13, 8.09441500786E13, 7.89905423417E13, 7.71286381832E13, 7.53507413348E13, 7.36495843668E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -39226.173151556024 -999751.8512540471 -2.4791235867425464E7 51.988351586913076
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 34, 35, 36, 37, 38, 39, 40, 41, 42, 43 are: 51.98835157730954, 51.98835157763961, 51.98835157795406, 51.98835157825377, 51.98835157853958, 51.98835157881227, 51.98835157907259, 51.98835157932123, 51.988351579558824, 51.98835157978599
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 34
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 8.98697134844E13, 8.74483505093E13, 8.51628143409E13, 8.29990382632E13, 8.09441500786E13, 7.89905423417E13, 7.71286381832E13, 7.53507413348E13, 7.36495843668E13, 7.20201619129E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -42127.75562488664 -1118500.1677239386 -2.8939069004806064E7 51.91905644802941
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 35, 36, 37, 38, 39, 40, 41, 42, 43, 44 are: 51.919056439674705, 51.91905643995204, 51.91905644021669, 51.919056440469376, 51.91905644071074, 51.919056440941404, 51.919056441161956, 51.91905644137292, 51.91905644157483, 51.919056441768156
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 35
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 8.74483505093E13, 8.51628143409E13, 8.29990382632E13, 8.09441500786E13, 7.89905423417E13, 7.71286381832E13, 7.53507413348E13, 7.36495843668E13, 7.20201619129E13, 7.04572871775E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -45129.089230864425 -1246018.4299766026 -3.3574509324216425E7 51.855869322724494
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 36, 37, 38, 39, 40, 41, 42, 43, 44, 45 are: 51.855869315420875, 51.855869315655305, 51.85586931587938, 51.85586931609366, 51.85586931629866, 51.85586931649487, 51.85586931668274, 51.85586931686272, 51.855869317035214, 51.8558693172006
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 36
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 8.51628143409E13, 8.29990382632E13, 8.09441500786E13, 7.89905423417E13, 7.71286381832E13, 7.53507413348E13, 7.36495843668E13, 7.20201619129E13, 7.04572871775E13, 6.89579650481E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -48230.210598885606 -1382604.3233705475 -3.873299472026094E7 51.79825974653159
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 37, 38, 39, 40, 41, 42, 43, 44, 45, 46 are: 51.798259740117906, 51.798259740317185, 51.79825974050796, 51.79825974069066, 51.7982597408657, 51.798259741033476, 51.79825974119435, 51.798259741348666, 51.79825974149676, 51.79825974163894
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 37
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 8.29990382632E13, 8.09441500786E13, 7.89905423417E13, 7.71286381832E13, 7.53507413348E13, 7.36495843668E13, 7.20201619129E13, 7.04572871775E13, 6.89579650481E13, 6.75185211142E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -51431.147592672634 -1528556.0119588047 -4.4451169313492216E7 51.74569758157701
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 38, 39, 40, 41, 42, 43, 44, 45, 46, 47 are: 51.74569757592099, 51.745697576091295, 51.74569757625456, 51.74569757641113, 51.74569757656134, 51.7456975767055, 51.74569757684392, 51.745697576976866, 51.7456975771046, 51.74569757722738
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 38
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 8.09441500786E13, 7.89905423417E13, 7.71286381832E13, 7.53507413348E13, 7.36495843668E13, 7.20201619129E13, 7.04572871775E13, 6.89579650481E13, 6.75185211142E13, 6.61335925429E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -54731.92416549114 -1684172.150985609 -5.0766884784120694E7 51.69767146848455
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 39, 40, 41, 42, 43, 44, 45, 46, 47, 48 are: 51.69767146347696, 51.697671463623216, 51.69767146376361, 51.69767146389843, 51.697671464027934, 51.697671464152386, 51.69767146427201, 51.69767146438706, 51.697671464497716, 51.69767146460421
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 39
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0, 38.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 7.89905423417E13, 7.71286381832E13, 7.53507413348E13, 7.36495843668E13, 7.20201619129E13, 7.04572871775E13, 6.89579650481E13, 6.75185211142E13, 6.61335925429E13, 6.47997466702E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -58132.554522293896 -1849752.02684531 -5.771922458618474E7 51.65368478615458
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 40, 41, 42, 43, 44, 45, 46, 47, 48, 49 are: 51.65368478170463, 51.65368478183081, 51.653684781952094, 51.6536847820687, 51.653684782180854, 51.65368478228874, 51.65368478239258, 51.65368478249255, 51.65368478258881, 51.65368478268155
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 40
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0, 38.0, 39.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 7.71286381832E13, 7.53507413348E13, 7.36495843668E13, 7.20201619129E13, 7.04572871775E13, 6.89579650481E13, 6.75185211142E13, 6.61335925429E13, 6.47997466702E13, 6.35147409888E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -61633.061535170214 -2025594.1475010822 -6.5348400226951234E7 51.613368211357326
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 41, 42, 43, 44, 45, 46, 47, 48, 49, 50 are: 51.613368207389115, 51.61336820749847, 51.61336820760369, 51.61336820770497, 51.613368207802495, 51.613368207896414, 51.6133682079869, 51.613368208074114, 51.61336820815818, 51.61336820823925
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 41
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0, 38.0, 39.0, 40.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 7.53507413348E13, 7.36495843668E13, 7.20201619129E13, 7.04572871775E13, 6.89579650481E13, 6.75185211142E13, 6.61335925429E13, 6.47997466702E13, 6.35147409888E13, 6.22756496751E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -65233.46317542905 -2211997.3859134954 -7.369583294622765E7 51.57636856069611
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 42, 43, 44, 45, 46, 47, 48, 49, 50, 51 are: 51.57636855714588, 51.576368557241025, 51.576368557332685, 51.576368557421006, 51.57636855750613, 51.57636855758821, 51.576368557667365, 51.57636855774373, 51.57636855781741, 51.57636855788854
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 42
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 32.0, 33.0, 34.0, 35.0, 36.0, 37.0, 38.0, 39.0, 40.0, 41.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 7.36495843668E13, 7.20201619129E13, 7.04572871775E13, 6.89579650481E13, 6.75185211142E13, 6.61335925429E13, 6.47997466702E13, 6.35147409888E13, 6.22756496751E13, 6.10786771886E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -68933.7726111914 -2409261.2030941704 -8.280417290768877E7 51.542340451939694
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 43, 44, 45, 46, 47, 48, 49, 50, 51, 52 are: 51.54234044875357, 51.54234044883668, 51.542340448916825, 51.54234044899413, 51.542340449068725, 51.54234044914071, 51.5423404492102, 51.5423404492773, 51.54234044934211, 51.542340449404726
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 43
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 33.0, 34.0, 35.0, 36.0, 37.0, 38.0, 39.0, 40.0, 41.0, 42.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 7.20201619129E13, 7.04572871775E13, 6.89579650481E13, 6.75185211142E13, 6.61335925429E13, 6.47997466702E13, 6.35147409888E13, 6.22756496751E13, 6.10786771886E13, 5.99210892559E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -72733.99406753875 -2617685.7889201855 -9.271732535327186E7 51.5109439611508
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 44, 45, 46, 47, 48, 49, 50, 51, 52, 53 are: 51.51094395828308, 51.51094395835594, 51.510943958426274, 51.51094395849418, 51.51094395855976, 51.51094395862311, 51.51094395868432, 51.51094395874348, 51.51094395880068, 51.51094395885598
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 44
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 34.0, 35.0, 36.0, 37.0, 38.0, 39.0, 40.0, 41.0, 42.0, 43.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 7.04572871775E13, 6.89579650481E13, 6.75185211142E13, 6.61335925429E13, 6.47997466702E13, 6.35147409888E13, 6.22756496751E13, 6.10786771886E13, 5.99210892559E13, 5.88016031468E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -76634.13201835076 -2837571.050923859 -1.034803761802116E8 51.48190357520486
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 45, 46, 47, 48, 49, 50, 51, 52, 53, 54 are: 51.48190357261657, 51.48190357268067, 51.4819035727426, 51.48190357280245, 51.481903572860304, 51.48190357291624, 51.48190357297033, 51.481903573022656, 51.48190357307329, 51.48190357312228
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 45
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 35.0, 36.0, 37.0, 38.0, 39.0, 40.0, 41.0, 42.0, 43.0, 44.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 6.89579650481E13, 6.75185211142E13, 6.61335925429E13, 6.47997466702E13, 6.35147409888E13, 6.22756496751E13, 6.10786771886E13, 5.99210892559E13, 5.88016031468E13, 5.77193147323E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -80634.18851400456 -3069216.7560395338 -1.1513960556014974E8 51.454986517712925
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 46, 47, 48, 49, 50, 51, 52, 53, 54, 55 are: 51.454986515370706, 51.45498651542728, 51.45498651548199, 51.45498651553491, 51.45498651558611, 51.454986515635646, 51.45498651568359, 51.45498651573001, 51.45498651577496, 51.454986515818504
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 46
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 36.0, 37.0, 38.0, 39.0, 40.0, 41.0, 42.0, 43.0, 44.0, 45.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 6.75185211142E13, 6.61335925429E13, 6.47997466702E13, 6.35147409888E13, 6.22756496751E13, 6.10786771886E13, 5.99210892559E13, 5.88016031468E13, 5.77193147323E13, 5.66715186173E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -84734.1722222674 -3312922.268082116 -1.2774244665153652E8 51.43000872229802
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 47, 48, 49, 50, 51, 52, 53, 54, 55, 56 are: 51.4300087201732, 51.43000872022329, 51.43000872027177, 51.430008720318696, 51.43000872036414, 51.430008720408146, 51.43000872045077, 51.43000872049207, 51.43000872053209, 51.43000872057088
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 47
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 37.0, 38.0, 39.0, 40.0, 41.0, 42.0, 43.0, 44.0, 45.0, 46.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 6.61335925429E13, 6.47997466702E13, 6.35147409888E13, 6.22756496751E13, 6.10786771886E13, 5.99210892559E13, 5.88016031468E13, 5.77193147323E13, 5.66715186173E13, 5.56564611749E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -88934.09718908978 -3568986.473620772 -1.413374753411749E8 51.40682620125292
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 48, 49, 50, 51, 52, 53, 54, 55, 56, 57 are: 51.40682619932075, 51.406826199365234, 51.406826199408314, 51.40682619945006, 51.4068261994905, 51.406826199529704, 51.406826199567696, 51.406826199604545, 51.40682619964027, 51.406826199674924
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 48
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 38.0, 39.0, 40.0, 41.0, 42.0, 43.0, 44.0, 45.0, 46.0, 47.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 6.47997466702E13, 6.35147409888E13, 6.22756496751E13, 6.10786771886E13, 5.99210892559E13, 5.88016031468E13, 5.77193147323E13, 5.66715186173E13, 5.56564611749E13, 5.46727016673E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -93233.96907335825 -3837708.9474277413 -1.55974525594797E8 51.38527969996931
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 49, 50, 51, 52, 53, 54, 55, 56, 57, 58 are: 51.385279698208365, 51.38527969824798, 51.385279698286375, 51.3852796983236, 51.385279698359696, 51.385279698394704, 51.38527969842867, 51.38527969846162, 51.385279698493605, 51.38527969852464
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 49
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 39.0, 40.0, 41.0, 42.0, 43.0, 44.0, 45.0, 46.0, 47.0, 48.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 6.35147409888E13, 6.22756496751E13, 6.10786771886E13, 5.99210892559E13, 5.88016031468E13, 5.77193147323E13, 5.66715186173E13, 5.56564611749E13, 5.46727016673E13, 5.37183882143E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -97633.79111055422 -4119389.561756271 -1.717046546469354E8 51.36521726692687
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 50, 51, 52, 53, 54, 55, 56, 57, 58, 59 are: 51.36521726531853, 51.3652172653539, 51.3652172653882, 51.36521726542149, 51.36521726545379, 51.36521726548514, 51.365217265515575, 51.36521726554513, 51.36521726557382, 51.365217265601686
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 50
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 40.0, 41.0, 42.0, 43.0, 44.0, 45.0, 46.0, 47.0, 48.0, 49.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 6.22756496751E13, 6.10786771886E13, 5.99210892559E13, 5.88016031468E13, 5.77193147323E13, 5.66715186173E13, 5.56564611749E13, 5.46727016673E13, 5.37183882143E13, 5.27918271575E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -102133.57149676683 -4414327.795599451 -1.8858007152237326E8 51.34651880891073
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 51, 52, 53, 54, 55, 56, 57, 58, 59, 60 are: 51.346518807438756, 51.34651880747042, 51.346518807501155, 51.34651880753099, 51.34651880755997, 51.346518807588104, 51.34651880761544, 51.346518807642, 51.346518807667806, 51.34651880769288
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 51
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 41.0, 42.0, 43.0, 44.0, 45.0, 46.0, 47.0, 48.0, 49.0, 50.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 6.10786771886E13, 5.99210892559E13, 5.88016031468E13, 5.77193147323E13, 5.66715186173E13, 5.56564611749E13, 5.46727016673E13, 5.37183882143E13, 5.27918271575E13, 5.18913397895E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -106733.31839866439 -4722823.253825987 -2.0665418622615477E8 51.32907279923942
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 52, 53, 54, 55, 56, 57, 58, 59, 60, 61 are: 51.329072797889616, 51.32907279791803, 51.32907279794563, 51.32907279797244, 51.32907279799849, 51.32907279802381, 51.329072798048415, 51.32907279807234, 51.3290727980956, 51.32907279811822
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 52
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 42.0, 43.0, 44.0, 45.0, 46.0, 47.0, 48.0, 49.0, 50.0, 51.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 5.99210892559E13, 5.88016031468E13, 5.77193147323E13, 5.66715186173E13, 5.56564611749E13, 5.46727016673E13, 5.37183882143E13, 5.27918271575E13, 5.18913397895E13, 5.10167460159E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -111433.03355645637 -5045175.812759193 -2.2598164498667637E8 51.31276995236627
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 53, 54, 55, 56, 57, 58, 59, 60, 61, 62 are: 51.31276995112617, 51.31276995115173, 51.31276995117657, 51.31276995120072, 51.3127699512242, 51.31276995124703, 51.31276995126923, 51.312769951290825, 51.312769951311836, 51.31276995133228
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 53
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 43.0, 44.0, 45.0, 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 5.88016031468E13, 5.77193147323E13, 5.66715186173E13, 5.56564611749E13, 5.46727016673E13, 5.37183882143E13, 5.27918271575E13, 5.18913397895E13, 5.10167460159E13, 5.01667667962E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -116232.71215728663 -5381686.026988175 -2.4661837126812026E8 51.29749406594196
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 54, 55, 56, 57, 58, 59, 60, 61, 62, 63 are: 51.297494064800624, 51.29749406482366, 51.29749406484607, 51.29749406486786, 51.297494064889065, 51.2974940649097, 51.29749406492977, 51.29749406494931, 51.297494064968326, 51.29749406498684
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 54
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 44.0, 45.0, 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0, 53.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 5.77193147323E13, 5.66715186173E13, 5.56564611749E13, 5.46727016673E13, 5.37183882143E13, 5.27918271575E13, 5.18913397895E13, 5.10167460159E13, 5.01667667962E13, 4.93403484737E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -121132.35329734681 -5732653.985493709 -2.686214426775021E8 51.28315593811105
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 55, 56, 57, 58, 59, 60, 61, 62, 63, 64 are: 51.2831559370588, 51.28315593707961, 51.28315593709987, 51.28315593711958, 51.28315593713877, 51.28315593715745, 51.283155937175636, 51.28315593719335, 51.2831559372106, 51.2831559372274
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 55
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 45.0, 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0, 53.0, 54.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 5.66715186173E13, 5.56564611749E13, 5.46727016673E13, 5.37183882143E13, 5.27918271575E13, 5.18913397895E13, 5.10167460159E13, 5.01667667962E13, 4.93403484737E13, 4.85366513486E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -126131.96654909021 -6098378.5739331925 -2.920489948615359E8 51.26970591097874
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 56, 57, 58, 59, 60, 61, 62, 63, 64, 65 are: 51.269705910007026, 51.26970591002587, 51.269705910044216, 51.269705910062086, 51.26970591007949, 51.269705910096434, 51.26970591011294, 51.26970591012903, 51.2697059101447, 51.26970591015998
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 56
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0, 53.0, 54.0, 55.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 5.56564611749E13, 5.46727016673E13, 5.37183882143E13, 5.27918271575E13, 5.18913397895E13, 5.10167460159E13, 5.01667667962E13, 4.93403484737E13, 4.85366513486E13, 4.77543704697E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -131231.55534645333 -6479159.503622171 -3.169604460284115E8 51.25707735797006
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 57, 58, 59, 60, 61, 62, 63, 64, 65, 66 are: 51.2570773570713, 51.25707735708839, 51.25707735710505, 51.25707735712127, 51.25707735713708, 51.25707735715248, 51.257077357167496, 51.25707735718213, 51.2570773571964, 51.25707735721031
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 57
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 47.0, 48.0, 49.0, 50.0, 51.0, 52.0, 53.0, 54.0, 55.0, 56.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 5.46727016673E13, 5.37183882143E13, 5.27918271575E13, 5.18913397895E13, 5.10167460159E13, 5.01667667962E13, 4.93403484737E13, 4.85366513486E13, 4.77543704697E13, 4.69931766014E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -136431.1253673599 -6875295.9933690885 -3.434163570966496E8 51.24522017071834
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 58, 59, 60, 61, 62, 63, 64, 65, 66, 67 are: 51.2452201698858, 51.24522016990133, 51.24522016991647, 51.24522016993123, 51.24522016994562, 51.245220169959644, 51.24522016997333, 51.245220169986666, 51.24522016999968, 51.245220170012374
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 58
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 48.0, 49.0, 50.0, 51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 5.37183882143E13, 5.27918271575E13, 5.18913397895E13, 5.10167460159E13, 5.01667667962E13, 4.93403484737E13, 4.85366513486E13, 4.77543704697E13, 4.69931766014E13, 4.62527561068E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -141730.6870599048 -7287086.508629244 -3.714783902584098E8 51.2341027170835
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 59, 60, 61, 62, 63, 64, 65, 66, 67, 68 are: 51.23410271631117, 51.23410271632532, 51.23410271633911, 51.23410271635256, 51.234102716365676, 51.23410271637847, 51.23410271639096, 51.23410271640314, 51.23410271641503, 51.23410271642663
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 59
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 49.0, 50.0, 51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0, 58.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 5.27918271575E13, 5.18913397895E13, 5.10167460159E13, 5.01667667962E13, 4.93403484737E13, 4.85366513486E13, 4.77543704697E13, 4.69931766014E13, 4.62527561068E13, 4.55313313571E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -147130.2446653851 -7714830.746389669 -4.0120953093798053E8 51.22367003816685
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 60, 61, 62, 63, 64, 65, 66, 67, 68, 69 are: 51.223670037449374, 51.22367003746227, 51.223670037474854, 51.22367003748714, 51.22367003749912, 51.223670037510814, 51.223670037522226, 51.22367003753337, 51.223670037544245, 51.22367003755486
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 60
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 50.0, 51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0, 58.0, 59.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 5.18913397895E13, 5.10167460159E13, 5.01667667962E13, 4.93403484737E13, 4.85366513486E13, 4.77543704697E13, 4.69931766014E13, 4.62527561068E13, 4.55313313571E13, 4.48282947432E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -152629.79889485956 -8158828.771520407 -4.326740106762673E8 51.213865316989306
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 61, 62, 63, 64, 65, 66, 67, 68, 69, 70 are: 51.21386531632188, 51.21386531633367, 51.21386531634517, 51.2138653163564, 51.21386531636736, 51.21386531637806, 51.213865316388514, 51.21386531639872, 51.213865316408686, 51.21386531641843
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 61
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0, 58.0, 59.0, 60.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 5.10167460159E13, 5.01667667962E13, 4.93403484737E13, 4.85366513486E13, 4.77543704697E13, 4.69931766014E13, 4.62527561068E13, 4.55313313571E13, 4.48282947432E13, 4.41428972164E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -158229.3431968867 -8619381.54573649 -4.659373832132324E8 51.204621869376055
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 62, 63, 64, 65, 66, 67, 68, 69, 70, 71 are: 51.20462186875439, 51.20462186876517, 51.2046218687757, 51.204621868785985, 51.20462186879603, 51.204621868805845, 51.20462186881542, 51.20462186882479, 51.20462186883394, 51.20462186884288
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 62
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 52.0, 53.0, 54.0, 55.0, 56.0, 57.0, 58.0, 59.0, 60.0, 61.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 5.01667667962E13, 4.93403484737E13, 4.85366513486E13, 4.77543704697E13, 4.69931766014E13, 4.62527561068E13, 4.55313313571E13, 4.48282947432E13, 4.41428972164E13, 4.34743595214E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -163928.8784004406 -9096789.134924512 -5.0106628818321455E8 51.19589633492521
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 63, 64, 65, 66, 67, 68, 69, 70, 71, 72 are: 51.19589633434543, 51.19589633435532, 51.195896334364974, 51.1958963343744, 51.195896334383626, 51.19589633439263, 51.19589633440143, 51.19589633441004, 51.19589633441844, 51.19589633442666
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 63
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 53.0, 54.0, 55.0, 56.0, 57.0, 58.0, 59.0, 60.0, 61.0, 62.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.93403484737E13, 4.85366513486E13, 4.77543704697E13, 4.69931766014E13, 4.62527561068E13, 4.55313313571E13, 4.48282947432E13, 4.41428972164E13, 4.34743595214E13, 4.28222742877E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -169728.4044430563 -9591351.580032308 -5.381285675059285E8 51.18764975485131
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 64, 65, 66, 67, 68, 69, 70, 71, 72, 73 are: 51.187649754309945, 51.18764975431902, 51.187649754327886, 51.18764975433655, 51.18764975434502, 51.1876497543533, 51.187649754361395, 51.18764975436931, 51.187649754377055, 51.18764975438462
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 64
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 54.0, 55.0, 56.0, 57.0, 58.0, 59.0, 60.0, 61.0, 62.0, 63.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.85366513486E13, 4.77543704697E13, 4.69931766014E13, 4.62527561068E13, 4.55313313571E13, 4.48282947432E13, 4.41428972164E13, 4.34743595214E13, 4.28222742877E13, 4.21861408653E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -175627.9211433017 -1.0103368866027936E7 -5.771932585919421E8 51.179847584644534
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 65, 66, 67, 68, 69, 70, 71, 72, 73, 74 are: 51.17984758413844, 51.179847584146785, 51.17984758415494, 51.179847584162914, 51.17984758417071, 51.17984758417833, 51.179847584185794, 51.179847584193084, 51.17984758420022, 51.1798475842072
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 65
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 55.0, 56.0, 57.0, 58.0, 59.0, 60.0, 61.0, 62.0, 63.0, 64.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.77543704697E13, 4.69931766014E13, 4.62527561068E13, 4.55313313571E13, 4.48282947432E13, 4.41428972164E13, 4.34743595214E13, 4.28222742877E13, 4.21861408653E13, 4.15655460342E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -181627.4305948271 -1.0633140574210033E7 -6.183305443420403E8 51.17246401340028
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 66, 67, 68, 69, 70, 71, 72, 73, 74, 75 are: 51.17246401292663, 51.17246401293431, 51.17246401294182, 51.17246401294917, 51.172464012956354, 51.17246401296338, 51.17246401297026, 51.17246401297699, 51.172464012983575, 51.17246401299002
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 66
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 56.0, 57.0, 58.0, 59.0, 60.0, 61.0, 62.0, 63.0, 64.0, 65.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.69931766014E13, 4.62527561068E13, 4.55313313571E13, 4.48282947432E13, 4.41428972164E13, 4.34743595214E13, 4.28222742877E13, 4.21861408653E13, 4.15655460342E13, 4.09597009141E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -187726.9284804854 -1.118096729614436E7 -6.616119473385167E8 51.16546141837311
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 67, 68, 69, 70, 71, 72, 73, 74, 75, 76 are: 51.16546141792935, 51.16546141793643, 51.16546141794335, 51.16546141795013, 51.165461417956756, 51.16546141796324, 51.165461417969595, 51.16546141797581, 51.1654614179819, 51.165461417987856
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 67
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 57.0, 58.0, 59.0, 60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.62527561068E13, 4.55313313571E13, 4.48282947432E13, 4.41428972164E13, 4.34743595214E13, 4.28222742877E13, 4.21861408653E13, 4.15655460342E13, 4.09597009141E13, 4.03676854473E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -193926.41382425057 -1.1747149380925829E7 -7.071101512539792E8 51.15880969829533
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 68, 69, 70, 71, 72, 73, 74, 75, 76, 77 are: 51.15880969787912, 51.15880969788565, 51.158809697892046, 51.158809697898306, 51.15880969790443, 51.15880969791043, 51.158809697916304, 51.15880969792205, 51.15880969792769, 51.1588096979332
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 68
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 58.0, 59.0, 60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.55313313571E13, 4.48282947432E13, 4.41428972164E13, 4.34743595214E13, 4.28222742877E13, 4.21861408653E13, 4.15655460342E13, 4.09597009141E13, 4.03676854473E13, 3.97890144106E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -200225.89419034595 -1.2331985951251598E7 -7.548988552656122E8 51.15249684244567
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 69, 70, 71, 72, 73, 74, 75, 76, 77, 78 are: 51.15249684205491, 51.15249684206094, 51.15249684206685, 51.152496842072644, 51.152496842078314, 51.15249684208386, 51.1524968420893, 51.15249684209463, 51.15249684209984, 51.15249684210495
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 69
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 59.0, 60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0, 68.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.48282947432E13, 4.41428972164E13, 4.34743595214E13, 4.28222742877E13, 4.21861408653E13, 4.15655460342E13, 4.09597009141E13, 4.03676854473E13, 3.97890144106E13, 3.922322439E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -206625.36666893552 -1.2935777630968139E7 -8.050531805811667E8 51.14649316220112
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 70, 71, 72, 73, 74, 75, 76, 77, 78, 79 are: 51.14649316183388, 51.146493161839466, 51.14649316184494, 51.1464931618503, 51.14649316185555, 51.14649316186069, 51.146493161865735, 51.14649316187067, 51.146493161875505, 51.14649316188025
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 70
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0, 68.0, 69.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.41428972164E13, 4.34743595214E13, 4.28222742877E13, 4.21861408653E13, 4.15655460342E13, 4.09597009141E13, 4.03676854473E13, 3.97890144106E13, 3.922322439E13, 3.8669984945E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -213124.8303128619 -1.3558824644412862E7 -8.576493974020811E8 51.140776466737684
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 71, 72, 73, 74, 75, 76, 77, 78, 79, 80 are: 51.140776466392225, 51.1407764663974, 51.14077646640247, 51.14077646640744, 51.14077646641231, 51.14077646641708, 51.140776466421755, 51.14077646642634, 51.140776466430836, 51.140776466435234
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 71
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0, 68.0, 69.0, 70.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.34743595214E13, 4.28222742877E13, 4.21861408653E13, 4.15655460342E13, 4.09597009141E13, 4.03676854473E13, 3.97890144106E13, 3.922322439E13, 3.8669984945E13, 3.81287281139E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -219724.28252405633 -1.4201427539497335E7 -9.127650268576634E8 51.13532319784484
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 72, 73, 74, 75, 76, 77, 78, 79, 80, 81 are: 51.13532319751957, 51.135323197524365, 51.135323197529075, 51.13532319753369, 51.135323197538206, 51.13532319754264, 51.13532319754698, 51.13532319755124, 51.135323197555415, 51.13532319755951
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 72
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 62.0, 63.0, 64.0, 65.0, 66.0, 67.0, 68.0, 69.0, 70.0, 71.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.28222742877E13, 4.21861408653E13, 4.15655460342E13, 4.09597009141E13, 4.03676854473E13, 3.97890144106E13, 3.922322439E13, 3.8669984945E13, 3.81287281139E13, 3.75991663709E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -226423.71946109537 -1.4863886922531439E7 -9.704788125608405E8 51.1301114309494
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 73, 74, 75, 76, 77, 78, 79, 80, 81, 82 are: 51.130111430642856, 51.13011143064731, 51.13011143065168, 51.130111430655965, 51.13011143066017, 51.130111430664286, 51.13011143066833, 51.130111430672294, 51.13011143067617, 51.13011143067999
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 73
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 63.0, 64.0, 65.0, 66.0, 67.0, 68.0, 69.0, 70.0, 71.0, 72.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.21861408653E13, 4.15655460342E13, 4.09597009141E13, 4.03676854473E13, 3.97890144106E13, 3.922322439E13, 3.8669984945E13, 3.81287281139E13, 3.75991663709E13, 3.70809411626E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -233223.14046809316 -1.5546502845961468E7 -1.0308706174480271E9 51.12512680339309
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 74, 75, 76, 77, 78, 79, 80, 81, 82, 83 are: 51.12512680310394, 51.12512680310808, 51.125126803112146, 51.12512680311613, 51.12512680312005, 51.12512680312388, 51.12512680312764, 51.12512680313133, 51.12512680313495, 51.1251268031385
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 74
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 64.0, 65.0, 66.0, 67.0, 68.0, 69.0, 70.0, 71.0, 72.0, 73.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.15655460342E13, 4.09597009141E13, 4.03676854473E13, 3.97890144106E13, 3.922322439E13, 3.8669984945E13, 3.81287281139E13, 3.75991663709E13, 3.70809411626E13, 3.65739567161E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -240122.54949339898 -1.6249574400868919E7 -1.0940213559180605E9 51.120364783429515
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 75, 76, 77, 78, 79, 80, 81, 82, 83, 84 are: 51.120364783156546, 51.120364783160404, 51.120364783164185, 51.1203647831679, 51.12036478317154, 51.12036478317511, 51.120364783178616, 51.120364783182055, 51.12036478318543, 51.12036478318874
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 75
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 65.0, 66.0, 67.0, 68.0, 69.0, 70.0, 71.0, 72.0, 73.0, 74.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.09597009141E13, 4.03676854473E13, 3.97890144106E13, 3.922322439E13, 3.8669984945E13, 3.81287281139E13, 3.75991663709E13, 3.70809411626E13, 3.65739567161E13, 3.60777872642E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -247121.95466212524 -1.6973400095820937E7 -1.1600130284807866E9 51.115825669142566
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 76, 77, 78, 79, 80, 81, 82, 83, 84, 85 are: 51.11582566888466, 51.115825668888256, 51.11582566889178, 51.11582566889524, 51.11582566889863, 51.11582566890196, 51.11582566890523, 51.11582566890844, 51.11582566891159, 51.11582566891468
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 76
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 66.0, 67.0, 68.0, 69.0, 70.0, 71.0, 72.0, 73.0, 74.0, 75.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 4.03676854473E13, 3.97890144106E13, 3.922322439E13, 3.8669984945E13, 3.81287281139E13, 3.75991663709E13, 3.70809411626E13, 3.65739567161E13, 3.60777872642E13, 3.55921853568E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -254221.3637979166 -1.7718278463486247E7 -1.2289288227622764E9 51.11150833986916
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 77, 78, 79, 80, 81, 82, 83, 84, 85, 86 are: 51.11150833962529, 51.11150833962864, 51.111508339631925, 51.11150833963516, 51.11150833963833, 51.11150833964143, 51.11150833964449, 51.111508339647486, 51.11150833965043, 51.11150833965331
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 77
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 67.0, 68.0, 69.0, 70.0, 71.0, 72.0, 73.0, 74.0, 75.0, 76.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.97890144106E13, 3.922322439E13, 3.8669984945E13, 3.81287281139E13, 3.75991663709E13, 3.70809411626E13, 3.65739567161E13, 3.60777872642E13, 3.55921853568E13, 3.51169194632E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -261420.78009489432 -1.8484508775982775E7 -1.3008532394982553E9 51.10740460764943
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 78, 79, 80, 81, 82, 83, 84, 85, 86, 87 are: 51.10740460741865, 51.10740460742178, 51.10740460742485, 51.10740460742786, 51.10740460743082, 51.10740460743372, 51.10740460743658, 51.10740460743938, 51.10740460744213, 51.107404607444835
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 78
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 68.0, 69.0, 70.0, 71.0, 72.0, 73.0, 74.0, 75.0, 76.0, 77.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.922322439E13, 3.8669984945E13, 3.81287281139E13, 3.75991663709E13, 3.70809411626E13, 3.65739567161E13, 3.60777872642E13, 3.55921853568E13, 3.51169194632E13, 3.4651605659E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -268720.20543632325 -1.9272390634956263E7 -1.3758720237114983E9 51.10350393373664
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 79, 80, 81, 82, 83, 84, 85, 86, 87, 88 are: 51.103503933518084, 51.103503933521004, 51.103503933523875, 51.10350393352669, 51.10350393352946, 51.103503933532174, 51.103503933534846, 51.10350393353747, 51.10350393354004, 51.10350393354257
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 79
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 69.0, 70.0, 71.0, 72.0, 73.0, 74.0, 75.0, 76.0, 77.0, 78.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.8669984945E13, 3.81287281139E13, 3.75991663709E13, 3.70809411626E13, 3.65739567161E13, 3.60777872642E13, 3.55921853568E13, 3.51169194632E13, 3.4651605659E13, 3.41956434205E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -276119.637921471 -2.0082224593223736E7 -1.4540722704793262E9 51.099789382201806
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 80, 81, 82, 83, 84, 85, 86, 87, 88, 89 are: 51.099789381994675, 51.099789381997404, 51.09978938200009, 51.099789382002726, 51.09978938200531, 51.099789382007856, 51.09978938201036, 51.09978938201281, 51.099789382015224, 51.09978938201759
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 80
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 70.0, 71.0, 72.0, 73.0, 74.0, 75.0, 76.0, 77.0, 78.0, 79.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.81287281139E13, 3.75991663709E13, 3.70809411626E13, 3.65739567161E13, 3.60777872642E13, 3.55921853568E13, 3.51169194632E13, 3.4651605659E13, 3.41956434205E13, 3.37488990878E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -283619.0778642307 -2.0914310686424233E7 -1.5355421933970153E9 51.096249347741555
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 81, 82, 83, 84, 85, 86, 87, 88, 89, 90 are: 51.09624934754511, 51.09624934754766, 51.09624934755018, 51.09624934755264, 51.09624934755507, 51.09624934755745, 51.0962493475598, 51.0962493475621, 51.09624934756436, 51.096249347566584
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 81
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 71.0, 72.0, 73.0, 74.0, 75.0, 76.0, 77.0, 78.0, 79.0, 80.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.75991663709E13, 3.70809411626E13, 3.65739567161E13, 3.60777872642E13, 3.55921853568E13, 3.51169194632E13, 3.4651605659E13, 3.41956434205E13, 3.37488990878E13, 3.33109560273E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -291218.52042774484 -2.1768950000663366E7 -1.620371392514708E9 51.09286587769424
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 82, 83, 84, 85, 86, 87, 88, 89, 90, 91 are: 51.0928658775078, 51.09286587751019, 51.092865877512544, 51.09286587751486, 51.092865877517134, 51.092865877519365, 51.09286587752156, 51.09286587752372, 51.092865877525846, 51.09286587752793
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 82
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 72.0, 73.0, 74.0, 75.0, 76.0, 77.0, 78.0, 79.0, 80.0, 81.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.70809411626E13, 3.65739567161E13, 3.60777872642E13, 3.55921853568E13, 3.51169194632E13, 3.4651605659E13, 3.41956434205E13, 3.37488990878E13, 3.33109560273E13, 3.28815457616E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -298917.9609146137 -2.264644357332533E7 -1.7086506727983801E9 51.08962323309702
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 83, 84, 85, 86, 87, 88, 89, 90, 91, 92 are: 51.089623232919955, 51.0896232329222, 51.08962323292441, 51.08962323292658, 51.08962323292871, 51.08962323293081, 51.08962323293287, 51.0896232329349, 51.08962323293689, 51.08962323293885
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 83
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 73.0, 74.0, 75.0, 76.0, 77.0, 78.0, 79.0, 80.0, 81.0, 82.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.65739567161E13, 3.60777872642E13, 3.55921853568E13, 3.51169194632E13, 3.4651605659E13, 3.41956434205E13, 3.37488990878E13, 3.33109560273E13, 3.28815457616E13, 3.24604811301E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -306717.3942213366 -2.3547092398865484E7 -1.8004720499328787E9 51.08650749960578
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 84, 85, 86, 87, 88, 89, 90, 91, 92, 93 are: 51.0865074994375, 51.08650749943961, 51.08650749944169, 51.08650749944372, 51.08650749944572, 51.08650749944769, 51.08650749944963, 51.086507499451535, 51.086507499453404, 51.08650749945525
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 84
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 74.0, 75.0, 76.0, 77.0, 78.0, 79.0, 80.0, 81.0, 82.0, 83.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.60777872642E13, 3.55921853568E13, 3.51169194632E13, 3.4651605659E13, 3.41956434205E13, 3.37488990878E13, 3.33109560273E13, 3.28815457616E13, 3.24604811301E13, 3.20474509989E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -314616.8189645204 -2.4471196823350005E7 -1.8959286253759549E9 51.083510250424844
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 85, 86, 87, 88, 89, 90, 91, 92, 93, 94 are: 51.08351025026482, 51.0835102502668, 51.083510250268745, 51.08351025027066, 51.083510250272546, 51.083510250274394, 51.08351025027621, 51.083510250278, 51.083510250279765, 51.0835102502815
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 85
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 75.0, 76.0, 77.0, 78.0, 79.0, 80.0, 81.0, 82.0, 83.0, 84.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.55921853568E13, 3.51169194632E13, 3.4651605659E13, 3.41956434205E13, 3.37488990878E13, 3.33109560273E13, 3.28815457616E13, 3.24604811301E13, 3.20474509989E13, 3.16422472918E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -322616.23299086175 -2.5419057266543195E7 -1.9951147229960532E9 51.0806232513161
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 86, 87, 88, 89, 90, 91, 92, 93, 94, 95 are: 51.08062325116383, 51.08062325116569, 51.080623251167516, 51.080623251169314, 51.08062325117108, 51.08062325117283, 51.08062325117454, 51.08062325117623, 51.08062325117788, 51.08062325117952
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 86
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 76.0, 77.0, 78.0, 79.0, 80.0, 81.0, 82.0, 83.0, 84.0, 85.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.51169194632E13, 3.4651605659E13, 3.41956434205E13, 3.37488990878E13, 3.33109560273E13, 3.28815457616E13, 3.24604811301E13, 3.20474509989E13, 3.16422472918E13, 3.12447051261E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -330715.6370671265 -2.6390973486403342E7 -2.0981257477225783E9 51.077842699506235
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 87, 88, 89, 90, 91, 92, 93, 94, 95, 96 are: 51.07784269936125, 51.077842699363, 51.07784269936472, 51.077842699366414, 51.077842699368084, 51.07784269936972, 51.07784269937133, 51.07784269937292, 51.07784269937448, 51.07784269937602
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 87
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 77.0, 78.0, 79.0, 80.0, 81.0, 82.0, 83.0, 84.0, 85.0, 86.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.4651605659E13, 3.41956434205E13, 3.37488990878E13, 3.33109560273E13, 3.28815457616E13, 3.24604811301E13, 3.20474509989E13, 3.16422472918E13, 3.12447051261E13, 3.08545444108E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -338915.0345922861 -2.7387244801497094E7 -2.205058210260308E9 51.075167372287034
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 88, 89, 90, 91, 92, 93, 94, 95, 96, 97 are: 51.075167372148904, 51.07516737215055, 51.07516737215217, 51.07516737215377, 51.075167372155335, 51.07516737215688, 51.075167372158404, 51.075167372159896, 51.07516737216137, 51.07516737216282
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 88
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 78.0, 79.0, 80.0, 81.0, 82.0, 83.0, 84.0, 85.0, 86.0, 87.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.41956434205E13, 3.37488990878E13, 3.33109560273E13, 3.28815457616E13, 3.24604811301E13, 3.20474509989E13, 3.16422472918E13, 3.12447051261E13, 3.08545444108E13, 3.04716405149E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -347214.4306510491 -2.8408170147366203E7 -2.316009739373141E9 51.07259789730715
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 89, 90, 91, 92, 93, 94, 95, 96, 97, 98 are: 51.07259789717548, 51.072597897177026, 51.072597897178554, 51.07259789718006, 51.07259789718154, 51.072597897182995, 51.07259789718442, 51.07259789718584, 51.07259789718722, 51.07259789718859
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 89
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 79.0, 80.0, 81.0, 82.0, 83.0, 84.0, 85.0, 86.0, 87.0, 88.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.37488990878E13, 3.33109560273E13, 3.28815457616E13, 3.24604811301E13, 3.20474509989E13, 3.16422472918E13, 3.12447051261E13, 3.08545444108E13, 3.04716405149E13, 3.00957542263E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -355613.8243646258 -2.945404966436383E7 -2.4310793943885684E9 51.0701281386852
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 90, 91, 92, 93, 94, 95, 96, 97, 98, 99 are: 51.07012813855961, 51.070128138561074, 51.07012813856251, 51.07012813856393, 51.07012813856532, 51.070128138566695, 51.070128138568045, 51.07012813856938, 51.07012813857069, 51.07012813857198
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 90
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 80.0, 81.0, 82.0, 83.0, 84.0, 85.0, 86.0, 87.0, 88.0, 89.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.33109560273E13, 3.28815457616E13, 3.24604811301E13, 3.20474509989E13, 3.16422472918E13, 3.12447051261E13, 3.08545444108E13, 3.04716405149E13, 3.00957542263E13, 2.97267459417E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -364113.2190341381 -3.052518263390626E7 -2.550367261164624E9 51.06775673827035
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 91, 92, 93, 94, 95, 96, 97, 98, 99, 100 are: 51.06775673815049, 51.06775673815187, 51.06775673815323, 51.067756738154564, 51.067756738155886, 51.06775673815718, 51.06775673815846, 51.067756738159716, 51.06775673816095, 51.06775673816217
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 91
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 81.0, 82.0, 83.0, 84.0, 85.0, 86.0, 87.0, 88.0, 89.0, 90.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.28815457616E13, 3.24604811301E13, 3.20474509989E13, 3.16422472918E13, 3.12447051261E13, 3.08545444108E13, 3.04716405149E13, 3.00957542263E13, 2.97267459417E13, 2.93643566626E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -372712.614202946 -3.1621869187602084E7 -2.67397478846967E9 51.065478064004985
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 92, 93, 94, 95, 96, 97, 98, 99, 100, 101 are: 51.06547806389054, 51.065478063891845, 51.065478063893124, 51.06547806389439, 51.06547806389563, 51.065478063896855, 51.06547806389806, 51.06547806389925, 51.06547806390042, 51.06547806390157
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 92
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 82.0, 83.0, 84.0, 85.0, 86.0, 87.0, 88.0, 89.0, 90.0, 91.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.24604811301E13, 3.20474509989E13, 3.16422472918E13, 3.12447051261E13, 3.08545444108E13, 3.04716405149E13, 3.00957542263E13, 2.97267459417E13, 2.93643566626E13, 2.90085811304E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -381412.0113270749 -3.2744408867550258E7 -2.8020045147559853E9 51.063289578553274
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 93, 94, 95, 96, 97, 98, 99, 100, 101, 102 are: 51.063289578443936, 51.063289578445165, 51.06328957844638, 51.06328957844757, 51.063289578448746, 51.063289578449904, 51.06328957845104, 51.06328957845217, 51.06328957845327, 51.063289578454366
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 93
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 83.0, 84.0, 85.0, 86.0, 87.0, 88.0, 89.0, 90.0, 91.0, 92.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.20474509989E13, 3.16422472918E13, 3.12447051261E13, 3.08545444108E13, 3.04716405149E13, 3.00957542263E13, 2.97267459417E13, 2.93643566626E13, 2.90085811304E13, 2.86591253992E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -390211.411413025 -3.389310148334351E7 -2.93456021925535E9 51.06118760101898
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 94, 95, 96, 97, 98, 99, 100, 101, 102, 103 are: 51.061187600914465, 51.06118760091563, 51.061187600916774, 51.061187600917904, 51.06118760091901, 51.06118760092011, 51.06118760092119, 51.06118760092225, 51.0611876009233, 51.06118760092433
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 94
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 84.0, 85.0, 86.0, 87.0, 88.0, 89.0, 90.0, 91.0, 92.0, 93.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.16422472918E13, 3.12447051261E13, 3.08545444108E13, 3.04716405149E13, 3.00957542263E13, 2.97267459417E13, 2.93643566626E13, 2.90085811304E13, 2.86591253992E13, 2.83157434133E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -399110.81233642175 -3.5068247575862184E7 -3.0717470311221256E9 51.05916540902452
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 95, 96, 97, 98, 99, 100, 101, 102, 103, 104 are: 51.05916540892458, 51.05916540892567, 51.05916540892676, 51.059165408927825, 51.05916540892888, 51.059165408929914, 51.05916540893093, 51.05916540893194, 51.059165408932934, 51.05916540893391
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 95
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 85.0, 86.0, 87.0, 88.0, 89.0, 90.0, 91.0, 92.0, 93.0, 94.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.12447051261E13, 3.08545444108E13, 3.04716405149E13, 3.00957542263E13, 2.97267459417E13, 2.93643566626E13, 2.90085811304E13, 2.86591253992E13, 2.83157434133E13, 2.79782915166E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -408110.2123104543 -3.6270147602019675E7 -3.2136712688573246E9 51.05721723386767
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 96, 97, 98, 99, 100, 101, 102, 103, 104, 105 are: 51.057217233772036, 51.05721723377307, 51.057217233774104, 51.05721723377511, 51.05721723377611, 51.05721723377709, 51.057217233778054, 51.05721723377901, 51.057217233779944, 51.057217233780875
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 96
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 86.0, 87.0, 88.0, 89.0, 90.0, 91.0, 92.0, 93.0, 94.0, 95.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.08545444108E13, 3.04716405149E13, 3.00957542263E13, 2.97267459417E13, 2.93643566626E13, 2.90085811304E13, 2.86591253992E13, 2.83157434133E13, 2.79782915166E13, 2.76466690373E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -417209.61188702285 -3.749910153291821E7 -3.360440350416212E9 51.05533989567253
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 97, 98, 99, 100, 101, 102, 103, 104, 105, 106 are: 51.055339895580985, 51.05533989558197, 51.05533989558294, 51.0553398955839, 51.055339895584844, 51.055339895585774, 51.05533989558669, 51.05533989558759, 51.05533989558848, 51.055339895589356
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 97
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 87.0, 88.0, 89.0, 90.0, 91.0, 92.0, 93.0, 94.0, 95.0, 96.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.04716405149E13, 3.00957542263E13, 2.97267459417E13, 2.93643566626E13, 2.90085811304E13, 2.86591253992E13, 2.83157434133E13, 2.79782915166E13, 2.76466690373E13, 2.73207207837E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -426409.00947112014 -3.87554097485706E7 -3.512162986752932E9 51.05352866893675
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 98, 99, 100, 101, 102, 103, 104, 105, 106, 107 are: 51.05352866884907, 51.05352866885001, 51.05352866885092, 51.05352866885183, 51.05352866885273, 51.05352866885361, 51.053528668854476, 51.053528668855336, 51.05352866885618, 51.05352866885701
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 98
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 88.0, 89.0, 90.0, 91.0, 92.0, 93.0, 94.0, 95.0, 96.0, 97.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 3.00957542263E13, 2.97267459417E13, 2.93643566626E13, 2.90085811304E13, 2.86591253992E13, 2.83157434133E13, 2.79782915166E13, 2.76466690373E13, 2.73207207837E13, 2.70003180504E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -435708.40571360535 -4.00393721585061E7 -3.6689489869520926E9 51.05178106362167
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 99, 100, 101, 102, 103, 104, 105, 106, 107, 108 are: 51.05178106353766, 51.05178106353854, 51.051781063539416, 51.051781063540275, 51.05178106354112, 51.05178106354196, 51.051781063542784, 51.051781063543594, 51.0517810635444, 51.051781063545185
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: 
+
+
+==========================================
+17/04/20 06:22:30 INFO PoolReweighterLoss: ANDREW predicting in iteration 99
+17/04/20 06:22:30 INFO PoolReweighterLoss: My x's are: 89.0, 90.0, 91.0, 92.0, 93.0, 94.0, 95.0, 96.0, 97.0, 98.0.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My y's are: 2.97267459417E13, 2.93643566626E13, 2.90085811304E13, 2.86591253992E13, 2.83157434133E13, 2.79782915166E13, 2.76466690373E13, 2.73207207837E13, 2.70003180504E13, 2.66853800806E13.
+17/04/20 06:22:30 INFO PoolReweighterLoss: My params are -445107.80109548086 -4.135128859992776E7 -3.8309093491934247E9 51.05009490297816
+17/04/20 06:22:30 INFO PoolReweighterLoss: My predictions for iterations 100, 101, 102, 103, 104, 105, 106, 107, 108, 109 are: 51.05009490289763, 51.050094902898465, 51.050094902899296, 51.050094902900106, 51.050094902900916, 51.050094902901705, 51.05009490290249, 51.05009490290326, 51.05009490290402, 51.050094902904775
+17/04/20 06:22:30 INFO PoolReweighterLoss: ==========================================
+17/04/20 06:22:30 INFO SparkContext: Invoking stop() from shutdown hook
+17/04/20 06:22:30 INFO ServerConnector: Stopped ServerConnector@1698fc68{HTTP/1.1}{0.0.0.0:4040}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@20a14b55{/stages/stage/kill,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3eeb318f{/jobs/job/kill,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@17a87e37{/api,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@4b3a45f1{/,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@549949be{/static,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@655f7ea{/executors/threadDump/json,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@1c6804cd{/executors/threadDump,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@476b0ae6{/executors/json,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@c1bd0be{/executors,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@5bd82fed{/environment/json,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3b2c0e88{/environment,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@1e7aa82b{/storage/rdd/json,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@4212a0c8{/storage/rdd,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@698122b2{/storage/json,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3542162a{/storage,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@7c541c15{/stages/pool/json,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@3543df7d{/stages/pool,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@66b7550d{/stages/stage/json,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@2ccca26f{/stages/stage,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@6b44435b{/stages/json,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@b6b1987{/stages,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@2a2c13a8{/jobs/job/json,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@45905bff{/jobs/job,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@31aa3ca5{/jobs/json,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO ContextHandler: Stopped o.e.j.s.ServletContextHandler@72ea6193{/jobs,null,UNAVAILABLE}
+17/04/20 06:22:30 INFO SparkUI: Stopped Spark web UI at http://128.112.7.138:4040
+17/04/20 06:22:30 INFO MapOutputTrackerMasterEndpoint: MapOutputTrackerMasterEndpoint stopped!
+17/04/20 06:22:30 INFO MemoryStore: MemoryStore cleared
+17/04/20 06:22:30 INFO BlockManager: BlockManager stopped
+17/04/20 06:22:30 INFO BlockManagerMaster: BlockManagerMaster stopped
+17/04/20 06:22:30 INFO OutputCommitCoordinator$OutputCommitCoordinatorEndpoint: OutputCommitCoordinator stopped!
+17/04/20 06:22:30 INFO SparkContext: Successfully stopped SparkContext
+17/04/20 06:22:30 INFO ShutdownHookManager: Shutdown hook called
+17/04/20 06:22:30 INFO ShutdownHookManager: Deleting directory /tmp/spark-cdfa7891-6816-41e4-bf62-e24dbecf6083
