@@ -10,13 +10,14 @@ from scipy.optimize import curve_fit
 
 def main():
   args = sys.argv
-  if len(args) != 4:
-    print "Expected curve_type, x and y"
+  if len(args) != 5:
+    print "Expected curve_type, x, y, and decay"
     sys.exit(1)
   curve_type = args[1]
   x = [float(t) for t in args[2].split(",")]
   y = [float(t) for t in args[3].split(",")]
-  fit_curve(curve_type, x, y)
+  decay = float(args[4])
+  fit_curve(curve_type, x, y, decay)
 
 def fit_curve(curve_type, x, y, decay=0.9):
   func = get_func(curve_type)

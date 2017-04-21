@@ -81,7 +81,7 @@ def translate_legend(name):
     if "OneOverXFunctionFitter" in name: func = "1 / x"
     if "OneOverXSquaredFunctionFitter" in name: func = "1 / x^2"
     if "OneOverExponentialFunctionFitter" in name: func = "exp(-x)"
-    decay = float(re.match(".*sim_mlpc_cf_.*_(.*).log", name).groups()[0])
+    decay = float(re.match(".*cf_.*_(.*).log", name).groups()[0])
     maybe_weighted = " weighted" if decay < 1 else ""
     return func + maybe_weighted
   else:

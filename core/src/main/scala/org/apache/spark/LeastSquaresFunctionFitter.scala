@@ -19,10 +19,6 @@ package org.apache.spark
 
 import scala.reflect.{classTag, ClassTag}
 
-import org.apache.commons.math3.fitting.{AbstractCurveFitter, WeightedObservedPoint}
-import org.apache.commons.math3.fitting.leastsquares.{LeastSquaresBuilder, LeastSquaresProblem}
-import org.apache.commons.math3.linear.DiagonalMatrix
-
 
 class OneOverXFunctionFitter extends LeastSquaresFunctionFitter[OneOverXFunction]
 class OneOverXSquaredFunctionFitter extends LeastSquaresFunctionFitter[OneOverXSquaredFunction]
@@ -34,9 +30,7 @@ class OneOverExponentialFunctionFitter
 /**
  * Generic curve fitter that minimizes least squares.
  */
-abstract class LeastSquaresFunctionFitter[T <: GenericFittingFunction: ClassTag]
-  extends AbstractCurveFitter {
-
+abstract class LeastSquaresFunctionFitter[T <: GenericFittingFunction: ClassTag] {
   private var fittedParams: Array[Double] = _
   private val func: T = classTag[T].runtimeClass.getConstructor().newInstance().asInstanceOf[T]
 
@@ -55,7 +49,7 @@ abstract class LeastSquaresFunctionFitter[T <: GenericFittingFunction: ClassTag]
    * Compute the value of the fitted function at `x`, assuming [[fit]] has already been called.
    */
   def compute(x: Double): Double = {
-    func.value(x, getFittedParams: _*)
+    func.compute(x, getFittedParams: _*)
   }
 
   /**
@@ -64,42 +58,13 @@ abstract class LeastSquaresFunctionFitter[T <: GenericFittingFunction: ClassTag]
    * The caller may optionally specify a decay in (0, 1] to give exponentially less
    * weight to early data points.
    */
-  def fit(x: Array[Double], y: Array[Double], decay: Double = 0.95): Unit = {
+  def fit(x: Array[Double], y: Array[Double], decay: Double = 0.9): Unit = {
     assert(x.length == y.length, s"x and y have different sizes: ${x.length} != ${y.length}")
     assert(decay > 0 && decay <= 1, s"decay factor must be in range (0, 1]: $decay")
-    val points = new java.util.ArrayList[WeightedObservedPoint]
-    x.zip(y).zipWithIndex.foreach { case ((t, u), i) =>
-      points.add(new WeightedObservedPoint(math.pow(decay, x.length - i), t, u))
-    }
-    fittedParams = fit(points)
-  }
-
-  // Boiler plate crap
-  protected override def getProblem(
-      points: java.util.Collection[WeightedObservedPoint]): LeastSquaresProblem = {
-    val len = points.size()
-    val target = new Array[Double](len)
-    val weights = new Array[Double](len)
-    val initialGuess = (1 to func.numParameters).map { _ => 1.0 }.toArray
-    val model = new AbstractCurveFitter.TheoreticalValuesFunction(func, points)
-
-    var i = 0
-    val pointIter = points.iterator()
-    while (pointIter.hasNext) {
-      val point = pointIter.next()
-      target(i) = point.getY
-      weights(i) = point.getWeight
-      i += 1
-    }
-
-    new LeastSquaresBuilder()
-      .maxEvaluations(Integer.MAX_VALUE)
-      .maxIterations(Integer.MAX_VALUE)
-      .start(initialGuess)
-      .target(target)
-      .weight(new DiagonalMatrix(weights))
-      .model(model.getModelFunction, model.getModelFunctionJacobian)
-      .build()
+    import scala.sys.process._
+    val output: String = "./plotting/curve_fitter.py %s %s %s %s"
+      .format(func.name, x.mkString(","), y.mkString(","), decay).!!
+    fittedParams = output.trim().split(", ").map(_.toDouble)
   }
 
 }

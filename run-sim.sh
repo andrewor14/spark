@@ -13,15 +13,15 @@ if [ "$strategy" == "cf" ]; then
   extra_conf="--conf spark.approximation.predLoss.cf.decay=$decay"
   extra_conf="$extra_conf --conf spark.approximation.predLoss.cf.fitterName=$fitterName"
   extra_conf="$extra_conf --conf spark.approximation.predLoss.windowSize=$windowSize"
-  log_file_name=sim_mlpc_"$strategy"_"$fitterName"_"$decay"
+  log_file_name="$strategy"_"$fitterName"_"$decay"
 elif [ "$strategy" == "avg" ]; then
   windowSize="$param1"
   extra_conf="--conf spark.approximation.predLoss.windowSize=$windowSize"
-  log_file_name=sim_mlpc_"$strategy"_"$windowSize"
+  log_file_name="$strategy"_"$windowSize"
 elif [ "$strategy" == "ewma" ]; then
   alpha="$param1"
   extra_conf="--conf spark.approximation.predLoss.ewma.alpha=$alpha"
-  log_file_name=sim_mlpc_"$strategy"_"$alpha"
+  log_file_name="$strategy"_"$alpha"
 fi
 
 conf="--conf spark.approximation.predLoss.strategy=$strategy"
