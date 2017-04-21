@@ -14,10 +14,7 @@ do_the_thing() {
     "avg_1.log" \
     "cf_"$func"_1.log" \
     "cf_"$func"_$decay.log"
-  ./plotting/plot_l2.py "$base_dir"\
-    "avg_1.log" \
-    "cf_"$func"_1.log" \
-    "cf_"$func"_$decay.log"
+  ./plotting/plot_l2.py "$base_dir"
 }
 
 do_the_thing "one_over_x"
