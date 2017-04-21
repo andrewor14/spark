@@ -55,12 +55,17 @@ abstract class LeastSquaresFunctionFitter[T <: GenericFittingFunction: ClassTag]
    * The caller may optionally specify a decay in (0, 1] to give exponentially less
    * weight to early data points.
    */
-  def fit(x: Array[Double], y: Array[Double], decay: Double = 0.9): Unit = {
+  def fit(
+      x: Array[Double],
+      y: Array[Double],
+      decay: Double = 0.9,
+      startingParameters: Array[Double] = Array.empty[Double]): Unit = {
     assert(x.length == y.length, s"x and y have different sizes: ${x.length} != ${y.length}")
     assert(decay > 0 && decay <= 1, s"decay factor must be in range (0, 1]: $decay")
     import scala.sys.process._
-    val output: String = "./plotting/curve_fitter.py %s %s %s %s"
-      .format(func.name, x.mkString(","), y.mkString(","), decay).!!
+    val cmd = "./plotting/curve_fitter.py %s %s %s %s %s"
+      .format(func.name, x.mkString(","), y.mkString(","), decay, startingParameters.mkString(","))
+    val output: String = cmd.trim().!!
     fittedParams = output.trim().split(", ").map(_.toDouble)
   }
 

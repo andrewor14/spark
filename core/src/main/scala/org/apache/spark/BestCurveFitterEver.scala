@@ -24,7 +24,7 @@ import scala.io.Source
 
 object BestCurveFitterEver {
   private var y: Array[Double] = _
-  private val MAX_LOSSES_PER_WINDOW = 100
+  private val MAX_LOSSES_PER_WINDOW = 1000
 
   def readData(inPath: String): Unit = {
     val lines = Source.fromFile(inPath).getLines()

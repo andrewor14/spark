@@ -64,6 +64,10 @@ object PoolReweighterLoss extends Logging {
   @volatile private var isRunning = false
   private var launchedDummyThread = false
 
+  // Collect all parameters for curve fitting
+  // This is used to compute better initial parameters in case curve fitting fails
+  private var allFittedParams: Array[ArrayBuffer[Double]] = _
+
   val CONF_PREFIX = "spark.approximation.predLoss"
   private val MIN_POINTS_FOR_PREDICTION = 5
 
@@ -204,7 +208,7 @@ object PoolReweighterLoss extends Logging {
       return Array.empty[Double]
     }
     val losses = allLosses.takeRight(windowSize)
-    val lossIndices = allLosses.indices.takeRight(windowSize).toArray
+    val lossIndices = allLosses.indices.takeRight(windowSize).toArray.map(_.toDouble)
     val deltas = losses.zip(losses.tail).map { case (first, second) => second - first }
     val positiveDeltas = deltas.filter(_ > 0)
     if (positiveDeltas.nonEmpty) {
@@ -231,9 +235,42 @@ object PoolReweighterLoss extends Logging {
           case "one_over_x_squared" => new OneOverXSquaredFunctionFitter
           case n => throw new IllegalArgumentException(s"Unsupported fitter: $n")
         }
-        val x = lossIndices.map(_.toDouble)
+        val x = lossIndices
         val y = losses
-        fitter.fit(x, y, decay)
+
+        // Sometimes the initial parameters are not good enough, leading curve fitting
+        // to fail. When this happens, try again with new parameters.
+        try {
+          fitter.fit(x, y, decay)
+        } catch {
+          case e: RuntimeException =>
+            // Failed to curve fit, try again with new parameters
+            val startingParameters = allFittedParams.map { params => params.sum / params.size }
+            logWarning(s"ANDREW: curve fitting failed at iteration $currentIter. Trying " +
+              s"again with these new starting parameters: ${startingParameters.mkString(", ")}")
+            try {
+              fitter.fit(x, y, decay, startingParameters)
+            } catch {
+              case e: RuntimeException =>
+                // Failed again, try again with the starting parameters and decay = 1
+                logWarning(s"ANDREW: curve fitting failed again at iteration $currentIter. " +
+                  s"Trying again with the same parameters but with decay = 1")
+                fitter.fit(x, y, 1, startingParameters)
+            }
+        }
+        val params = fitter.getFittedParams
+
+        // Update fitted params, for taking averages later if things fail
+        if (allFittedParams == null) {
+          allFittedParams = new Array[ArrayBuffer[Double]](params.length)
+        }
+        allFittedParams.indices.foreach { i =>
+          if (allFittedParams(i) == null) {
+            allFittedParams(i) = new ArrayBuffer[Double]
+          }
+          allFittedParams(i) += params(i)
+        }
+
         logInfo("\n\n\n==========================================")
         logInfo(s"ANDREW predicting in iteration $currentIter")
         logInfo(s"My x's are: ${x.mkString(", ")}.")
