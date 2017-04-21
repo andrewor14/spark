@@ -18,37 +18,67 @@ def get_data(path):
   print "L2 norms for %s for these iterations %s are %s" % (path.split("/")[-1], iterations_of_interest, l2)
   return l2
 
+def get_normalized_data(path1, path2, path3):
+  data1 = get_data(path1)
+  data2 = get_data(path2)
+  data3 = get_data(path3)
+  for i in range(len(data1)):
+    max_l2 = max(data1[i], data2[i], data3[i])
+    data1[i] = data1[i] / max_l2
+    data2[i] = data2[i] / max_l2
+    data3[i] = data3[i] / max_l2
+  return (data1, data2, data3)
+
 def main():
   args = sys.argv
-  if len(args) != 5:
-    print "Expected base dir."
+  if len(args) < 2:
+    print "Expected at least one log directory."
     sys.exit(1)
-  base_dir = args[1]
-  naive_path = join(base_dir, args[2])
-  curve_fitting_path = join(base_dir, args[3])
-  curve_fitting_weighted_path = join(base_dir, args[4])
+  out_dir = args[1] if len(args) == 2 else "."
+  log_dirs = args[1:]
+
+  # Some random variables
+  algorithm_names = [d.split("/")[-1] for d in log_dirs]
+  num_algorithms = len(algorithm_names)
+  num_bars_per_group = 2 + 3 * num_algorithms
+  width = 1.0 / num_bars_per_group
   indices = np.arange(3)
-  width = 0.2
-  fig, ax = plt.subplots()
+  log_file_names = ["avg_1.log", "cf_one_over_x_squared_1.log", "cf_one_over_x_squared_0.8.log"]
   empty = [0, 0, 0]
-  naive = get_data(naive_path)
-  curve_fitting = get_data(curve_fitting_path)
-  curve_fitting_weighted = get_data(curve_fitting_weighted_path)
-  rects0 = ax.bar(indices, empty, width)
-  rects1 = ax.bar(indices + width, naive, width, color="r")
-  rects2 = ax.bar(indices + 2 * width, curve_fitting, width, color="m")
-  rects3 = ax.bar(indices + 3 * width, curve_fitting_weighted, width, color="b")
-  ax.set_ylabel("Prediction error L2 norm")
+  color_cycle = ["r", "m", "b", "c", "y", "g", "k"]
+
+  # Start plotting
+  fig, ax = plt.subplots(figsize=(20, 8))
+  log_file_paths = []
+  bars = []
+  bars += [ax.bar(indices, empty, width)]
+  for i in range(len(log_dirs)):
+    naive_path = join(log_dirs[i], log_file_names[0])
+    curve_fitting_path = join(log_dirs[i], log_file_names[1])
+    curve_fitting_weighted_path = join(log_dirs[i], log_file_names[2])
+    (naive, curve_fitting, curve_fitting_weighted) =\
+      get_normalized_data(naive_path, curve_fitting_path, curve_fitting_weighted_path)
+    base_indices = indices + 3 * width * i
+    bars += [ax.bar(base_indices + width, naive, width, color=color_cycle[i], hatch="/")]
+    bars += [ax.bar(base_indices + 2 * width, curve_fitting, width, color=color_cycle[i], hatch="-")]
+    bars += [ax.bar(base_indices + 3 * width, curve_fitting_weighted, width, color=color_cycle[i], hatch="\\")]
+  bars += [ax.bar(indices + (3 * num_algorithms + 1) * width, empty, width)]
+  ax.set_ylabel("Normalized L2 norm of prediction error")
   ax.set_xlabel("Number of iterations predicted in advance")
-  ax.set_title("%s loss prediction error" % base_dir.split("/")[-1], y = 1.04)
-  ax.set_xticks(indices + width * 2.5)
+  ax.set_title("Loss prediction error", y = 1.04)
+  ax.set_xticks(indices + width * num_bars_per_group / 2)
   ax.set_xticklabels(("1", "5", "10"))
-  ax.legend(\
-    (rects1[0], rects2[0], rects3[0]),\
-    ("naive", translate_legend(curve_fitting_path), translate_legend(curve_fitting_weighted_path)),\
-    prop = {"size": 12},\
-    loc = "upper left")
-  plt.savefig(join(base_dir, "prediction_error_%s.png" % translate_name(curve_fitting_path)))
+  plt.gca().set_ylim([0.0, 1.04])
+  legend_bars = tuple([r[0] for r in bars[1:-1]])
+  legend_names = []
+  for alg_name in algorithm_names:
+    for i in range(len(log_file_names)):
+      legend_names += ["%s (%s)" % (translate_legend(log_file_names[i]), alg_name)]
+  legend_names = tuple(legend_names)
+  box = ax.get_position()
+  ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+  ax.legend(legend_bars, legend_names, prop = {"size": 12}, loc = "center left", bbox_to_anchor=(1.04, 0.5))
+  plt.savefig(join(out_dir, "prediction_error_%s.png" % translate_name(curve_fitting_path)))
 
 if __name__ == "__main__":
   main()
