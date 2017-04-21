@@ -239,7 +239,8 @@ object PoolReweighterLoss extends Logging {
         val y = losses
 
         // Sometimes the initial parameters are not good enough, leading curve fitting
-        // to fail. When this happens, try again with new parameters.
+        // to fail. When this happens, try again with new parameters. Sorry for this giant
+        // cluster fuck of try catches.
         try {
           fitter.fit(x, y, decay)
         } catch {
@@ -255,7 +256,30 @@ object PoolReweighterLoss extends Logging {
                 // Failed again, try again with the starting parameters and decay = 1
                 logWarning(s"ANDREW: curve fitting failed again at iteration $currentIter. " +
                   s"Trying again with the same parameters but with decay = 1")
-                fitter.fit(x, y, 1, startingParameters)
+                try {
+                  fitter.fit(x, y, 1, startingParameters)
+                } catch {
+                  case e: RuntimeException =>
+                    // Failed again, try again with larger window sizes + all of the above
+                    var newWindowSize = windowSize
+                    var exception: Option[RuntimeException] = None
+                    while (newWindowSize < allLosses.length) {
+                      newWindowSize = newWindowSize * 2
+                      logWarning(s"ANDREW: curve fitting failed again at iteration $currentIter. " +
+                        s"Trying again with larger window size $newWindowSize.")
+                      val xx = allLosses.indices.takeRight(newWindowSize).toArray.map(_.toDouble)
+                      val yy = allLosses.takeRight(newWindowSize)
+                      try {
+                        fitter.fit(xx, yy, 1, startingParameters)
+                        exception = None
+                        newWindowSize = allLosses.length // break
+                      } catch {
+                        case e: RuntimeException =>
+                          exception = Some(e)
+                      }
+                    }
+                    exception.foreach { throw _ }
+                }
             }
         }
         val params = fitter.getFittedParams
