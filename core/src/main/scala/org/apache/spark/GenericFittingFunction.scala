@@ -21,7 +21,7 @@ package org.apache.spark
 /**
  * Function that represents 1 / (ax + b).
  */
-class OneOverXFunction extends GenericFittingFunction("one_over_x", 3) {
+class OneOverXFunction extends GenericFittingFunction("one_over_x", 2) {
   protected override def doCompute(x: Double, params: Seq[Double]): Double = {
     val (a, b) = (params(0), params(1))
     1 / (a * x + b)
@@ -36,28 +36,6 @@ class OneOverXSquaredFunction extends GenericFittingFunction("one_over_x_squared
   protected override def doCompute(x: Double, params: Seq[Double]): Double = {
     val (a, b, c) = (params(0), params(1), params(2))
     1 / (a * math.pow(x, 2) +  b * x + c)
-  }
-}
-
-
-/**
- * Function that represents 1 / (ax**k + b) + c.
- */
-class OneOverXToTheKFunction extends GenericFittingFunction("one_over_x_to_the_k", 4) {
-  protected override def doCompute(x: Double, params: Seq[Double]): Double = {
-    val (a, b, c, k) = (params(0), params(1), params(2), params(3))
-    1 / (a * math.pow(x, k) + b) + c
-  }
-}
-
-
-/**
- * Function that represents exp(-ax) + b.
- */
-class OneOverExponentialFunction extends GenericFittingFunction("one_over_exponential", 2) {
-  protected override def doCompute(x: Double, params: Seq[Double]): Double = {
-    val (a, b) = (params(0), params(1))
-    math.exp(-a * x) + b
   }
 }
 

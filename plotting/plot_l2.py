@@ -48,8 +48,7 @@ def main():
     ("naive", translate_legend(curve_fitting_path), translate_legend(curve_fitting_weighted_path)),\
     prop = {"size": 12},\
     loc = "upper left")
-  suffix = out_file_suffix(curve_fitting_path)
-  plt.savefig(join(base_dir, "prediction_error%s.png" % suffix))
+  plt.savefig(join(base_dir, "prediction_error_%s.png" % translate_name(curve_fitting_path)))
 
 if __name__ == "__main__":
   main()

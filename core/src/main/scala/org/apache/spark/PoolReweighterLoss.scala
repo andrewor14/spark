@@ -225,9 +225,12 @@ object PoolReweighterLoss extends Logging {
       case CF =>
         // Use a fitted curve to predict the value of the next data point
         val decay = conf.getDouble(s"$CONF_PREFIX.$CF.decay", 0.75)
-        val fitterName = conf.get(s"$CONF_PREFIX.$CF.fitterName", "OneOverXSquaredFunctionFitter")
-        val fitter = Utils.classForName("org.apache.spark." + fitterName)
-          .getConstructor().newInstance().asInstanceOf[LeastSquaresFunctionFitter[_]]
+        val fitterName = conf.get(s"$CONF_PREFIX.$CF.fitterName", "one_over_x_squared")
+        val fitter: LeastSquaresFunctionFitter[_] = fitterName match {
+          case "one_over_x" => new OneOverXFunctionFitter
+          case "one_over_x_squared" => new OneOverXSquaredFunctionFitter
+          case n => throw new IllegalArgumentException(s"Unsupported fitter: $n")
+        }
         val x = lossIndices.map(_.toDouble)
         val y = losses
         fitter.fit(x, y, decay)

@@ -22,9 +22,6 @@ import scala.reflect.{classTag, ClassTag}
 
 class OneOverXFunctionFitter extends LeastSquaresFunctionFitter[OneOverXFunction]
 class OneOverXSquaredFunctionFitter extends LeastSquaresFunctionFitter[OneOverXSquaredFunction]
-class OneOverXToTheKFunctionFitter extends LeastSquaresFunctionFitter[OneOverXToTheKFunction]
-class OneOverExponentialFunctionFitter
-  extends LeastSquaresFunctionFitter[OneOverExponentialFunction]
 
 
 /**

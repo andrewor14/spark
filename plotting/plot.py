@@ -66,32 +66,31 @@ def do_the_thing(base_dir, *log_file_paths):
     out_file_path = os.path.join(base_dir, log_file_paths[0].replace("log", "png"))
     ax.set_title(log_file_paths[0], y = 1.04)
   else:
-    suffix = out_file_suffix(log_file_paths[-1])
-    out_file_path = os.path.join(base_dir, "prediction%s.png" % suffix)
+    out_file_path = os.path.join(base_dir, "prediction_%s.png" % translate_name(log_file_paths[-1]))
     experiment_name = base_dir.split("/")[-1]
     ax.set_title("%s loss prediction (%s iterations in advance)" %\
       (experiment_name, predicted_n_iterations_ago), y = 1.04)
   plt.savefig(out_file_path)
 
-def translate_legend(name):
+def translate_name(name):
   if "avg_1" in name:
     return "naive"
   elif "cf" in name:
+    if "one_over_x_squared" in name: return "one_over_x_squared"
+    if "one_over_x" in name: return "one_over_x"
+  else:
+    return name
+
+def translate_legend(name):
+  if "cf" in name:
     func = "curve fitting"
-    if "OneOverXFunctionFitter" in name: func = "1 / x"
-    if "OneOverXSquaredFunctionFitter" in name: func = "1 / x^2"
-    if "OneOverExponentialFunctionFitter" in name: func = "exp(-x)"
+    if "one_over_x" in name: func = "1 / x"
+    if "one_over_x_squared" in name: func = "1 / x^2"
     decay = float(re.match(".*cf_.*_(.*).log", name).groups()[0])
     maybe_weighted = " weighted" if decay < 1 else ""
     return func + maybe_weighted
   else:
-    return name
-
-def out_file_suffix(name):
-  if "OneOverXFunctionFitter" in name: return "_one_over_x"
-  if "OneOverXSquaredFunctionFitter" in name: return "_one_over_x_squared"
-  if "OneOverExponentialFunctionFitter" in name: return "_one_over_exponential"
-  return ""
+    return translate_name(name)
 
 def parse_losses(log_file_path, predicted_n_iterations_ago):
   # Parse actual and predicted losses from log
