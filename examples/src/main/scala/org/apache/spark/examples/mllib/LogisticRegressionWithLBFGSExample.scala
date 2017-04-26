@@ -38,16 +38,6 @@ object LogisticRegressionWithLBFGSExample {
     quality_sens * (accuracy - min_qual) - latency_sens * (time - max_latency)
   }
 
-  def valFunc(validationSet: RDD[_], m: Object): Double = {
-    val model = m.asInstanceOf[LogisticRegressionModel]
-    val predictionsAndLabels = validationSet.map { case LabeledPoint(label, features) =>
-      val pred = model.predict(features)
-      (pred, label)
-    }
-    val metrics = new MulticlassMetrics(predictionsAndLabels)
-    metrics.accuracy
-  }
-
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("LogisticRegressionWithLBFGSExample")
     val sc = new SparkContext(conf)
@@ -60,36 +50,51 @@ object LogisticRegressionWithLBFGSExample {
     val splits = data.randomSplit(Array(0.95, 0.05), seed = 11L)
     val training = splits(0).cache()
     val validation = splits(1).cache()
-    val poolName = "logistic"
+//    val poolName = "logistic"
     training.count()
     validation.count()
 //    val test = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label.t")
 
-     sc.addSchedulablePool(poolName, 0, 32)
-     sc.setLocalProperty("spark.scheduler.pool", poolName)
-    // PoolReweighter.register("logistic", validation, valFunc, utilFunc)
-    // PoolReweighter.startTime("logistic")
-    // PoolReweighter.start(5)
-    // Run training algorithm to build the model
-//    val model = new LogisticRegressionWithSGD().run(training)
-    PoolReweighterLoss.register(poolName, utilFunc)
-    PoolReweighterLoss.startTime(poolName)
-    PoolReweighterLoss.start(10)
-    val model = new LogisticRegressionWithLBFGS()
-        .setNumClasses(10)
-      .run(training)
-    PoolReweighterLoss.kill()
-    // PoolReweighter.kill()
-    // Compute raw scores on the test set.
-    val predictionAndLabels = validation.map { case LabeledPoint(label, features) =>
-      val prediction = model.predict(features)
-      (prediction, label)
-    }
+//     sc.addSchedulablePool(poolName, 0, 32)
+//     sc.setLocalProperty("spark.scheduler.pool", poolName)
+//    PoolReweighterLoss.register(poolName, utilFunc)
+//    PoolReweighterLoss.startTime(poolName)
+//    PoolReweighterLoss.start(10)
+//    val model = new LogisticRegressionWithLBFGS()
+//        .setNumClasses(10)
+//      .run(training)
 
-    // Get evaluation metrics.
-    val metrics = new MulticlassMetrics(predictionAndLabels)
-    val accuracy = metrics.accuracy
-    println(s"Accuracy = $accuracy")
+
+    val numThreads = 8
+    val threads = (1 to numThreads).map(i => new Thread {
+      override def run: Unit = {
+        val poolName = "logistic" + i
+        sc.addSchedulablePool(poolName, 0, 32)
+        sc.setLocalProperty("spark.scheduler.pool", poolName)
+        PoolReweighterLoss.startTime(poolName)
+        PoolReweighterLoss.register(poolName, utilFunc)
+        val model = new LogisticRegressionWithLBFGS()
+          .setNumClasses(10)
+          .run(training)
+        PoolReweighterLoss.kill()
+      }
+    })
+    PoolReweighterLoss.start(10)
+    threads.foreach{ t => t.start(); Thread.sleep(1000 * 30) }
+    threads.foreach{ t => t.join() }
+
+
+//    PoolReweighterLoss.kill()
+//    // Compute raw scores on the test set.
+//    val predictionAndLabels = validation.map { case LabeledPoint(label, features) =>
+//      val prediction = model.predict(features)
+//      (prediction, label)
+//    }
+//
+//    // Get evaluation metrics.
+//    val metrics = new MulticlassMetrics(predictionAndLabels)
+//    val accuracy = metrics.accuracy
+//    println(s"Accuracy = $accuracy")
 //
 //    // Save and load model
 //    model.save(sc, "target/tmp/scalaLogisticRegressionWithLBFGSModel")

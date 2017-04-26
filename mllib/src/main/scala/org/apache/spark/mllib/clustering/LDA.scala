@@ -341,8 +341,10 @@ class LDA private (
       if (model.isInstanceOf[LocalLDAModel]) {
         val localLDAModel = model.asInstanceOf[LocalLDAModel]
         val avgLogLikelihood = localLDAModel.logLikelihood(documents) / 2246.0
+        val lp = localLDAModel.logPerplexity(documents)
         // scalastyle:off println
         println(s"HYDEBUG Training data average log likelihood: $avgLogLikelihood")
+        println(s"HYDEBUG Training data log perplexity: $lp")
         // println()
         // scalastyle:on println
       }

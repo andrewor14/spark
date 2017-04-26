@@ -813,7 +813,7 @@ private[ml] class FeedForwardTrainer(
       (v._1, OldVectors.fromML(v._2))
     }
     val handlePersistence = trainData.getStorageLevel == StorageLevel.NONE
-    if (handlePersistence) trainData.persist(StorageLevel.MEMORY_AND_DISK)
+    // if (handlePersistence) trainData.persist(StorageLevel.MEMORY_AND_DISK)
     val newWeights = optimizer.optimize(trainData, w)
     if (handlePersistence) trainData.unpersist()
     topology.model(newWeights)

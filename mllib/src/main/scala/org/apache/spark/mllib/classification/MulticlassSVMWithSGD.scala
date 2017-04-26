@@ -174,11 +174,6 @@ object GradientDescent extends Logging {
     }.toArray
     val n = weights(0).size
 
-    val classModels = weights.map { w =>
-      val model = new SVMModel(w, 0.0)
-      model.clearThreshold()
-      model
-    }
 //    PoolReweighterLoss.updateModel(new MulticlassSVMModel(classModels))
 
     /**
@@ -208,7 +203,6 @@ object GradientDescent extends Logging {
                 // c: (grad, loss, count)
                 (c1._1 += c2._1, c1._2 + c2._2, c1._3 + c2._3)
               })
-
           stochasticLossHistory(k) += lossSum / miniBatchSize + regVal(k)
           sum += lossSum / miniBatchSize + regVal(k)
           val update = updater.compute(
@@ -232,14 +226,7 @@ object GradientDescent extends Logging {
 //          }
         }
       }
-      // logInfo(s"LOGAN: lossSum: $sum")
-//      val classModels = weights.map { w =>
-//        val model = new SVMModel(w, 0.0)
-//        model.clearThreshold()
-//        model
-//      }
-//      PoolReweighterLoss.updateModel(new MulticlassSVMModel(classModels))
-      PoolReweighterLoss.updateLoss(sum)
+      PoolReweighterLoss.updateLoss(sum / numClasses)
       i += 1
     }
     (weights, stochasticLossHistory)

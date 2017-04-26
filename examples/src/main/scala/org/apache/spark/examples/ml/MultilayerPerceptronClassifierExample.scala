@@ -30,12 +30,17 @@ import org.apache.spark.sql.SparkSession
  */
 object MultilayerPerceptronClassifierExample {
 
-  def utilFunc(time: Long, accuracy: Double): Double = {
+  def utilFunc(time: Long, qual: Double): Double = {
     val quality_sens = 1.0
     val latency_sens = 1.0
     val min_qual = 0.85
     val max_latency = 60 * 1000
-    quality_sens * (accuracy - min_qual) - latency_sens * (time - max_latency)
+    val lin_rect_scale = 10 // how closely linear rectifier should approximate U_qual
+    val U_qual_a = 1 / (1 - min_qual)
+    val U_qual_b = -1 * min_qual * U_qual_a
+    val U_qual =
+      Math.log(1 + Math.exp(lin_rect_scale * (U_qual_a * qual + U_qual_b))) / lin_rect_scale
+    quality_sens * U_qual - latency_sens * (time - max_latency)
   }
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
@@ -46,11 +51,11 @@ object MultilayerPerceptronClassifierExample {
     // $example on$
     // Load the data stored in LIBSVM format as a DataFrame.
     val data = spark.read.format("libsvm")
-      .load("data/mllib/epsilon_normalized_01label")
+      .load("data/mllib/mnist8m.scale")
 
     // Split the data into train and test
-    val splits = data.randomSplit(Array(0.9, 0.1), seed = 1234L)
-    val train = splits(0)
+    val splits = data.randomSplit(Array(0.1, 0.1, 0.8), seed = 1234L)
+    val train = splits(0).cache()
     val test = splits(1)
 
     // specify layers for the neural network:
@@ -62,7 +67,7 @@ object MultilayerPerceptronClassifierExample {
     SparkContext.getOrCreate().addSchedulablePool(poolName, 0, 32)
     SparkContext.getOrCreate().setLocalProperty("spark.scheduler.pool", poolName)
     PoolReweighterLoss.register(poolName, utilFunc)
-    val layers = Array[Int](2000, 15, 2)
+    val layers = Array[Int](784, 200, 10)
 
     // create the trainer and set its parameters
     val trainer = new MultilayerPerceptronClassifier()

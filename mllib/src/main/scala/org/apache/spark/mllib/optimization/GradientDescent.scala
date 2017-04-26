@@ -25,7 +25,9 @@ import org.apache.spark.PoolReweighterLoss
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
 import org.apache.spark.mllib.classification.SVMModel
+import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
+import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
 
 
@@ -41,7 +43,7 @@ class GradientDescent private[spark] (private var gradient: Gradient, private va
   private var numIterations: Int = 100
   private var regParam: Double = 0.0
   private var miniBatchFraction: Double = 1.0
-  private var convergenceTol: Double = 0.001
+  private var convergenceTol: Double = 0.00001
 
   /**
    * Set the initial step size of SGD for the first step. Default 1.0.
@@ -264,13 +266,14 @@ object GradientDescent extends Logging {
         currentWeights = Some(weights)
         // scalastyle:off
 
-//        if(currentWeights != None) {
-//          // create temp model and validate
-//          val model = new SVMModel(currentWeights.get, 0)
-//          model.setThreshold(0)
-//          PoolReweighter.updateModel(model)
-//        }
-//        PoolReweighterLoss.updateLoss(lossSum / miniBatchSize + regVal)
+        PoolReweighterLoss.updateLoss(lossSum / miniBatchSize + regVal)
+//        val model = new SVMModel(weights, 0.0)
+//        model.setThreshold(0)
+//        val scoresAndLabels = data.sample(false, 0.001, 42L)
+//          .map(x => (model.predict(x._2), x._1))
+//        val metrics = new MulticlassMetrics(scoresAndLabels)
+//        val accuracy = metrics.accuracy
+//        logInfo(s"LOGAN lossAndAccuracy: ${lossSum / miniBatchSize + regVal} $accuracy")
         // scalastyle:on
         if (previousWeights != None && currentWeights != None) {
           converged = isConverged(previousWeights.get,

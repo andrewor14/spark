@@ -41,10 +41,10 @@ object LDAExample {
     // $example on$
     // Loads data.
     val dataset = spark.read.format("libsvm")
-      .load("data/mllib/epsilon_normalized_01label")
+      .load("data/mllib/ap_spark.dat").repartition(32)
 
     // Trains a LDA model.
-    val lda = new LDA().setK(100).setMaxIter(1000)
+    val lda = new LDA().setK(2).setMaxIter(200)
     val model = lda.fit(dataset)
 
     val ll = model.logLikelihood(dataset)

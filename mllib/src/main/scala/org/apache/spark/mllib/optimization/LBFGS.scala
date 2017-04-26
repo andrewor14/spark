@@ -26,6 +26,7 @@ import org.apache.spark.{PoolReweighterLoss, SparkContext}
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
 import org.apache.spark.mllib.classification.LogisticRegressionModel
+import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.feature.StandardScaler
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.linalg.BLAS.axpy
@@ -45,7 +46,7 @@ class LBFGS(private var gradient: Gradient, private var updater: Updater)
 
   private var numCorrections = 10
   private var convergenceTol = 1E-6
-  private var maxNumIterations = 1000
+  private var maxNumIterations = 100
   private var regParam = 0.0001
 
   /**
@@ -195,10 +196,7 @@ object LBFGS extends Logging {
 
     val lossHistory = mutable.ArrayBuilder.make[Double]
 
-    val currPool = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
-    SparkContext.getOrCreate.setLocalProperty("spark.scheduler.pool", "default")
     val numExamples = data.count()
-    SparkContext.getOrCreate.setLocalProperty("spark.scheduler.pool", currPool)
 
     val costFun =
       new CostFun(data, gradient, updater, regParam, numExamples)
@@ -217,8 +215,14 @@ object LBFGS extends Logging {
       lossHistory += state.value
       // scalastyle:off
 //      var weights = Vectors.fromBreeze(state.x)
-//      val numLinearPredictor = 9
+//      val numLinearPredictor = 1
 //      val model = new LogisticRegressionModel(weights, 0, weights.size / numLinearPredictor, numLinearPredictor + 1)
+//      model.setThreshold(0)
+//      val scoresAndLabels = data.sample(false, 0.001, 42L)
+//        .map(x => (model.predict(x._2), x._1))
+//      val metrics = new MulticlassMetrics(scoresAndLabels)
+//      val accuracy = metrics.accuracy
+//      logInfo(s"LOGAN log lossAndAccuracy: ${state.value} $accuracy")
       PoolReweighterLoss.updateLoss(state.value)
 //      logInfo(s"LOGAN: loss: ${state.value}")
       // scalastyle:on

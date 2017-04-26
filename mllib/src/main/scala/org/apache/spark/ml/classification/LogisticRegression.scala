@@ -563,8 +563,14 @@ class LogisticRegression @Since("1.2.0") (
         var state: optimizer.State = null
         while (states.hasNext) {
           state = states.next()
-          val coeffs = Vectors.dense(state.x.toArray.clone())
-          val model = new MLlibModel(coeffs, 0.0)
+//          val coeffs = Vectors.dense(state.x.toArray.clone())
+//          val model = new MLlibModel(coeffs, 0.0)
+//          val scoresAndLabels = dataset.sample(false, 0.001, 42L)
+//            .rdd.asInstanceOf[RDD[Row]]
+//            .map(x => (model.predict(x(1).asInstanceOf[Vector]), x(0).asInstanceOf[Double]))
+//          val metrics = new MulticlassMetrics(scoresAndLabels)
+//          val accuracy = metrics.accuracy
+//          logInfo(s"LOGAN log lossAndAccuracy: ${state.value} $accuracy")
           PoolReweighterLoss.updateLoss(state.value)
           arrayBuilder += state.adjustedValue
         }

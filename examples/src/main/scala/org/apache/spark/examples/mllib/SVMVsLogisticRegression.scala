@@ -17,11 +17,17 @@
 // scalastyle:off
 package org.apache.spark.examples.mllib
 
+import breeze.stats.distributions.{Poisson, RandBasis, ThreadLocalRandomGenerator}
+import org.apache.commons.math3.random.MersenneTwister
+import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
 import org.apache.spark.mllib.classification.{LogisticRegressionModel, LogisticRegressionWithLBFGS, SVMModel, SVMWithSGD}
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.regression.LabeledPoint
+import org.apache.spark.mllib.tree.GradientBoostedTrees
+import org.apache.spark.mllib.tree.configuration.BoostingStrategy
 import org.apache.spark.mllib.util.MLUtils
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.{PoolReweighterLoss, SparkConf, SparkContext}
 
 object SVMVsLogisticRegression {
@@ -55,32 +61,50 @@ object SVMVsLogisticRegression {
   }
 
   def main(args: Array[String]): Unit = {
-    val conf = new SparkConf().setAppName("SVMWithSGDExample")
-    val sc = new SparkContext(conf)
+    val spark = SparkSession
+      .builder
+      .appName("SVMVsMLPC")
+      .getOrCreate()
+    val sc = spark.sparkContext
 
-    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label")
+    val isFair = args(0) == "fair"
+
+    val epsilonTraining = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon")
+    val mlpcData = spark.read.format("libsvm")
+      .load("data/mllib/mnist8m.scale")
+    val sizes = Array(0.10, 0.5, 1.0)
+    val mlpcSizes = Array(0.10)
+    // val mlpcsplits = mlpcData.randomSplit(Array(0.1, 0.1, 0.8), seed = 1234L)
+    val mnistTrains = (1 to 3).map(x => mlpcData.sample(false, sizes(x % sizes.size), 42L).cache())
     // Split data into training (98%) and validation (2%).
-    val splits = data.randomSplit(Array(0.995, 0.005), seed = 1L)
-    val training = splits(0).cache()
-    training.count() // materialize training
-    val validation = splits(1).cache()
-    validation.count() //materialize validation
+//    training.count() // materialize training
+    val numThreads = 20
 
-    val testing = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label.t")
+    val epsilonTrainings = (1 to 3).map(x => epsilonTraining.sample(false, mlpcSizes(x % mlpcSizes.size), 42L).cache())
+    epsilonTrainings.foreach(x => x.count())
+    mnistTrains.foreach(x => x.count())
+
+    val sleepTime = 30 // seconds
+    def setSeed(seed: Int = 0) = {
+      new RandBasis(new ThreadLocalRandomGenerator(new MersenneTwister(seed)))
+    }
+    val poi = new Poisson(sleepTime)(setSeed())
+    val sleepTimes = poi.sample(numThreads * 2)
+
     val numIterations = 200
-    val numThreads = 1
-    val sleepTime = 0 // seconds
     sc.setPoolWeight("default", 32)
 
 
     val svmThreads = (1 to numThreads).map( i =>
       new Thread {
         override def run: Unit = {
-          sc.addSchedulablePool("svm" + i, 0, 16)
-          sc.setLocalProperty("spark.scheduler.pool", "svm" + i)
-          // PoolReweighter.register("svm" + i, validation, svmValFunc, utilityFunc)
-          PoolReweighterLoss.register("svm" + i, utilityFunc)
-          val model = SVMWithSGD.train(training, numIterations, 100, 0.00001, 1)
+          val poolName = "svm" + i
+          sc.addSchedulablePool(poolName, 0, 1000)
+          sc.setLocalProperty("spark.scheduler.pool", poolName)
+          PoolReweighterLoss.register(poolName, utilityFunc)
+//          PoolReweighterLoss.startTime(poolName)
+          val model = SVMWithSGD.train(epsilonTrainings((i - 1) % epsilonTrainings.size), numIterations, 100, 0.001, 1)
+          PoolReweighterLoss.done(poolName)
         }
       }
     )
@@ -88,31 +112,51 @@ object SVMVsLogisticRegression {
     val logRegThreads = (1 to numThreads).map( i =>
       new Thread {
         override def run: Unit = {
-          sc.addSchedulablePool("logistic" + i, 0, 16)
-          sc.setLocalProperty("spark.scheduler.pool", "logistic" + i)
-//          PoolReweighter.register("logistic" + i, validation, logRegValFunc, utilityFunc)
-          PoolReweighterLoss.register("logistic" + i, utilityFunc)
+          val poolName = "logistic" + i
+          sc.addSchedulablePool(poolName, 0, 1000)
+          sc.setLocalProperty("spark.scheduler.pool", poolName)
+          PoolReweighterLoss.register(poolName, utilityFunc)
+//          PoolReweighterLoss.startTime(poolName)
           val model = new LogisticRegressionWithLBFGS()
             .setNumClasses(2)
-            .run(training)
+            .run(epsilonTrainings((i-1) % epsilonTrainings.size))
         }
       }
     )
 
+    val mlpcThreads = (1 to numThreads).map( i =>
+      new Thread {
+        override def run: Unit = {
+          val poolName = "mlpc" + i
+          sc.addSchedulablePool(poolName, 0, 1000)
+          sc.setLocalProperty("spark.scheduler.pool", poolName)
+          PoolReweighterLoss.register(poolName, utilityFunc)
+          val layers = Array[Int](784, 10, 10)
+          val trainer = new MultilayerPerceptronClassifier()
+            .setLayers(layers)
+            .setBlockSize(128)
+            .setSeed(1234L)
+            .setTol(0.01)
+            .setMaxIter(500)
+          val model = trainer.fit(mnistTrains(( i -1 ) % mnistTrains.size))
+          PoolReweighterLoss.done(poolName)
+        }
+      }
+    )
+
+    PoolReweighterLoss.start(3, isFair)
+
     (0 to numThreads - 1).foreach { i =>
       svmThreads(i).start()
-      PoolReweighterLoss.startTime("svm" + i)
-      Thread.sleep(sleepTime * 1000L)
-      logRegThreads(i).start()
-      PoolReweighterLoss.startTime("logistic" + i)
-      Thread.sleep(sleepTime * 1000L)
+      Thread.sleep(sleepTimes(i * 2) * 1000L)
+      mlpcThreads(i).start()
+      Thread.sleep(sleepTimes(i * 2 + 1) * 1000L)
     }
 
 
-    PoolReweighterLoss.start()
 
     svmThreads.foreach { t => t.join() }
-    logRegThreads.foreach { t => t.join() }
+    mlpcThreads.foreach { t => t.join() }
     PoolReweighterLoss.kill()
   }
 }

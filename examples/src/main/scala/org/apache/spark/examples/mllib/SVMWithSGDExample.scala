@@ -20,14 +20,17 @@ package org.apache.spark.examples.mllib
 // scalastyle:off
 // $example on$
 
+import org.apache.spark.ml.feature.PolynomialExpansion
 import org.apache.spark.mllib.classification.MulticlassSVMModel
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
+import org.apache.spark.mllib.linalg.Vector
 import org.apache.spark.{PoolReweighterLoss, SparkConf, SparkContext}
 import org.apache.spark.mllib.classification.{SVMModel, SVMWithSGD}
 import org.apache.spark.mllib.classification.MulticlassSVMWithSGD
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.util.MLUtils
+import org.apache.spark.sql.SparkSession
 // $example off$
 
 object SVMWithSGDExample {
@@ -37,7 +40,7 @@ object SVMWithSGDExample {
     val latency_sens = 1.0
     val min_qual = 0.85
     val max_latency = 60 * 1000
-    quality_sens * (accuracy - min_qual) - latency_sens * (time - max_latency)
+    accuracy
   }
 //
 //  def valFunc(validationSet: RDD[_], m: Object): Double = {
@@ -57,8 +60,8 @@ object SVMWithSGDExample {
     val sc = new SparkContext(conf)
     // $example on$
     // Load training data in LIBSVM format.
-    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/mnist8m.scale")
-
+    var data = MLUtils.loadLibSVMFile(sc, "data/mllib/mnist_poly.scale")
+//    var data = MLUtils.loadLibSVMFile(sc, "data/mllib/epsilon_normalized_01label")
     // Split data into training (90%) and test (10%).
     val splits = data.randomSplit(Array(0.8, 0.02, 0.18), seed = 11L)
     val training = splits(0).cache()
@@ -67,43 +70,50 @@ object SVMWithSGDExample {
     validation.count()
     val test = splits(1).cache()
     test.count()
-    val numIterations = 100
+    val numIterations = 1000
     val stepSize = 500 // 500
     val regParam = 0.0001 // 0.0001
     val miniBatchFraction = 1.0
-    val poolName = "svm"
-    // val model = SVMWithSGD.train(training, numIterations)
-    sc.addSchedulablePool(poolName, 0, 32)
-    sc.setLocalProperty("spark.scheduler.pool", poolName)
-    PoolReweighterLoss.start(10)
-    PoolReweighterLoss.startTime(poolName)
-    PoolReweighterLoss.register(poolName, utilFunc)
-    val model = MulticlassSVMWithSGD.train(training, numIterations,
-      stepSize, regParam, miniBatchFraction, 10)
-    PoolReweighterLoss.kill()
-    val scoreAndLabels = test.map { point =>
-      val score = model.predict(point.features)
-      (score, point.label)
-    }
-    val metrics = new MulticlassMetrics(scoreAndLabels)
-    val accuracy = metrics.accuracy
-    println(s"Accuracy = $accuracy")
+//    val poolName = "svm"
+//    val model = SVMWithSGD.train(training, numIterations, 100, 0.00001, 1.0)
+//
+//    sc.addSchedulablePool(poolName, 0, 32)
+//    sc.setLocalProperty("spark.scheduler.pool", poolName)
+//    PoolReweighterLoss.start(10)
+//    PoolReweighterLoss.startTime(poolName)
+//    PoolReweighterLoss.register(poolName, utilFunc)
+//    val model = MulticlassSVMWithSGD.train(training, numIterations,
+//      stepSize, regParam, miniBatchFraction, 10)
+//    PoolReweighterLoss.kill()
 
 
+    val numThreads = 2
+    val threads = (1 to numThreads).map(i => new Thread {
+      override def run: Unit = {
+        val poolName = "svm" + i
+        sc.addSchedulablePool(poolName, 0, 32)
+        sc.setLocalProperty("spark.scheduler.pool", poolName)
+        PoolReweighterLoss.startTime(poolName)
+        PoolReweighterLoss.register(poolName, utilFunc)
+        val model = MulticlassSVMWithSGD.train(training, numIterations,
+          stepSize, regParam, miniBatchFraction, 10)
+        PoolReweighterLoss.kill()
+      }
+    })
+    PoolReweighterLoss.start(3)
+    threads.foreach{ t => t.start(); Thread.sleep(1000 * 100) }
+    threads.foreach{ t => t.join() }
 
-    // val svmAlg = new MulticlassSVMWithSGD()
-    // svmAlg.optimizer
-//      .setNumIterations(200)
-//      .setRegParam(0.00001)
-//      .setStepSize(100)
-//      .setConvergenceTol(0.000001)
-//      .setUpdater(new L1Updater)
-    // val model = svmAlg.run(training)
+//
+//    val scoreAndLabels = test.map { point =>
+//      val score = model.predict(point.features)
+//      (score, point.label)
+//    }
+//    val metrics = new MulticlassMetrics(scoreAndLabels)
+//    val accuracy = metrics.accuracy
+//    println(s"Accuracy = $accuracy")
 
-//    model.clearThreshold()
 
-//    println("Model weights = ")
-//    println(model.weights)
 
     /*
     val numThreads = 2

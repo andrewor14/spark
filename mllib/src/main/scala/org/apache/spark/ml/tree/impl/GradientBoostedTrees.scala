@@ -265,7 +265,6 @@ private[spark] object GradientBoostedTrees extends Logging {
     treeStrategy.algo = OldAlgo.Regression
     treeStrategy.impurity = OldVariance
     treeStrategy.assertValid()
-
     // Cache input
     val persistedInput = if (input.getStorageLevel == StorageLevel.NONE) {
       input.persist(StorageLevel.MEMORY_AND_DISK)
@@ -273,7 +272,6 @@ private[spark] object GradientBoostedTrees extends Logging {
     } else {
       false
     }
-
     // Prepare periodic checkpointers
     val predErrorCheckpointer = new PeriodicRDDCheckpointer[(Double, Double)](
       treeStrategy.getCheckpointInterval, input.sparkContext)
@@ -281,7 +279,6 @@ private[spark] object GradientBoostedTrees extends Logging {
       treeStrategy.getCheckpointInterval, input.sparkContext)
 
     timer.stop("init")
-
     logDebug("##########")
     logDebug("Building tree 0")
     logDebug("##########")
@@ -293,10 +290,10 @@ private[spark] object GradientBoostedTrees extends Logging {
     val firstTreeWeight = 1.0
     baseLearners(0) = firstTreeModel
     baseLearnerWeights(0) = firstTreeWeight
-
     var predError: RDD[(Double, Double)] =
       computeInitialPredictionAndError(input, firstTreeWeight, firstTreeModel, loss)
     predErrorCheckpointer.update(predError)
+
     logDebug("error of gbt = " + predError.values.mean())
 
     // Note: A model of type regression is used since we require raw prediction

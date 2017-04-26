@@ -16,37 +16,41 @@
  */
 
 // scalastyle:off println
-package org.apache.spark.examples.ml
-
+package org.apache.spark.examples.mllib
+// scalastyle:off
 // $example on$
-import org.apache.spark.ml.feature.{LabeledPoint, PolynomialExpansion}
-import org.apache.spark.ml.linalg.SparseVector
-// $example off$
-import org.apache.spark.sql.SparkSession
 
-object PolynomialExpansionExample {
+import org.apache.spark.ml.feature.PolynomialExpansion
+import org.apache.spark.mllib.regression.LabeledPoint
+import org.apache.spark.rdd.RDD
+import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.{PoolReweighterLoss, SparkConf, SparkContext}
+import org.apache.spark.mllib.util.MLUtils
+import org.apache.spark.sql.SparkSession
+// $example off$
+
+object TestExample {
+
   def main(args: Array[String]): Unit = {
+    val conf = new SparkConf().setAppName("SVMWithSGDExample")
     val spark = SparkSession
       .builder
-      .appName("PolynomialExpansionExample")
       .getOrCreate()
-
-    import spark.implicits._
     // $example on$
-    val df = spark.read.format("libsvm")
-      .load("data/mllib/mnist.scale").sample(false, 1.0)
-    val polyExpansion = new PolynomialExpansion()
+    // Load training data in LIBSVM format.
+    var data = MLUtils.loadLibSVMFile(spark.sparkContext, "data/mllib/sample_lda_libsvm_data.txt")
+
+    val df = spark.createDataFrame(data.map(x => (x.label, x.features))).toDF("label", "features")
+    val polynomialExpansion = new PolynomialExpansion()
       .setInputCol("features")
       .setOutputCol("polyFeatures")
-      .setDegree(2)
-
-    val polyDF = polyExpansion.transform(df).drop("features")
-      .withColumnRenamed("polyFeatures", "features").cache()
-    polyDF.write.format("libsvm").save("polymnist")
-
-    // $example off$
-
-    spark.stop()
+      .setDegree(15)
+    val polyDF = polynomialExpansion.transform(df)
+    data = polyDF.rdd.map(row => new LabeledPoint(row(0).asInstanceOf[Double], row(2).asInstanceOf[Vector]))
+    data.collect.foreach(println)
+    spark.sparkContext.stop()
   }
+
+
 }
 // scalastyle:on println
