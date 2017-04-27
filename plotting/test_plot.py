@@ -41,6 +41,10 @@ def main():
         loss = float(match.groups()[1])
         if index in extra_x:
           extra_y += [loss]
+  print "x = %s" % x
+  print "y = %s" % y
+  print "extra_x = %s" % extra_x
+  print "extra_y = %s" % extra_y
   # Maybe zoom in a little
   if zoom_iter is not None and zoom_iter > x[0]:
     index = x.index(float(zoom_iter))
@@ -70,18 +74,18 @@ def plot(call_func, x, y, extra_x, extra_y, nice_string, *params):
   plt.savefig("output.png")
 
 def plot_one_over_x_squared(x, y, extra_x, extra_y, params):
-  assert len(params) == 3
-  (a, b, c) = tuple(params)
-  call_func = lambda x: 1 / (a * math.pow(x, 2) + b * x + c)
-  nice_string = "1 / (ax^2 + bx + c)\na = %s\nb = %s\nc = %s" % (a, b, c)
-  plot(call_func, x, y, extra_x, extra_y, nice_string, a, b, c)
+  assert len(params) == 4
+  (a, b, c, d) = tuple(params)
+  call_func = lambda x: 1 / (a * math.pow(x, 2) + b * x + c) + d
+  nice_string = "1 / (ax^2 + bx + c) + d\na = %s\nb = %s\nc = %s\nd = %s" % (a, b, c, d)
+  plot(call_func, x, y, extra_x, extra_y, nice_string, a, b, c, d)
 
 def plot_one_over_x(x, y, extra_x, extra_y, params):
-  assert len(params) == 2
+  assert len(params) == 3
   (a, b) = tuple(params)
-  call_func = lambda x: 1 / (a * x + b)
-  nice_string = "1 / (ax + b)\na = %s\nb = %s" % (a, b)
-  plot(call_func, x, y, extra_x, extra_y, nice_string, a, b)
+  call_func = lambda x: 1 / (a * x + b) + c
+  nice_string = "1 / (ax + b) + c\na = %s\nb = %s\nc = %s" % (a, b, c)
+  plot(call_func, x, y, extra_x, extra_y, nice_string, a, b, c)
 
 def l2_diff(list1, list2):
   assert len(list1) == len(list2)

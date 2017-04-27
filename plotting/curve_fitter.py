@@ -38,11 +38,11 @@ def fit_curve(curve_type, x, y, decay=0.9, starting_params=None):
     coeffs = curve_fit(func, x, y, sigma=sigma, bounds=bounds)[0]
   print ", ".join([str(c) for c in coeffs])
 
-def one_over_x(x, a, b):
-  return 1 / (a * x + b)
+def one_over_x(x, a, b, c):
+  return 1 / (a * x + b) + c
 
-def one_over_x_squared(x, a, b, c):
-  return 1 / (a * (x**2) + b * x + c)
+def one_over_x_squared(x, a, b, c, d):
+  return 1 / (a * (x**2) + b * x + c) + d
 
 def get_func(curve_type):
   if curve_type == "one_over_x": return one_over_x
@@ -50,8 +50,8 @@ def get_func(curve_type):
   return None
 
 def get_num_parameters(curve_type):
-  if curve_type == "one_over_x": return 2
-  if curve_type == "one_over_x_squared": return 3
+  if curve_type == "one_over_x": return 3
+  if curve_type == "one_over_x_squared": return 4
   return None
 
 if __name__ == "__main__":
