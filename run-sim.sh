@@ -29,5 +29,5 @@ conf="$conf --conf spark.approximation.predLoss.numIterations=10"
 conf="$conf $extra_conf"
 echo "Running simulation with conf: $conf, writing to log file: $base_dir/$log_file_name.log"
 
-bin/spark-submit $conf --class org.apache.spark.BestCurveFitterEver my.jar "$base_dir/losses.txt" "$base_dir/$log_file_name".log &> "$base_dir/$log_file_name".loglog
+plotting/best_curve_fitter_ever.py "$base_dir/losses.txt" "$base_dir/$log_file_name".log $conf &> "$base_dir/$log_file_name".loglog
 

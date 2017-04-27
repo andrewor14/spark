@@ -26,7 +26,7 @@ def main():
     print "Too many params dude: %s" % args
     sys.exit(1)
 
-def fit_curve(curve_type, x, y, decay=0.9, starting_params=None):
+def fit_curve(curve_type, x, y, decay=0.9, starting_params=None, verbose=True):
   func = get_func(curve_type)
   num_parameters = get_num_parameters(curve_type)
   sigma = [math.pow(decay, i) for i in range(len(y))]
@@ -36,7 +36,9 @@ def fit_curve(curve_type, x, y, decay=0.9, starting_params=None):
     coeffs = curve_fit(func, x, y, p0=starting_params, sigma=sigma, bounds=bounds)[0]
   else:
     coeffs = curve_fit(func, x, y, sigma=sigma, bounds=bounds)[0]
-  print ", ".join([str(c) for c in coeffs])
+  if verbose:
+    print ", ".join([str(c) for c in coeffs])
+  return coeffs
 
 def one_over_x(x, a, b, c):
   return 1 / (a * x + b) + c
