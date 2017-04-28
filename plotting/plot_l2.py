@@ -8,8 +8,15 @@ from os.path import join
 from plot import *
 
 iterations_of_interest = [1, 5, 10] # Must be length 3
-curve_to_fit = "one_over_x_squared"
 decay_to_fit = 0.8
+alg_to_curve_fitter = {
+  "gbt": "one_over_x_squared",
+  "lda": "one_over_x_squared",
+  "svm": "one_over_x_squared",
+  "mlpc": "exponential",
+  "logreg": "exponential",
+  "linreg": "exponential"
+}
 
 def get_data(path):
   l2 = []
@@ -41,12 +48,10 @@ def main():
   log_dirs = args[1:]
 
   # Some random variables
-  algorithm_names = [d.split("/")[-1] for d in log_dirs]
-  num_algorithms = len(algorithm_names)
-  num_bars_per_group = 2 + 3 * num_algorithms
+  num_algrithms = len(log_dirs)
+  num_bars_per_group = 2 + 3 * num_algrithms
   width = 1.0 / num_bars_per_group
   indices = np.arange(3)
-  log_file_names = ["avg_1.log", "cf_%s_1.log" % curve_to_fit, "cf_%s_%s.log" % (curve_to_fit, decay_to_fit)]
   empty = [0, 0, 0]
   color_cycle = ["pink", "skyblue", "coral", "blueviolet", "gold", "lightseagreen", "yellowgreen", "red", "lightgrey"]
 
@@ -55,7 +60,14 @@ def main():
   log_file_paths = []
   bars = []
   bars += [ax.bar(indices, empty, width)]
+  legend_names = []
   for i in range(len(log_dirs)):
+    alg_name = log_dirs[i].split("/")[-1]
+    curve_to_fit = None
+    for alg in alg_to_curve_fitter:
+      if alg in alg_name:
+        curve_to_fit = alg_to_curve_fitter[alg]
+    log_file_names = ["avg_1.log", "cf_%s_1.log" % curve_to_fit, "cf_%s_%s.log" % (curve_to_fit, decay_to_fit)]
     naive_path = join(log_dirs[i], log_file_names[0])
     curve_fitting_path = join(log_dirs[i], log_file_names[1])
     curve_fitting_weighted_path = join(log_dirs[i], log_file_names[2])
@@ -67,7 +79,9 @@ def main():
     bars += [ax.bar(base_indices + width, naive, width, color=fill_color, edgecolor=edge_color, hatch="/")]
     bars += [ax.bar(base_indices + 2 * width, curve_fitting, width, color=fill_color, edgecolor=edge_color, hatch="-")]
     bars += [ax.bar(base_indices + 3 * width, curve_fitting_weighted, width, color=fill_color, edgecolor=edge_color, hatch="\\")]
-  bars += [ax.bar(indices + (3 * num_algorithms + 1) * width, empty, width)]
+    for i in range(len(log_file_names)):
+      legend_names += ["%s (%s)" % (translate_legend(log_file_names[i]), alg_name)]
+  bars += [ax.bar(indices + (3 * num_algrithms + 1) * width, empty, width)]
   ax.set_ylabel("Normalized L2 norm of prediction error")
   ax.set_xlabel("Number of iterations predicted in advance")
   ax.set_title("Loss prediction error", y = 1.04)
@@ -75,15 +89,11 @@ def main():
   ax.set_xticklabels(("1", "5", "10"))
   plt.gca().set_ylim([0.0, 1.04])
   legend_bars = tuple([r[0] for r in bars[1:-1]])
-  legend_names = []
-  for alg_name in algorithm_names:
-    for i in range(len(log_file_names)):
-      legend_names += ["%s (%s)" % (translate_legend(log_file_names[i]), alg_name)]
   legend_names = tuple(legend_names)
   box = ax.get_position()
   ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
   ax.legend(legend_bars, legend_names, prop = {"size": 12}, loc = "center left", bbox_to_anchor=(1.04, 0.5))
-  plt.savefig(join(out_dir, "prediction_error_%s.png" % translate_name(log_file_names[-1])))
+  plt.savefig(join(out_dir, "prediction_error.png"))
 
 if __name__ == "__main__":
   main()
