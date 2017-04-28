@@ -13,6 +13,7 @@ class PredLossStrategy:
 class CurveFitterName:
   one_over_x = 'one_over_x'
   one_over_x_squared = 'one_over_x_squared'
+  exponential = 'exponential'
 
 # Accepted configurations
 CONF_PREFIX = "spark.approximation.predLoss"
@@ -110,6 +111,11 @@ def pred_loss_cf(x, y, window_size, decay, fitter):
   current_iter = x[-1] + 1
   fail_msg = "WARNING: curve fitting failed at iteration %s. Trying again with" % current_iter
   starting_params = [sum(params) / len(params) for params in all_fitted_params]
+  if VERBOSE:
+    print "==================================================================================="
+    print "ANDREW predicting in iteration %s" % current_iter
+    print "My x's are: %s" % ", ".join([str(t) for t in x])
+    print "My y's are: %s" % ", ".join([str(t) for t in y])
 
   def attempt1():
     return fit_curve(fitter, x, y, decay, verbose=False)
@@ -141,10 +147,6 @@ def pred_loss_cf(x, y, window_size, decay, fitter):
     all_fitted_params[i] += [fitted_params[i]]
   # Log debug info
   if VERBOSE:
-    print "==================================================================================="
-    print "ANDREW predicting in iteration %s" % current_iter
-    print "My x's are: %s" % ", ".join([str(t) for t in x])
-    print "My y's are: %s" % ", ".join([str(t) for t in y])
     print "My params are %s" % ", ".join([str(t) for t in fitted_params])
     print "==================================================================================="
     print "\n\n\n"

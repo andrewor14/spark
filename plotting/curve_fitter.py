@@ -32,7 +32,7 @@ def fit_curve(curve_type, x, y, decay=0.9, starting_params=None, verbose=True):
   sigma = [math.pow(decay, i) for i in range(len(y))]
   bounds = ([0] * num_parameters, [np.inf] * num_parameters)
   coeffs = None
-  if starting_params is not None:
+  if starting_params:
     coeffs = curve_fit(func, x, y, p0=starting_params, sigma=sigma, bounds=bounds)[0]
   else:
     coeffs = curve_fit(func, x, y, sigma=sigma, bounds=bounds)[0]
@@ -46,14 +46,19 @@ def one_over_x(x, a, b, c):
 def one_over_x_squared(x, a, b, c, d):
   return 1 / (a * (x**2) + b * x + c) + d
 
+def exponential(x, a, b, c):
+  return a**(x - b) + c
+
 def get_func(curve_type):
   if curve_type == "one_over_x": return one_over_x
   if curve_type == "one_over_x_squared": return one_over_x_squared
+  if curve_type == "exponential": return exponential
   return None
 
 def get_num_parameters(curve_type):
   if curve_type == "one_over_x": return 3
   if curve_type == "one_over_x_squared": return 4
+  if curve_type == "exponential": return 3
   return None
 
 if __name__ == "__main__":

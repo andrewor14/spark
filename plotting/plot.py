@@ -76,6 +76,7 @@ def translate_name(name):
   if "avg_1" in name:
     return "naive"
   elif "cf" in name:
+    if "exponential" in name: return "exponential"
     if "one_over_x_squared" in name: return "one_over_x_squared"
     if "one_over_x" in name: return "one_over_x"
   else:
@@ -86,6 +87,7 @@ def translate_legend(name):
     func = "curve fitting"
     if "one_over_x" in name: func = "1 / x"
     if "one_over_x_squared" in name: func = "1 / x^2"
+    if "exponential" in name: func = "exp(-x)"
     decay = float(re.match(".*cf_.*_(.*).log", name).groups()[0])
     maybe_weighted = " weighted" if decay < 1 else ""
     return func + maybe_weighted

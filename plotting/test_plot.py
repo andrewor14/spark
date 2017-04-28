@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import re
 import sys
 
+from curve_fitter import *
+
 
 def main():
   args = sys.argv
@@ -51,7 +53,9 @@ def main():
     x = x[index:]
     y = y[index:]
   # Plot
-  if "one_over_x_squared" in log_file_name:
+  if "exponential" in log_file_name:
+    plot_exponential(x, y, extra_x, extra_y, params)
+  elif "one_over_x_squared" in log_file_name:
     plot_one_over_x_squared(x, y, extra_x, extra_y, params)
   elif "one_over_x" in log_file_name:
     plot_one_over_x(x, y, extra_x, extra_y, params)
@@ -73,17 +77,24 @@ def plot(call_func, x, y, extra_x, extra_y, nice_string, *params):
   plt.annotate("L2 error = %.10f" % l2_error, xy=(0.6, 0.7), xycoords='axes fraction', color='red')
   plt.savefig("output.png")
 
+def plot_exponential(x, y, extra_x, extra_y, params):
+  assert len(params) == 3
+  (a, b, c) = tuple(params)
+  call_func = lambda x: exponential(x, a, b, c)
+  nice_string = "a^(x - b) + c\na = %s\nb = %s\nc = %s" % (a, b, c)
+  plot(call_func, x, y, extra_x, extra_y, nice_string, a, b, c)
+
 def plot_one_over_x_squared(x, y, extra_x, extra_y, params):
   assert len(params) == 4
   (a, b, c, d) = tuple(params)
-  call_func = lambda x: 1 / (a * math.pow(x, 2) + b * x + c) + d
+  call_func = lambda x: one_over_x_squared(x, a, b, c, d)
   nice_string = "1 / (ax^2 + bx + c) + d\na = %s\nb = %s\nc = %s\nd = %s" % (a, b, c, d)
   plot(call_func, x, y, extra_x, extra_y, nice_string, a, b, c, d)
 
 def plot_one_over_x(x, y, extra_x, extra_y, params):
   assert len(params) == 3
   (a, b) = tuple(params)
-  call_func = lambda x: 1 / (a * x + b) + c
+  call_func = lambda x: one_over_x(x, a, b, c)
   nice_string = "1 / (ax + b) + c\na = %s\nb = %s\nc = %s" % (a, b, c)
   plot(call_func, x, y, extra_x, extra_y, nice_string, a, b, c)
 
