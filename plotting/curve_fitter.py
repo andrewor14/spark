@@ -31,6 +31,8 @@ def fit_curve(curve_type, x, y, decay=0.9, starting_params=None, verbose=True):
   num_parameters = get_num_parameters(curve_type)
   sigma = [math.pow(decay, i) for i in range(len(y))]
   bounds = ([0] * num_parameters, [np.inf] * num_parameters)
+  if curve_type == "exponential":
+    bounds = ([0] * num_parameters, [1, np.inf, np.inf])
   coeffs = None
   if starting_params:
     coeffs = curve_fit(func, x, y, p0=starting_params, sigma=sigma, bounds=bounds)[0]
