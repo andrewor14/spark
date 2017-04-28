@@ -26,8 +26,8 @@ def main():
     for i in range(len(lines)):
       line = lines[i]
       if re.match(".*ANDREW predicting in iteration %s$" % prediction_iter, line) is not None:
-        x = [float(t) for t in re.match(".*My x's are: (.*)\.", lines[i+1]).groups()[0].split(",")]
-        y = [float(t) for t in re.match(".*My y's are: (.*)\.", lines[i+2]).groups()[0].split(",")]
+        x = [float(t) for t in re.match(".*My x's are: (.*)", lines[i+1]).groups()[0].split(",")]
+        y = [float(t) for t in re.match(".*My y's are: (.*)", lines[i+2]).groups()[0].split(",")]
         params = [float(t) for t in re.match(".*My params are (.*)", lines[i+3]).groups()[0].split(",")]
         break
   # Parse future points
