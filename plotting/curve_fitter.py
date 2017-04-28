@@ -7,6 +7,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy
 from scipy.optimize import curve_fit
+from scipy.interpolate import interp1d
+
+
+MIN_POINTS_FOR_CURVE_FITTING = 50
 
 def main():
   args = sys.argv
@@ -27,12 +31,27 @@ def main():
     sys.exit(1)
 
 def fit_curve(curve_type, x, y, decay=0.9, starting_params=None, verbose=True):
+  assert len(x) == len(y)
   func = get_func(curve_type)
   num_parameters = get_num_parameters(curve_type)
   sigma = [math.pow(decay, i) for i in range(len(y))]
   bounds = ([0] * num_parameters, [np.inf] * num_parameters)
   if curve_type == "exponential":
     bounds = ([0] * num_parameters, [1, np.inf, np.inf])
+  # If there are not enough points, do interpolation
+  if len(x) < MIN_POINTS_FOR_CURVE_FITTING:
+    interp = interp1d(x, y)
+    mult_factor = math.ceil(float(MIN_POINTS_FOR_CURVE_FITTING) / (len(x) - 1))
+    xnew = np.arange(x[0], x[-1], step = 1 / mult_factor)
+    ynew = interp(xnew)
+    x = xnew.tolist()
+    y = ynew.tolist()
+    sigma = [[s] * int(mult_factor) for s in sigma]
+    sigma = [s for slist in sigma for s in slist]
+    sigma = sigma[-len(x):]
+    assert len(x) >= MIN_POINTS_FOR_CURVE_FITTING
+    assert len(x) == len(y)
+    assert len(x) == len(sigma)
   coeffs = None
   if starting_params:
     coeffs = curve_fit(func, x, y, p0=starting_params, sigma=sigma, bounds=bounds)[0]
