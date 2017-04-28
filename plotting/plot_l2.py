@@ -9,7 +9,7 @@ from plot import *
 
 iterations_of_interest = [1, 5, 10] # Must be length 3
 curve_to_fit = "one_over_x_squared"
-decay_to_fit = 0.6
+decay_to_fit = 0.8
 
 def get_data(path):
   l2 = []
@@ -48,7 +48,7 @@ def main():
   indices = np.arange(3)
   log_file_names = ["avg_1.log", "cf_%s_1.log" % curve_to_fit, "cf_%s_%s.log" % (curve_to_fit, decay_to_fit)]
   empty = [0, 0, 0]
-  color_cycle = ["r", "m", "b", "c", "y", "g", "k", "w"]
+  color_cycle = ["pink", "skyblue", "coral", "blueviolet", "gold", "lightseagreen", "yellowgreen", "red", "lightgrey"]
 
   # Start plotting
   fig, ax = plt.subplots(figsize=(20, 8))

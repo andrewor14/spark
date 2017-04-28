@@ -25,7 +25,7 @@ def main():
         if f.endswith(".log"):
           do_the_thing(base_dir, f)
   # User supplied more than one log file. Plot them all on the same graph.
-  # Note that first argument is the output file path.
+  # Note that first argument is the base directory.
   elif len(args) > 2:
     do_the_thing(args[1], *args[2:])
   else:
