@@ -53,7 +53,7 @@ def main():
   width = 1.0 / num_bars_per_group
   indices = np.arange(3)
   empty = [0, 0, 0]
-  color_cycle = ["pink", "skyblue", "coral", "blueviolet", "gold", "lightseagreen", "yellowgreen", "red", "lightgrey"]
+  color_cycle = ["lightgrey", "skyblue", "red", "yellowgreen", "gold", "pink", "lightseagreen", "coral", "blueviolet"]
 
   # Start plotting
   fig, ax = plt.subplots(figsize=(20, 8))
