@@ -117,8 +117,8 @@ def pred_loss_cf(x, y, window_size, decay, fitter):
   if VERBOSE:
     print "==================================================================================="
     print "ANDREW predicting in iteration %s" % current_iter
-    print "My x's are: %s" % ", ".join([str(t) for t in xx])
-    print "My y's are: %s" % ", ".join([str(t) for t in yy])
+    print "My x's are: %s" % ", ".join([str(t) for t in x])
+    print "My y's are: %s" % ", ".join([str(t) for t in y])
 
   def attempt1():
     return fit_curve(fitter, x, y, decay, verbose=False)
