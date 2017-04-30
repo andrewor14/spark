@@ -65,7 +65,7 @@ def main():
 
 def plot(call_func, x, y, extra_x, extra_y, nice_string, *params):
   fitted_y = [call_func(xx) for xx in x + extra_x]
-  l2_error = l2_diff(extra_y, fitted_y[-len(extra_y):])
+  avg_error = avg_abs_diff(extra_y, fitted_y[-len(extra_y):])
   fig = plt.figure()
   ax = fig.add_subplot(1, 1, 1)
   ax.plot(x, y, "x", label="orig")
@@ -74,7 +74,7 @@ def plot(call_func, x, y, extra_x, extra_y, nice_string, *params):
   ax.set_xlabel("Iteration")
   ax.set_ylabel("Loss")
   plt.annotate(nice_string, xy=(0.6, 0.8), xycoords='axes fraction')
-  plt.annotate("L2 error = %.10f" % l2_error, xy=(0.6, 0.7), xycoords='axes fraction', color='red')
+  plt.annotate("Avg error = %.10f" % avg_error, xy=(0.6, 0.7), xycoords='axes fraction', color='red')
   plt.savefig("output.png")
 
 def plot_exponential(x, y, extra_x, extra_y, params):
@@ -98,9 +98,9 @@ def plot_one_over_x(x, y, extra_x, extra_y, params):
   nice_string = "1 / (ax + b) + c\na = %s\nb = %s\nc = %s" % (a, b, c)
   plot(call_func, x, y, extra_x, extra_y, nice_string, a, b, c)
 
-def l2_diff(list1, list2):
+def avg_abs_diff(list1, list2):
   assert len(list1) == len(list2)
-  return sum([math.pow(list1[i] - list2[i], 2) for i in range(len(list1))])
+  return sum([abs((list1[i] - list2[i]) / list1[i]) for i in range(len(list1))]) / len(list1)
 
 if __name__ == "__main__":
   main()
