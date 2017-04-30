@@ -98,9 +98,11 @@ def plot_one_over_x(x, y, extra_x, extra_y, params):
   nice_string = "1 / (ax + b) + c\na = %s\nb = %s\nc = %s" % (a, b, c)
   plot(call_func, x, y, extra_x, extra_y, nice_string, a, b, c)
 
+# DUPLICATE CODE ALERT! This mirrors a certain function in plot.py.
 def avg_abs_diff(list1, list2):
   assert len(list1) == len(list2)
-  return sum([abs((list1[i] - list2[i]) / list1[i]) for i in range(len(list1))]) / len(list1)
+  scaling_factor = max(list1)
+  return sum([abs((list1[i] - list2[i]) / scaling_factor) for i in range(len(list1))]) / len(list1)
 
 if __name__ == "__main__":
   main()
