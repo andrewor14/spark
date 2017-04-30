@@ -111,11 +111,14 @@ def pred_loss_cf(x, y, window_size, decay, fitter):
   current_iter = x[-1] + 1
   fail_msg = "WARNING: curve fitting failed at iteration %s. Trying again with" % current_iter
   starting_params = [sum(params) / len(params) for params in all_fitted_params]
+  # If we don't have enough points yet, do interpolation to get a better fit
+  if len(x) < MIN_POINTS_FOR_CURVE_FITTING:
+    (x, y) = interpolate(x, y)
   if VERBOSE:
     print "==================================================================================="
     print "ANDREW predicting in iteration %s" % current_iter
-    print "My x's are: %s" % ", ".join([str(t) for t in x])
-    print "My y's are: %s" % ", ".join([str(t) for t in y])
+    print "My x's are: %s" % ", ".join([str(t) for t in xx])
+    print "My y's are: %s" % ", ".join([str(t) for t in yy])
 
   def attempt1():
     return fit_curve(fitter, x, y, decay, verbose=False)
