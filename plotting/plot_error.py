@@ -19,13 +19,13 @@ alg_to_curve_fitter = {
 }
 
 def get_data(path):
-  l2 = []
+  avg_error = []
   for predicted_n_iterations_ago in iterations_of_interest:
     (actual_x, actual_y, predicted_x, predicted_y) =\
       parse_losses(path, predicted_n_iterations_ago)
-    l2 += [calculate_l2_norm(actual_x, actual_y, predicted_x, predicted_y)]
-  print "L2 norms for %s for these iterations %s are %s" % (path, iterations_of_interest, l2)
-  return l2
+    avg_error += [calculate_avg_abs_error(actual_x, actual_y, predicted_x, predicted_y)]
+  print "Average prediction error for %s for these iterations %s are %s" % (path, iterations_of_interest, avg_error)
+  return avg_error
 
 def main():
   args = sys.argv
@@ -71,7 +71,7 @@ def main():
     for i in range(len(log_file_names)):
       legend_names += ["%s (%s)" % (translate_legend(log_file_names[i]), alg_name)]
   bars += [ax.bar(indices + (3 * num_algrithms + 1) * width, empty, width)]
-  ax.set_ylabel("Normalized L2 norm of prediction error")
+  ax.set_ylabel("Average prediction error")
   ax.set_xlabel("Number of iterations predicted in advance")
   ax.set_title("Loss prediction error", y = 1.04)
   ax.set_xticks(indices + width * num_bars_per_group / 2)

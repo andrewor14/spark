@@ -56,10 +56,10 @@ def do_the_thing(base_dir, *log_file_paths):
       assert actual_x == my_actual_x
       assert actual_y == my_actual_y,\
         "first actual_y = %s,\nmy_actual_y = %s" % (actual_y, my_actual_y)
-    l2_norm = calculate_l2_norm(actual_x, actual_y, predicted_x, predicted_y)
+    avg_error = calculate_avg_abs_error(actual_x, actual_y, predicted_x, predicted_y)
     name = translate_legend(path)
-    ax.plot(predicted_x, predicted_y, label="%s, L2 norm = %.3f" % (name, l2_norm))
-    print "L2 norm for %s: %s" % (path, l2_norm)
+    ax.plot(predicted_x, predicted_y, label="%s, Avg error = %.3f" % (name, avg_error))
+    print "Avg error for %s: %s" % (path, avg_error)
 
   plt.legend(prop={'size':12})
   if len(log_file_paths) == 1:
@@ -144,19 +144,19 @@ def parse_losses(log_file_path, predicted_n_iterations_ago):
   predicted_y = [y for (_, y) in predicted_points]
   return (actual_x, actual_y, predicted_x, predicted_y)
 
-def calculate_l2_norm(actual_x, actual_y, predicted_x, predicted_y):
+def calculate_avg_abs_error(actual_x, actual_y, predicted_x, predicted_y):
   # What's the difference between the actual loss and the predicted loss?
-  l2_differences = []
+  differences = []
   percentile_cutoff = 99
   for i, pred_loss in enumerate(predicted_y):
     time = predicted_x[i]
     if time in actual_x:
       j = actual_x.index(time)
       act_loss = actual_y[j]
-      l2_differences += [math.pow((pred_loss - act_loss) / act_loss, 2)]
-  cutoff = np.percentile(l2_differences, percentile_cutoff)
-  l2_differences = [d for d in l2_differences if d <= cutoff]
-  return sum(l2_differences)
+      differences += [abs((pred_loss - act_loss) / act_loss)]
+  cutoff = np.percentile(differences, percentile_cutoff)
+  differences = [d for d in differences if d <= cutoff]
+  return sum(differences) / len(differences)
  
 if __name__ == "__main__":
   main()
