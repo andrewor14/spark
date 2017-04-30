@@ -24,20 +24,8 @@ def get_data(path):
     (actual_x, actual_y, predicted_x, predicted_y) =\
       parse_losses(path, predicted_n_iterations_ago)
     l2 += [calculate_l2_norm(actual_x, actual_y, predicted_x, predicted_y)]
-  print "L2 norms for %s for these iterations %s are %s" % (path.split("/")[-1], iterations_of_interest, l2)
+  print "L2 norms for %s for these iterations %s are %s" % (path, iterations_of_interest, l2)
   return l2
-
-def get_normalized_data(path1, path2, path3):
-  data1 = get_data(path1)
-  data2 = get_data(path2)
-  data3 = get_data(path3)
-  # Normalize everything by the worst error
-  worst_error = max(data1 + data2 + data3)
-  for i in range(len(data1)):
-    data1[i] = data1[i] / worst_error
-    data2[i] = data2[i] / worst_error
-    data3[i] = data3[i] / worst_error
-  return (data1, data2, data3)
 
 def main():
   args = sys.argv
@@ -71,14 +59,15 @@ def main():
     naive_path = join(log_dirs[i], log_file_names[0])
     curve_fitting_path = join(log_dirs[i], log_file_names[1])
     curve_fitting_weighted_path = join(log_dirs[i], log_file_names[2])
-    (naive, curve_fitting, curve_fitting_weighted) =\
-      get_normalized_data(naive_path, curve_fitting_path, curve_fitting_weighted_path)
+    naive = get_data(naive_path)
+    curve_fitting = get_data(curve_fitting_path)
+    curve_fitting_weighted = get_data(curve_fitting_weighted_path)
     base_indices = indices + 3 * width * i
     fill_color = color_cycle[i]
     edge_color = "w" if fill_color == "k" else "k"
-    bars += [ax.bar(base_indices + width, naive, width, color=fill_color, edgecolor=edge_color, hatch="/")]
-    bars += [ax.bar(base_indices + 2 * width, curve_fitting, width, color=fill_color, edgecolor=edge_color, hatch="-")]
-    bars += [ax.bar(base_indices + 3 * width, curve_fitting_weighted, width, color=fill_color, edgecolor=edge_color, hatch="\\")]
+    bars += [ax.bar(base_indices + width, naive, width, color=fill_color, edgecolor=edge_color, hatch="/", bottom=0.001)]
+    bars += [ax.bar(base_indices + 2 * width, curve_fitting, width, color=fill_color, edgecolor=edge_color, hatch="-", bottom=0.001)]
+    bars += [ax.bar(base_indices + 3 * width, curve_fitting_weighted, width, color=fill_color, edgecolor=edge_color, hatch="\\", bottom=0.001)]
     for i in range(len(log_file_names)):
       legend_names += ["%s (%s)" % (translate_legend(log_file_names[i]), alg_name)]
   bars += [ax.bar(indices + (3 * num_algrithms + 1) * width, empty, width)]
@@ -87,7 +76,7 @@ def main():
   ax.set_title("Loss prediction error", y = 1.04)
   ax.set_xticks(indices + width * num_bars_per_group / 2)
   ax.set_xticklabels(("1", "5", "10"))
-  plt.gca().set_ylim([0.0, 1.04])
+  ax.set_yscale("log")
   legend_bars = tuple([r[0] for r in bars[1:-1]])
   legend_names = tuple(legend_names)
   box = ax.get_position()

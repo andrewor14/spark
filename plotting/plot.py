@@ -153,7 +153,7 @@ def calculate_l2_norm(actual_x, actual_y, predicted_x, predicted_y):
     if time in actual_x:
       j = actual_x.index(time)
       act_loss = actual_y[j]
-      l2_differences += [math.pow(pred_loss - act_loss, 2)]
+      l2_differences += [math.pow((pred_loss - act_loss) / act_loss, 2)]
   cutoff = np.percentile(l2_differences, percentile_cutoff)
   l2_differences = [d for d in l2_differences if d <= cutoff]
   return sum(l2_differences)
