@@ -58,7 +58,7 @@ def do_the_thing(base_dir, *log_file_paths):
         "first actual_y = %s,\nmy_actual_y = %s" % (actual_y, my_actual_y)
     avg_error = calculate_avg_abs_error(actual_x, actual_y, predicted_x, predicted_y)
     name = translate_legend(path)
-    ax.plot(predicted_x, predicted_y, label="%s, Avg error = %.3f" % (name, avg_error))
+    ax.plot(predicted_x, predicted_y, label="%s, Avg error = %s" % (name, avg_error))
     print "Avg error for %s: %s" % (path, avg_error)
 
   plt.legend(prop={'size':12})
