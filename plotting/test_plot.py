@@ -28,7 +28,12 @@ def main():
       if re.match(".*ANDREW predicting in iteration %s$" % prediction_iter, line) is not None:
         x = [float(t) for t in re.match(".*My x's are: (.*)", lines[i+1]).groups()[0].split(",")]
         y = [float(t) for t in re.match(".*My y's are: (.*)", lines[i+2]).groups()[0].split(",")]
-        params = [float(t) for t in re.match(".*My params are (.*)", lines[i+3]).groups()[0].split(",")]
+        # Sometimes we print random warnings
+        for j in range(3, 10):
+          match = re.match(".*My params are (.*)", lines[i+j])
+          if match is not None:
+            params = [float(t) for t in match.groups()[0].split(",")]
+            break
         break
   # Parse future points
   num_extra_points = 10
@@ -93,7 +98,7 @@ def plot_one_over_x_squared(x, y, extra_x, extra_y, params):
 
 def plot_one_over_x(x, y, extra_x, extra_y, params):
   assert len(params) == 3
-  (a, b) = tuple(params)
+  (a, b, c) = tuple(params)
   call_func = lambda x: one_over_x(x, a, b, c)
   nice_string = "1 / (ax + b) + c\na = %s\nb = %s\nc = %s" % (a, b, c)
   plot(call_func, x, y, extra_x, extra_y, nice_string, a, b, c)
