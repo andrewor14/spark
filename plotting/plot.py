@@ -148,13 +148,12 @@ def calculate_avg_abs_error(actual_x, actual_y, predicted_x, predicted_y):
   # What's the difference between the actual loss and the predicted loss?
   differences = []
   percentile_cutoff = 99
-  scaling_factor = max(actual_y)
   for i, pred_loss in enumerate(predicted_y):
     time = predicted_x[i]
     if time in actual_x:
       j = actual_x.index(time)
       act_loss = actual_y[j]
-      differences += [abs((pred_loss - act_loss) / scaling_factor)]
+      differences += [abs((pred_loss - act_loss) / act_loss)]
   cutoff = np.percentile(differences, percentile_cutoff)
   differences = [d for d in differences if d <= cutoff]
   return sum(differences) / len(differences)

@@ -76,7 +76,7 @@ def main():
   ax.set_title("Loss prediction error", y = 1.04)
   ax.set_xticks(indices + width * num_bars_per_group / 2)
   ax.set_xticklabels(("1", "5", "10"))
-  #ax.set_yscale("log")
+  ax.set_yscale("log")
   legend_bars = tuple([r[0] for r in bars[1:-1]])
   legend_names = tuple(legend_names)
   box = ax.get_position()
