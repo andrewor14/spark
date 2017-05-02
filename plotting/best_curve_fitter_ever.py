@@ -45,7 +45,7 @@ def main():
       current_iter = i + 1
       f.write("ANDREW(%s): (actual loss = %.15f)\n" % (current_iter, actual_losses[i]))
       if current_iter >= MIN_POINTS_FOR_PREDICTION:
-        predicted_losses = pred_loss(range(current_iter), actual_losses[:current_iter], conf)
+        predicted_losses = pred_loss(range(1, current_iter + 1), actual_losses[:current_iter], conf)
         for (j, loss) in enumerate(predicted_losses):
           f.write("ANDREW(%s): (predict iter = %s) (predicted loss = %.15f)\n" %\
             (current_iter + j + 1, current_iter, loss))
@@ -108,7 +108,7 @@ def pred_loss_cf(x, y, window_size, decay, fitter):
   orig_y = y
   x = x[-window_size:]
   y = y[-window_size:]
-  current_iter = x[-1] + 1
+  current_iter = x[-1]
   fail_msg = "WARNING: curve fitting failed at iteration %s. Trying again with" % current_iter
   starting_params = [sum(params) / len(params) for params in all_fitted_params]
   # If we don't have enough points yet, do interpolation to get a better fit
