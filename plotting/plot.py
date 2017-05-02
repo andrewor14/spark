@@ -12,6 +12,7 @@ verbose = False
 min_iteration_for_prediction = 2
 predicted_n_iterations_ago = 10
 starting_at = 0
+ending_at = 10000
 
 def main():
   args = sys.argv
@@ -139,10 +140,10 @@ def parse_losses(log_file_path, predicted_n_iterations_ago):
   predicted_points = [(predicted_x[i], predicted_y[i]) for i in range(len(predicted_x))]
   actual_points.sort(key = lambda x: x[0])
   predicted_points.sort(key = lambda x: x[0])
-  actual_x = [x for (x, _) in actual_points][starting_at:]
-  actual_y = [y for (_, y) in actual_points][starting_at:]
-  predicted_x = [x for (x, _) in predicted_points][starting_at:]
-  predicted_y = [y for (_, y) in predicted_points][starting_at:]
+  actual_x = [x for (x, _) in actual_points][starting_at:ending_at]
+  actual_y = [y for (_, y) in actual_points][starting_at:ending_at]
+  predicted_x = [x for (x, _) in predicted_points][starting_at:ending_at]
+  predicted_y = [y for (_, y) in predicted_points][starting_at:ending_at]
   return (actual_x, actual_y, predicted_x, predicted_y)
 
 def calculate_avg_abs_error(actual_x, actual_y, predicted_x, predicted_y):
