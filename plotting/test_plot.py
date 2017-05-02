@@ -90,11 +90,11 @@ def plot_exponential(x, y, extra_x, extra_y, params):
   plot(call_func, x, y, extra_x, extra_y, nice_string, a, b, c)
 
 def plot_one_over_x_squared(x, y, extra_x, extra_y, params):
-  assert len(params) == 4
-  (a, b, c, d) = tuple(params)
-  call_func = lambda x: one_over_x_squared(x, a, b, c, d)
-  nice_string = "1 / (ax^2 + bx + c) + d\na = %s\nb = %s\nc = %s\nd = %s" % (a, b, c, d)
-  plot(call_func, x, y, extra_x, extra_y, nice_string, a, b, c, d)
+  assert len(params) == 2
+  (a, b) = tuple(params)
+  call_func = lambda x: one_over_x_squared(x, a, b)
+  nice_string = "1 / (ax^2) + b\na = %s\nb = %s" % (a, b)
+  plot(call_func, x, y, extra_x, extra_y, nice_string, a, b)
 
 def plot_one_over_x(x, y, extra_x, extra_y, params):
   assert len(params) == 3

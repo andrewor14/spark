@@ -61,8 +61,8 @@ def interpolate(x, y):
 def one_over_x(x, a, b, c):
   return 1 / (a * x + b) + c
 
-def one_over_x_squared(x, a, b, c, d):
-  return 1 / (a * (x**2) + b * x + c) + d
+def one_over_x_squared(x, a, b):
+  return 1 / (a * (x**2)) + b
 
 def exponential(x, a, b, c):
   return a**(x - b) + c
@@ -75,7 +75,7 @@ def get_func(curve_type):
 
 def get_num_parameters(curve_type):
   if curve_type == "one_over_x": return 3
-  if curve_type == "one_over_x_squared": return 4
+  if curve_type == "one_over_x_squared": return 2
   if curve_type == "exponential": return 3
   return None
 
