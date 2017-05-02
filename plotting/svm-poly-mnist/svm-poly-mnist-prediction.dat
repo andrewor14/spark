@@ -1,0 +1,6 @@
+Avg error for plotting/svm-poly-mnist/avg_1.log: 0.525464830305
+Avg error for plotting/svm-poly-mnist/cf_one_over_x_squared_1.log: 0.281065804137
+Avg error for plotting/svm-poly-mnist/cf_one_over_x_squared_0.8.log: 0.0355358194363
+Average prediction error for plotting/svm-poly-mnist/avg_1.log for these iterations [1, 5, 10] are [0.005403465891379386, 0.1100645940810124, 0.5254648303054411]
+Average prediction error for plotting/svm-poly-mnist/cf_one_over_x_squared_1.log for these iterations [1, 5, 10] are [0.20440165955013442, 0.24046714236829123, 0.28106580413650656]
+Average prediction error for plotting/svm-poly-mnist/cf_one_over_x_squared_0.8.log for these iterations [1, 5, 10] are [0.0029052203280728896, 0.013329251932713244, 0.03553581943632849]
