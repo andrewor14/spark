@@ -12,7 +12,7 @@ verbose = False
 min_iteration_for_prediction = 2
 predicted_n_iterations_ago = 10
 starting_at = 0
-ending_at = 10000
+ending_at = 1000000
 
 def main():
   args = sys.argv
