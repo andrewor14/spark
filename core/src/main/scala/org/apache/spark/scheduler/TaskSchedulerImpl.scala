@@ -262,6 +262,13 @@ private[spark] class TaskSchedulerImpl(
       if (availableCpus(i) >= CPUS_PER_TASK) {
         try {
           for (task <- taskSet.resourceOffer(execId, host, maxLocality)) {
+            val poolName = taskSet.parent.poolName
+            if (PoolReweighterLoss.listener.avgTaskTime.contains(poolName)) {
+            val avgtt = PoolReweighterLoss.listener.avgTaskTime(poolName)._1 /
+              PoolReweighterLoss.listener.avgTaskTime(poolName)._2.toDouble
+            PoolReweighterLoss.tokens(poolName) =
+              PoolReweighterLoss.tokens(poolName) - avgtt.toLong
+            }
             tasks(i) += task
             val tid = task.taskId
             taskIdToTaskSetManager(tid) = taskSet

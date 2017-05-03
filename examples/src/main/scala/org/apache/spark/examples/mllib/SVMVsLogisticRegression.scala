@@ -73,14 +73,15 @@ object SVMVsLogisticRegression {
     val mlpcData = spark.read.format("libsvm")
       .load("data/mllib/mnist8m.scale")
     val sizes = Array(0.10, 0.5, 1.0)
-    val mlpcSizes = Array(0.10)
     // val mlpcsplits = mlpcData.randomSplit(Array(0.1, 0.1, 0.8), seed = 1234L)
-    val mnistTrains = (1 to 3).map(x => mlpcData.sample(false, sizes(x % sizes.size), 42L).cache())
+    val mnistTrains = (1 to 3).map(x => mlpcData.sample(false, sizes(x % sizes.size), 42L)
+                              .repartition((1000 * sizes(x % sizes.size)).toInt).cache())
     // Split data into training (98%) and validation (2%).
 //    training.count() // materialize training
-    val numThreads = 20
+    val numThreads = 50
 
-    val epsilonTrainings = (1 to 3).map(x => epsilonTraining.sample(false, mlpcSizes(x % mlpcSizes.size), 42L).cache())
+    val epsilonTrainings = (1 to 3).map(x => epsilonTraining.sample(false, sizes(x % sizes.size), 42L).cache())
+// .repartition((360 * sizes(x % sizes.size)).toInt).cache())
     epsilonTrainings.foreach(x => x.count())
     mnistTrains.foreach(x => x.count())
 
@@ -147,7 +148,7 @@ object SVMVsLogisticRegression {
     PoolReweighterLoss.start(3, isFair)
 
     (0 to numThreads - 1).foreach { i =>
-      svmThreads(i).start()
+      logRegThreads(i).start()
       Thread.sleep(sleepTimes(i * 2) * 1000L)
       mlpcThreads(i).start()
       Thread.sleep(sleepTimes(i * 2 + 1) * 1000L)

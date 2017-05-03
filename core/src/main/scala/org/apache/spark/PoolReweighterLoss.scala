@@ -27,8 +27,6 @@ import org.apache.spark.scheduler._
 
 class PRJob(id: Long, pn: String, sis: Seq[Int]) {
   var jobId : Long = id
-  var duration : Long = 0
-  var finTime : Long = 0
   var poolName : String = pn
   var stageIds = sis
 }
@@ -50,26 +48,27 @@ object PoolReweighterLoss extends Logging {
   private[PoolReweighterLoss] val startTime = new ConcurrentHashMap[String, Long]
   private val batchWindows = new mutable.HashMap[String, ArrayBuffer[PRBatchWindow]]
   val pool2numCores = new mutable.HashMap[String, Int]
+  val numTasksComplete = new mutable.HashMap[String, Int]
+  val numExpIters = new mutable.HashMap[String, Double]
+  val tokens = new mutable.HashMap[String, Long]
   val listener = new PRJobListener
   var batchTime = 0
   var isFair = false
   @volatile var isRunning = false
 
   def updateLoss(loss: Double): Unit = {
-    if (loss != 1.0) {
-      val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
-      logInfo(s"LOGAN: $poolName curr loss: $loss")
-      val bws = listener.currentWindows(poolName)
-      bws.loss = loss
-      val bw = batchWindows(poolName)
-      bw.append(bws)
-      listener.currentWindows.put(poolName, new PRBatchWindow)
-      // dLoss
-      if (bw.size >= 2) {
-        bw.last.dLoss = bw(bw.size - 2).loss - bw.last.loss
-      }
-      bw.last.numCores = SparkContext.getOrCreate.getPoolWeight(poolName)
+    val poolName = SparkContext.getOrCreate.getLocalProperty("spark.scheduler.pool")
+    logInfo(s"LOGAN: $poolName curr loss: $loss")
+    val bws = listener.currentWindows(poolName)
+    bws.loss = loss
+    val bw = batchWindows(poolName)
+    bw.append(bws)
+    listener.currentWindows.put(poolName, new PRBatchWindow)
+    // dLoss
+    if (bw.size >= 2) {
+      bw.last.dLoss = bw(bw.size - 2).loss - bw.last.loss
     }
+    bw.last.numCores = SparkContext.getOrCreate.getPoolWeight(poolName)
 
   }
 
@@ -79,6 +78,7 @@ object PoolReweighterLoss extends Logging {
 
   // set batch to every t seconds
   def start(t: Int = 10, fair: Boolean = false): Unit = {
+    SparkContext.getOrCreate.addSparkListener(listener)
     isFair = fair
     batchTime = t
     isRunning = true
@@ -101,11 +101,13 @@ object PoolReweighterLoss extends Logging {
   def register(poolName: String,
                utilFunc: UtilityFunc): Unit = {
     registerUtilityFunction(poolName, utilFunc)
-    SparkContext.getOrCreate.addSparkListener(listener)
     val numCores = SparkContext.getOrCreate().defaultParallelism
     // pool2numCores.put(poolName, Math.max(numCores / (pool2numCores.size + 1), 3))
     pool2numCores.put(poolName, -1)
     batchWindows.put(poolName, new ArrayBuffer[PRBatchWindow])
+    numTasksComplete.put(poolName, 0)
+    numExpIters.put(poolName, 1)
+    tokens.put(poolName, 0)
     batchUpdate()
   }
 
@@ -119,36 +121,40 @@ object PoolReweighterLoss extends Logging {
 
 
   private[PoolReweighterLoss] def batchUpdate(): Unit = {
-    val numCores = SparkContext.getOrCreate().defaultParallelism
+    val totalCores = SparkContext.getOrCreate().defaultParallelism
     def diff(t: (String, Double)) = t._2
     val heap = new mutable.PriorityQueue[(String, Double)]()(Ordering.by(diff))
     val currTime = System.currentTimeMillis()
 
-    var remainingCores = numCores
-    val fairshare = numCores / pool2numCores.size
+    var remainingCores = totalCores
+    val fairshare = totalCores / pool2numCores.size
+    val minCore = 3
     // first enqueue everybody at 1
     for((poolName: String, _) <- pool2numCores) {
       if (batchWindows(poolName).size <= 1) {
         pool2numCores(poolName) = fairshare
         remainingCores -= fairshare
       } else {
-        val util1 = utility(predNormDLoss(poolName, 1))
-        val util2 = utility(predNormDLoss(poolName, 2))
+        val util1 = utility(predNormDLoss(poolName, minCore))
+        val util2 = utility(predNormDLoss(poolName, minCore + 1))
         heap.enqueue((poolName, util2 - util1))
-        pool2numCores(poolName) = 1
-        remainingCores -= 1
+        pool2numCores(poolName) = minCore
+        remainingCores -= minCore
       }
     }
-
+    // var halfCores = totalCores / 2
     while(remainingCores > 0) {
       val head = heap.dequeue()
-//       logInfo(s"LOGAN dequeuing ${head._1}, ${head._2}")
       val poolName = head._1
       val alloc = pool2numCores(poolName) + 1
       pool2numCores(poolName) = alloc
       val utilCurr = utility(predNormDLoss(poolName, alloc))
       val utilNext = utility(predNormDLoss(poolName, alloc + 1))
-      heap.enqueue((poolName, utilNext - utilCurr))
+      // if (alloc >= halfCores && heap.nonEmpty) {
+      //   halfCores = halfCores / 2
+      // } else {
+        heap.enqueue((poolName, utilNext - utilCurr))
+      // }
       remainingCores -= 1
     }
 //    assert(pool2numCores.values.sum == numCores)
@@ -157,16 +163,30 @@ object PoolReweighterLoss extends Logging {
     var weights = ""
     val sc = SparkContext.getOrCreate()
     for ((poolName: String, numCores: Int) <- pool2numCores) {
-      sc.setPoolWeight(poolName, numCores)
-      weights += poolName + ", " + numCores + ":"
+      // sc.setPoolWeight(poolName, numCores)
+      val magicNumber = 1
+      weights += poolName + "," + numCores + ":"
       if (batchWindows(poolName).nonEmpty) {
-        weights += batchWindows(poolName).last.loss
+        val numIter = 1000 * numCores * batchTime / avgTimePerIteration(poolName)
+        weights += batchWindows(poolName).size
+        weights += "\t" + numIter
+        weights += "\t" + f"${batchWindows(poolName).last.loss}%1.4f"
+        weights += "\t" + f"${predLoss(poolName, numIter)}%1.4f"
+        weights += "\t" + f"${avgTimePerIteration(poolName).toInt}%07d"
+        weights += "\t" + numCores
+        val avgtt = listener.avgTaskTime(poolName)
+        weights += "\t" + f"${avgtt._1 / avgtt._2}%7d"
+        weights += "\t" + (avgtt._2 - numTasksComplete(poolName))
+        weights += "\t" + f"${tokens(poolName)}"
+        numTasksComplete(poolName) = avgtt._2
+        numExpIters(poolName) = numIter
       } else {
         weights += "0.0"
       }
+      tokens(poolName) = numCores * batchTime * 1000
+      weights += "\n"
     }
-    logInfo(s"LOGAN weights: $weights")
-
+    logInfo(s"LOGAN weights:\n $weights")
     if (isFair) {
       // fair share:
       for ((poolName: String, numCores: Int) <- pool2numCores) {
@@ -204,8 +224,8 @@ object PoolReweighterLoss extends Logging {
   }
 
   def avgTimePerIteration(poolName: String): Double = {
-    if (batchWindows(poolName).nonEmpty) {
-      batchWindows(poolName).map(x => x.duration).sum / batchWindows(poolName).size
+    if (batchWindows(poolName).size > 1) {
+      batchWindows(poolName).drop(1).map(x => x.duration).sum / batchWindows(poolName).size
     } else {
       0.0
     }
@@ -216,17 +236,11 @@ object PoolReweighterLoss extends Logging {
 
 class PRJobListener extends SparkListener with Logging {
 
-  val finishedJobs = new mutable.HashMap[String, ArrayBuffer[PRJob]]
   val currentJobs = new mutable.HashMap[Long, PRJob]
-  val avgJobLen = new mutable.HashMap[String, (Int, Double)]
   val currentWindows = new mutable.HashMap[String, PRBatchWindow]
+  val avgTaskTime = new mutable.HashMap[String, (Long, Int)]
 
-
-  def getAvgJobLen(poolName: String): Double = {
-    avgJobLen(poolName)._2
-  }
-
-  override def onJobStart(jobStart: SparkListenerJobStart): Unit = synchronized {
+  override def onJobStart(jobStart: SparkListenerJobStart): Unit = {
     val poolName = jobStart.properties.getProperty("spark.scheduler.pool")
     if(poolName != null && poolName != "default") {
       val job = new PRJob(jobStart.jobId, poolName, jobStart.stageIds.toList)
@@ -234,40 +248,33 @@ class PRJobListener extends SparkListener with Logging {
     }
   }
 
-  override def onJobEnd(jobEnd: SparkListenerJobEnd): Unit = synchronized {
+  override def onJobEnd(jobEnd: SparkListenerJobEnd): Unit = {
     val jobId = jobEnd.jobId
     if(currentJobs.contains(jobId)) {
-      val job = currentJobs(jobId)
-      job.finTime = jobEnd.time
       currentJobs.remove(jobId)
-      if(!avgJobLen.contains(job.poolName)) {
-        avgJobLen.put(job.poolName, (1, job.duration))
-      } else {
-        val curAvg = avgJobLen(job.poolName)
-        val newAvg = (curAvg._2 * curAvg._1 + job.duration) / (curAvg._1 + 1)
-        avgJobLen.put(job.poolName, (curAvg._1 + 1, newAvg))
-      }
-      if(finishedJobs.contains(job.poolName)) {
-        finishedJobs(job.poolName).append(job)
-      } else {
-        val arr = new ArrayBuffer[PRJob]
-        arr.append(job)
-        finishedJobs(job.poolName) = arr
-      }
-      if(!currentWindows.contains(job.poolName)) {
-        val bw = new PRBatchWindow
-        currentWindows.put(job.poolName, bw)
-      }
-      currentWindows(job.poolName).duration += job.duration
     }
   }
 
   // figure out which job this belongs to, and add that duration
-  override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit = {
-    val duration = taskEnd.taskInfo.duration
+  override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit = synchronized {
+    val duration = (taskEnd.taskMetrics.executorCpuTime +
+                    taskEnd.taskMetrics.resultSerializationTime +
+                    taskEnd.taskMetrics.executorDeserializeCpuTime) / 1000000
+    // val duration = taskEnd.taskInfo.duration
     val stageId = taskEnd.stageId
     for((jobId: Long, j: PRJob) <- currentJobs) {
-      if (j.stageIds.contains(stageId)) j.duration += duration
+      if (j.stageIds.contains(stageId)) {
+        if (!currentWindows.contains(j.poolName)) {
+          currentWindows.put(j.poolName, new PRBatchWindow)
+        }
+        currentWindows(j.poolName).duration += duration
+        if (!avgTaskTime.contains(j.poolName)) {
+          avgTaskTime.put(j.poolName, (duration, 1))
+        } else {
+          val avg = avgTaskTime(j.poolName)
+          avgTaskTime(j.poolName) = (avg._1 + duration, avg._2 + 1)
+        }
+      }
     }
   }
 }

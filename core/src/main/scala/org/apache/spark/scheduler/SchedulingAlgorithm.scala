@@ -17,6 +17,8 @@
 
 package org.apache.spark.scheduler
 
+import org.apache.spark.PoolReweighterLoss
+
 /**
  * An interface for sort algorithm
  * FIFO: FIFO algorithm between TaskSetManagers
@@ -42,6 +44,7 @@ private[spark] class FIFOSchedulingAlgorithm extends SchedulingAlgorithm {
 
 private[spark] class FairSchedulingAlgorithm extends SchedulingAlgorithm {
   override def comparator(s1: Schedulable, s2: Schedulable): Boolean = {
+    /*
     val minShare1 = s1.minShare
     val minShare2 = s2.minShare
     val runningTasks1 = s1.runningTasks
@@ -69,6 +72,31 @@ private[spark] class FairSchedulingAlgorithm extends SchedulingAlgorithm {
       false
     } else {
       s1.name < s2.name
+    }
+    */
+    val poolName1 = s1.parent.poolName
+    val poolName2 = s2.parent.poolName
+    if (!PoolReweighterLoss.tokens.contains(poolName1)) {
+      if (PoolReweighterLoss.tokens.contains(poolName2)) {
+        return true
+      } else {
+        return false
+      }
+    } else if (!PoolReweighterLoss.tokens.contains(poolName2)) {
+      if (PoolReweighterLoss.tokens.contains(poolName1)) {
+        return true
+      } else {
+        return false
+      }
+    }
+    val tokens1 = PoolReweighterLoss.tokens(poolName1)
+    val tokens2 = PoolReweighterLoss.tokens(poolName2)
+    if(tokens1 < tokens2) {
+      return true
+    } else if (tokens1 > tokens2) {
+      return false
+    } else {
+      return poolName1 < poolName2
     }
   }
 }
