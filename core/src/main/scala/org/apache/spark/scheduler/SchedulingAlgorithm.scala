@@ -74,29 +74,20 @@ private[spark] class FairSchedulingAlgorithm extends SchedulingAlgorithm {
       s1.name < s2.name
     }
     */
-    val poolName1 = s1.parent.poolName
-    val poolName2 = s2.parent.poolName
+    val poolName1 = s1.name
+    val poolName2 = s2.name
     if (!PoolReweighterLoss.tokens.contains(poolName1)) {
-      if (PoolReweighterLoss.tokens.contains(poolName2)) {
-        return true
-      } else {
-        return false
-      }
+      true
     } else if (!PoolReweighterLoss.tokens.contains(poolName2)) {
-      if (PoolReweighterLoss.tokens.contains(poolName1)) {
-        return true
-      } else {
-        return false
-      }
-    }
-    val tokens1 = PoolReweighterLoss.tokens(poolName1)
-    val tokens2 = PoolReweighterLoss.tokens(poolName2)
-    if(tokens1 < tokens2) {
-      return true
-    } else if (tokens1 > tokens2) {
-      return false
+      false
     } else {
-      return poolName1 < poolName2
+      val tokens1 = PoolReweighterLoss.tokens(poolName1)
+      val tokens2 = PoolReweighterLoss.tokens(poolName2)
+      if(tokens1 > tokens2) {
+        true
+      } else {
+        false
+      }
     }
   }
 }

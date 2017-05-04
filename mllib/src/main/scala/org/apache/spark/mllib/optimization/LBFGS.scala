@@ -193,9 +193,7 @@ object LBFGS extends Logging {
       maxNumIterations: Int,
       regParam: Double,
       initialWeights: Vector): (Vector, Array[Double]) = {
-
     val lossHistory = mutable.ArrayBuilder.make[Double]
-
     val numExamples = data.count()
 
     val costFun =

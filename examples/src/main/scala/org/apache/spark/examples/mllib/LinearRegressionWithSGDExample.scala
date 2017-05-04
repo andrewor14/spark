@@ -24,6 +24,7 @@ import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.regression.LinearRegressionModel
 import org.apache.spark.mllib.regression.LinearRegressionWithSGD
+import org.apache.spark.mllib.util.MLUtils
 // $example off$
 
 @deprecated("Use ml.regression.LinearRegression or LBFGS", "2.0.0")
@@ -35,14 +36,9 @@ object LinearRegressionWithSGDExample {
 
     // $example on$
     // Load and parse the data
-    val data = sc.textFile("data/mllib/ridge-data/lpsa.data")
-    val parsedData = data.map { line =>
-      val parts = line.split(',')
-      LabeledPoint(parts(0).toDouble, Vectors.dense(parts(1).split(' ').map(_.toDouble)))
-    }.cache()
-
+    val parsedData = MLUtils.loadLibSVMFile(sc, "data/mllib/YearPredictionMSD")
     // Building the model
-    val numIterations = 100
+    val numIterations = 1000
     val stepSize = 0.00000001
     val model = LinearRegressionWithSGD.train(parsedData, numIterations, stepSize)
 
@@ -55,8 +51,9 @@ object LinearRegressionWithSGDExample {
     println("training Mean Squared Error = " + MSE)
 
     // Save and load model
-    model.save(sc, "target/tmp/scalaLinearRegressionWithSGDModel")
-    val sameModel = LinearRegressionModel.load(sc, "target/tmp/scalaLinearRegressionWithSGDModel")
+    // model.save(sc, "target/tmp/scalaLinearRegressionWithSGDModel")
+    // val sameModel =
+    // LinearRegressionModel.load(sc, "target/tmp/scalaLinearRegressionWithSGDModel")
     // $example off$
 
     sc.stop()

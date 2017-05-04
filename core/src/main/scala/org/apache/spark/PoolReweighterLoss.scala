@@ -182,6 +182,11 @@ object PoolReweighterLoss extends Logging {
         numExpIters(poolName) = numIter
       } else {
         weights += "0.0"
+        if (listener.avgTaskTime.contains(poolName)) {
+        val avgtt = listener.avgTaskTime(poolName)
+        weights += "\t" + (avgtt._2 - numTasksComplete(poolName))
+        numTasksComplete(poolName) = avgtt._2
+        }
       }
       tokens(poolName) = numCores * batchTime * 1000
       weights += "\n"
@@ -191,6 +196,7 @@ object PoolReweighterLoss extends Logging {
       // fair share:
       for ((poolName: String, numCores: Int) <- pool2numCores) {
         sc.setPoolWeight(poolName, 1)
+        tokens(poolName) = 1 * 1000 * batchTime
       }
     }
 

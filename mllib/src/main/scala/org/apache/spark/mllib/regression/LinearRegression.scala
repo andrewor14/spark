@@ -101,6 +101,7 @@ class LinearRegressionWithSGD private[mllib] (
     .setNumIterations(numIterations)
     .setRegParam(regParam)
     .setMiniBatchFraction(miniBatchFraction)
+    .setConvergenceTol(0)
 
   /**
    * Construct a LinearRegression object with default parameters: {stepSize: 1.0,

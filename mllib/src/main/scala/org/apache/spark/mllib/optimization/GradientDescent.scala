@@ -267,6 +267,7 @@ object GradientDescent extends Logging {
         // scalastyle:off
 
         PoolReweighterLoss.updateLoss(lossSum / miniBatchSize + regVal)
+        // logInfo(s"LOGAN curr loss: ${lossSum / miniBatchSize + regVal}")
 //        val model = new SVMModel(weights, 0.0)
 //        model.setThreshold(0)
 //        val scoresAndLabels = data.sample(false, 0.001, 42L)

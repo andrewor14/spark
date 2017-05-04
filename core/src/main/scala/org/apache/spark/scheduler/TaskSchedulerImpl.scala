@@ -333,6 +333,7 @@ private[spark] class TaskSchedulerImpl(
     // of locality levels so that it gets a chance to launch local tasks on all of them.
     // NOTE: the preferredLocality order: PROCESS_LOCAL, NODE_LOCAL, NO_PREF, RACK_LOCAL, ANY
     for (taskSet <- sortedTaskSets) {
+      val poolName = taskSet.parent.poolName
       var launchedAnyTask = false
       var launchedTaskAtCurrentMaxLocality = false
       for (currentMaxLocality <- taskSet.myLocalityLevels) {
@@ -346,7 +347,6 @@ private[spark] class TaskSchedulerImpl(
         taskSet.abortIfCompletelyBlacklisted(hostToExecutors)
       }
     }
-
     if (tasks.size > 0) {
       hasLaunchedTask = true
     }
